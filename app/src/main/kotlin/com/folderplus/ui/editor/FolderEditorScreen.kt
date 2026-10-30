@@ -53,6 +53,12 @@ import com.folderplus.ui.common.SwitchRow
 import com.folderplus.ui.common.TextInputDialog
 import com.folderplus.ui.common.label
 import com.folderplus.widget.WidgetPinner
+import com.folderplus.widget.WidgetUpdater
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** Which dialog the editor is showing; kept as a string so it survives rotation. */
 private const val DIALOG_NONE = ""
@@ -84,6 +90,15 @@ fun FolderEditorScreen(folderId: Long, onBack: () -> Unit, onManageApps: () -> U
 
     val current = folder ?: return
 
+    // How many placed widgets currently show this folder (so it's clear edits reach them).
+    var widgetCount by remember { mutableIntStateOf(0) }
+    LaunchedEffect(current.id, items) {
+        widgetCount = withContext(Dispatchers.IO) {
+            val placed = WidgetUpdater.placedWidgetIds(context).toSet()
+            context.graph.repository.widgetIdsForFolder(current.id).count { it in placed }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -103,7 +118,8 @@ fun FolderEditorScreen(folderId: Long, onBack: () -> Unit, onManageApps: () -> U
             item {
                 SettingRow(
                     title = stringResource(R.string.add_to_home),
-                    subtitle = current.widgetSize.label,
+                    subtitle = if (widgetCount == 0) stringResource(R.string.widgets_showing_none)
+                    else stringResource(R.string.widgets_showing_folder, widgetCount),
                     leading = { FolderIconImage(folder = current, size = 40.dp) },
                     trailing = { Icon(Icons.Default.AddToHomeScreen, contentDescription = null) },
                     onClick = {

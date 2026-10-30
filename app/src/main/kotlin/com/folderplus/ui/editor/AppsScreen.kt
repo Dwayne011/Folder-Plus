@@ -1,5 +1,6 @@
 package com.folderplus.ui.editor
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
@@ -18,9 +19,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material.icons.filled.DriveFileMove
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,6 +65,7 @@ import com.folderplus.core.model.SortMode
 import com.folderplus.core.sort.AppSorter
 import com.folderplus.graph
 import com.folderplus.ui.common.AppIconImage
+import com.folderplus.ui.common.ConfirmDialog
 import com.folderplus.ui.common.Option
 import com.folderplus.ui.common.OptionPickerDialog
 
@@ -75,6 +82,16 @@ fun AppsScreen(folderId: Long, onBack: () -> Unit, onAddApps: (categoryId: Long?
     var selectedCategory by rememberSaveable { mutableStateOf(-1L) } // -1 = All
     var categoryDialogFor by rememberSaveable { mutableStateOf(-1L) }
 
+    // Selection mode: tap rows to pick several apps, then move or remove them together.
+    var selecting by rememberSaveable { mutableStateOf(false) }
+    var selectedIds by rememberSaveable { mutableStateOf(setOf<Long>()) }
+    var bulkCategoryDialog by rememberSaveable { mutableStateOf(false) }
+    var bulkRemoveDialog by rememberSaveable { mutableStateOf(false) }
+    fun exitSelection() {
+        selecting = false
+        selectedIds = emptySet()
+    }
+
     val current = folder ?: return
     val manual = current.sortMode == SortMode.MANUAL
     val filtering = selectedCategory > 0
@@ -82,16 +99,40 @@ fun AppsScreen(folderId: Long, onBack: () -> Unit, onAddApps: (categoryId: Long?
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.apps_in_folder)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) }
-                },
-            )
+            if (selecting) {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.selected_count, selectedIds.size)) },
+                    navigationIcon = {
+                        IconButton(onClick = { exitSelection() }) { Icon(Icons.Default.Close, contentDescription = stringResource(R.string.clear_selection)) }
+                    },
+                    actions = {
+                        IconButton(enabled = selectedIds.isNotEmpty() && categories.isNotEmpty(), onClick = { bulkCategoryDialog = true }) {
+                            Icon(Icons.Default.DriveFileMove, contentDescription = stringResource(R.string.move_to_category))
+                        }
+                        IconButton(enabled = selectedIds.isNotEmpty(), onClick = { bulkRemoveDialog = true }) {
+                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.remove_from_folder))
+                        }
+                    },
+                )
+            } else {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.apps_in_folder)) },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) }
+                    },
+                    actions = {
+                        if (sortedItems.isNotEmpty()) {
+                            IconButton(onClick = { selecting = true }) { Icon(Icons.Default.Checklist, contentDescription = stringResource(R.string.select)) }
+                        }
+                    },
+                )
+            }
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { onAddApps(selectedCategory.takeIf { it > 0 }) }) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_apps))
+            if (!selecting) {
+                FloatingActionButton(onClick = { onAddApps(selectedCategory.takeIf { it > 0 }) }) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_apps))
+                }
             }
         },
     ) { padding ->
@@ -132,7 +173,12 @@ fun AppsScreen(folderId: Long, onBack: () -> Unit, onAddApps: (categoryId: Long?
                     categories = categories,
                     labelOf = vm::label,
                     isDefault = { it.app == current.defaultApp },
-                    dragEnabled = manual && !filtering,
+                    dragEnabled = manual && !filtering && !selecting,
+                    selecting = selecting,
+                    selectedIds = selectedIds,
+                    onToggleSelected = { item ->
+                        selectedIds = if (item.id in selectedIds) selectedIds - item.id else selectedIds + item.id
+                    },
                     onOrderCommitted = vm::saveManualOrder,
                     onSetDefault = { vm.setDefaultApp(it.app) },
                     onRemove = vm::removeItem,
@@ -140,6 +186,32 @@ fun AppsScreen(folderId: Long, onBack: () -> Unit, onAddApps: (categoryId: Long?
                 )
             }
         }
+    }
+
+    if (bulkCategoryDialog) {
+        OptionPickerDialog(
+            title = stringResource(R.string.move_to_category),
+            options = listOf(Option<Long?>(null, stringResource(R.string.category_none))) +
+                categories.map { Option<Long?>(it.id, it.name) },
+            selected = null,
+            onSelect = { target ->
+                vm.setItemsCategory(selectedIds, target)
+                exitSelection()
+            },
+            onDismiss = { bulkCategoryDialog = false },
+        )
+    }
+    if (bulkRemoveDialog) {
+        ConfirmDialog(
+            title = stringResource(R.string.remove_from_folder),
+            text = stringResource(R.string.remove_selected_confirm, selectedIds.size),
+            confirmText = stringResource(R.string.delete),
+            onConfirm = {
+                vm.removeItems(selectedIds)
+                exitSelection()
+            },
+            onDismiss = { bulkRemoveDialog = false },
+        )
     }
 
     if (categoryDialogFor > 0) {
@@ -170,6 +242,9 @@ private fun ReorderableAppList(
     labelOf: (com.folderplus.core.model.AppRef) -> String,
     isDefault: (FolderItem) -> Boolean,
     dragEnabled: Boolean,
+    selecting: Boolean,
+    selectedIds: Set<Long>,
+    onToggleSelected: (FolderItem) -> Unit,
     onOrderCommitted: (List<FolderItem>) -> Unit,
     onSetDefault: (FolderItem) -> Unit,
     onRemove: (FolderItem) -> Unit,
@@ -226,6 +301,9 @@ private fun ReorderableAppList(
                 categoryName = categories.firstOrNull { it.id == item.categoryId }?.name,
                 isDefault = isDefault(item),
                 showHandle = dragEnabled,
+                selecting = selecting,
+                selected = item.id in selectedIds,
+                onToggleSelected = { onToggleSelected(item) },
                 onSetDefault = { onSetDefault(item) },
                 onRemove = { onRemove(item) },
                 onChangeCategory = { onChangeCategory(item) },
@@ -250,6 +328,9 @@ private fun AppRow(
     categoryName: String?,
     isDefault: Boolean,
     showHandle: Boolean,
+    selecting: Boolean,
+    selected: Boolean,
+    onToggleSelected: () -> Unit,
     onSetDefault: () -> Unit,
     onRemove: () -> Unit,
     onChangeCategory: () -> Unit,
@@ -261,6 +342,10 @@ private fun AppRow(
         supportingContent = categoryName?.let { { Text(it) } },
         leadingContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                if (selecting) {
+                    Checkbox(checked = selected, onCheckedChange = { onToggleSelected() })
+                    Spacer(Modifier.width(4.dp))
+                }
                 if (showHandle) {
                     Icon(Icons.Default.DragHandle, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.width(8.dp))
@@ -271,14 +356,16 @@ private fun AppRow(
         trailingContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (isDefault) Icon(Icons.Default.Star, contentDescription = stringResource(R.string.default_app), tint = MaterialTheme.colorScheme.primary)
-                IconButton(onClick = { menu = true }) { Icon(Icons.Default.MoreVert, contentDescription = null) }
-                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(text = { Text(stringResource(R.string.set_as_default)) }, onClick = { menu = false; onSetDefault() })
-                    DropdownMenuItem(text = { Text(stringResource(R.string.move_to_category)) }, onClick = { menu = false; onChangeCategory() })
-                    DropdownMenuItem(text = { Text(stringResource(R.string.remove_from_folder)) }, onClick = { menu = false; onRemove() })
+                if (!selecting) {
+                    IconButton(onClick = { menu = true }) { Icon(Icons.Default.MoreVert, contentDescription = null) }
+                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.set_as_default)) }, onClick = { menu = false; onSetDefault() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.move_to_category)) }, onClick = { menu = false; onChangeCategory() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.remove_from_folder)) }, onClick = { menu = false; onRemove() })
+                    }
                 }
             }
         },
-        modifier = modifier.fillMaxWidth(),
+        modifier = if (selecting) modifier.fillMaxWidth().clickable(onClick = onToggleSelected) else modifier.fillMaxWidth(),
     )
 }

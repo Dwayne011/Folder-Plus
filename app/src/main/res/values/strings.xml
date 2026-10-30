@@ -98,7 +98,15 @@
     <string name="app_not_found">That app is no longer installed</string>
 
     <string name="config_title">Choose a folder for this widget</string>
-    <string name="config_no_folders">Create a folder in Folder Plus first.</string>
+    <string name="config_no_folders">You have no folders yet. Create one for this widget.</string>
+    <string name="config_or_create">Or create a new folder for this widget</string>
+    <string name="config_created_hint">Folder created and linked to this widget. Add apps to it next.</string>
+    <string name="widgets_showing_none">Not on the home screen yet</string>
+    <string name="widgets_showing_folder">Shown by %1$d home-screen widget(s). Edits here update all of them.</string>
+    <string name="select">Select</string>
+    <string name="selected_count">%1$d selected</string>
+    <string name="clear_selection">Clear selection</string>
+    <string name="remove_selected_confirm">Remove %1$d apps from this folder?</string>
     <string name="open_app">Open Folder Plus</string>
     <string name="settings">Settings</string>
 </resources>

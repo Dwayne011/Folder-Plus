@@ -104,8 +104,8 @@ object WidgetRenderer {
         val doubleTap = folder.effectiveDoubleTapAction
         when {
             doubleTap != TapAction.NONE ->
-                // Both gestures live on the same view; the receiver times them apart.
-                views.setOnClickPendingIntent(R.id.widget_main, tapBroadcast(context, appWidgetId))
+                // Both gestures live on the same view; WidgetTapActivity times them apart.
+                views.setOnClickPendingIntent(R.id.widget_main, gestureActivity(context, appWidgetId, folder.id))
             tap == TapAction.OPEN_FOLDER ->
                 views.setOnClickPendingIntent(R.id.widget_main, openFolder(context, appWidgetId, folder.id, ZONE_MAIN))
             tap == TapAction.LAUNCH_DEFAULT_APP -> {
@@ -185,10 +185,11 @@ object WidgetRenderer {
         return PendingIntent.getActivity(context, requestCode(appWidgetId, zone), intent, immutableFlags())
     }
 
-    private fun tapBroadcast(context: Context, appWidgetId: Int): PendingIntent {
-        val intent = Intent(context, WidgetTapReceiver::class.java)
-            .setAction(WidgetTapReceiver.ACTION_TAP)
-            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-        return PendingIntent.getBroadcast(context, requestCode(appWidgetId, ZONE_MAIN), intent, immutableFlags())
-    }
+    private fun gestureActivity(context: Context, appWidgetId: Int, folderId: Long): PendingIntent =
+        PendingIntent.getActivity(
+            context,
+            requestCode(appWidgetId, ZONE_MAIN),
+            WidgetTapActivity.intent(context, folderId),
+            immutableFlags(),
+        )
 }

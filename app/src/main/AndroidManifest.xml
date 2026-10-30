@@ -42,6 +42,16 @@
             android:taskAffinity="com.folderplus.popup"
             android:theme="@style/Theme.FolderPlus.Popup" />
 
+        <!-- Invisible activity that tells a single tap from a double tap on a widget. -->
+        <activity
+            android:name=".widget.WidgetTapActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:noHistory="true"
+            android:taskAffinity="com.folderplus.popup"
+            android:theme="@style/Theme.FolderPlus.Invisible" />
+
         <!-- Invisible trampoline used by widget quick-launch icons so usage is recorded. -->
         <activity
             android:name=".launch.AppLaunchActivity"
@@ -95,9 +105,6 @@
                 android:resource="@xml/widget_folder_4x1" />
         </receiver>
 
-        <receiver
-            android:name=".widget.WidgetTapReceiver"
-            android:exported="false" />
         <receiver
             android:name=".widget.WidgetPinReceiver"
             android:exported="false" />

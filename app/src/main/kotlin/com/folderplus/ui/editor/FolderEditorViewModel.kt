@@ -91,6 +91,18 @@ class FolderEditorViewModel(private val graph: Graph, val folderId: Long) : View
     }
     fun setItemCategory(item: FolderItem, categoryId: Long?) = afterChange { repo.setItemCategory(item.id, categoryId) }
 
+    /** Bulk versions used by the app list's selection mode. */
+    fun setItemsCategory(itemIds: Collection<Long>, categoryId: Long?) = afterChange {
+        itemIds.forEach { repo.setItemCategory(it, categoryId) }
+    }
+
+    fun removeItems(itemIds: Collection<Long>) = afterChange {
+        val f = repo.getFolder(folderId)
+        val removed = items.value.filter { it.id in itemIds }
+        itemIds.forEach { repo.removeItem(it) }
+        if (f != null && removed.any { it.app == f.defaultApp }) repo.updateFolder(f.copy(defaultApp = null))
+    }
+
     /** Persists a complete manual order (called when a drag ends). */
     fun saveManualOrder(ordered: List<FolderItem>) = afterChange { repo.saveManualOrder(ordered) }
 }

@@ -20,11 +20,17 @@ folder through a second gesture. Works on any launcher that supports widgets.
 
 Home-screen widgets only receive *click* events. The launcher owns long press
 (move/resize) and swipes (page scrolling), so no third-party widget can
-implement them. The two gestures that remain are a tap and a timed double tap,
-which `WidgetTapReceiver` tells apart using a 350 ms window
-(`core/.../gesture/TapResolver.kt`). When a double-tap action is configured a
-single tap is therefore delayed by that window; when it is not, taps fire
-immediately with no delay.
+implement them. The two gestures that remain are a tap and a timed double tap.
+
+When a folder has a double-tap action, its widget's main tap opens
+`WidgetTapActivity`, an invisible foreground activity. A second tap within
+about 400 ms either lands on that activity's transparent window or re-fires the
+widget's intent into it; both count as a double tap. If nothing arrives, the
+single-tap action runs. Doing this inside a foreground activity (rather than a
+broadcast receiver) sidesteps Android's background-activity-start
+restrictions, which silently block receivers from opening activities on many
+launchers. When no double-tap action is set, taps use direct intents with no
+delay.
 
 Launching *another app's widget* from a folder is likewise outside what a widget
 can do; that would require the app to host widgets itself (`AppWidgetHost`),
@@ -63,17 +69,17 @@ Minimum Android version: 8.0 (API 26). Target: Android 15 (API 35).
 
 1. Open Folder Plus, create a folder, add apps, optionally add categories.
 2. Pick a default app and choose what single tap / double tap do.
-3. Tap **Add to home screen** (or add a "Folder Plus" widget from your
-   launcher's widget picker and choose the folder).
-4. Optional: turn on a PIN or biometric lock in the folder's Security section.
+3. Add a "Folder Plus" widget from your launcher's widget picker and choose
+   (or create) the folder it shows, or tap **Add to home screen** in the
+   folder's settings. Either way, every widget showing a folder updates when
+   you edit that folder; "Add to home screen" always places an additional one.
+4. In a folder's app list, use the **Select** action to move or remove several
+   apps at once.
+5. Optional: turn on a PIN or biometric lock in the folder's Security section.
 
 ## Known limitations / to verify on device
 
 - Double tap relies on the launcher delivering widget clicks promptly; the
   350 ms window may need tuning per launcher.
-- Starting the folder popup from the tap receiver depends on the launcher
-  granting background-activity-start permission to widget click intents (stock
-  launchers do). If a launcher does not, set double tap to *Nothing*: single
-  taps then use direct activity intents, which always work.
 - "Widget size" is a request: Android launchers decide the final cell size, so
   the widget adapts to whatever size it is given.
