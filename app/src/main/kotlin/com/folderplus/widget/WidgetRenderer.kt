@@ -90,13 +90,17 @@ object WidgetRenderer {
         }
         val views = RemoteViews(context.packageName, layout)
         val density = context.resources.displayMetrics.density
-        val iconPx = (if (variant == WidgetVariant.LARGE) 64 else 48) * density
+        val iconPx = when (variant) {
+            WidgetVariant.LARGE -> 64
+            WidgetVariant.COMPACT, WidgetVariant.LABELED -> 58
+            WidgetVariant.WIDE -> 44
+        } * density
 
         views.setImageViewBitmap(R.id.widget_icon, IconComposer.folderIcon(context, folder, items, apps, iconPx.toInt()))
         views.setTextViewText(R.id.widget_label, folder.name)
         views.setViewVisibility(
             R.id.widget_label,
-            if (folder.showLabel && variant != WidgetVariant.COMPACT) View.VISIBLE else View.GONE,
+            if (folder.showLabel && folder.name.isNotBlank() && variant != WidgetVariant.COMPACT) View.VISIBLE else View.GONE,
         )
 
         // Main tap zone.

@@ -59,6 +59,7 @@ import com.folderplus.ui.common.SetPinDialog
 import com.folderplus.ui.common.SettingRow
 import com.folderplus.ui.common.SwitchRow
 import com.folderplus.ui.common.TextInputDialog
+import com.folderplus.ui.common.displayName
 import com.folderplus.ui.common.label
 import com.folderplus.widget.WidgetPinner
 import com.folderplus.widget.WidgetUpdater
@@ -110,7 +111,7 @@ fun FolderEditorScreen(folderId: Long, onBack: () -> Unit, onManageApps: () -> U
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(current.name) },
+                title = { Text(current.displayName()) },
                 navigationIcon = {
                     IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) }
                 },
@@ -216,6 +217,16 @@ fun FolderEditorScreen(folderId: Long, onBack: () -> Unit, onManageApps: () -> U
                     },
                 )
             }
+            if (categories.isNotEmpty()) {
+                item {
+                    SwitchRow(
+                        title = stringResource(R.string.show_all_tab),
+                        subtitle = stringResource(R.string.show_all_tab_hint),
+                        checked = current.showAllCategory,
+                        onCheckedChange = vm::setShowAllCategory,
+                    )
+                }
+            }
             items(categories.size, key = { "cat-" + categories[it].id }) { index ->
                 val category = categories[index]
                 CategoryRow(
@@ -286,13 +297,15 @@ private fun EditorDialogs(
             title = stringResource(R.string.rename),
             label = stringResource(R.string.folder_name),
             initial = folder.name,
+            placeholder = stringResource(R.string.folder_name_hint),
+            allowBlank = true,
             onConfirm = vm::rename,
             onDismiss = onDismiss,
         )
 
         dialog == DIALOG_DELETE -> ConfirmDialog(
             title = stringResource(R.string.delete_folder),
-            text = stringResource(R.string.delete_folder_confirm, folder.name),
+            text = stringResource(R.string.delete_folder_confirm, folder.displayName()),
             confirmText = stringResource(R.string.delete),
             onConfirm = { vm.deleteFolder(onDeleted) },
             onDismiss = onDismiss,

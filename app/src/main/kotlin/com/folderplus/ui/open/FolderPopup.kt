@@ -10,12 +10,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -28,11 +30,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,10 +44,16 @@ import com.folderplus.core.model.AppRef
 import com.folderplus.core.model.Category
 import com.folderplus.core.model.Folder
 import com.folderplus.core.model.FolderItem
+import com.folderplus.core.model.SortMode
 import com.folderplus.core.sort.AppSorter
 import com.folderplus.ui.common.AppIconImage
+import kotlinx.coroutines.launch
+import kotlin.math.ceil
 
-/** Scrim + centred card with category chips and an app grid. */
+/** One swipeable page of the popup. */
+private data class Tab(val title: String, val items: List<FolderItem>)
+
+/** Scrim + centred card with category chips and a swipeable app grid per category. */
 @Composable
 fun FolderPopup(
     folder: Folder,
@@ -60,11 +65,19 @@ fun FolderPopup(
     onDismiss: () -> Unit,
     onShowWidget: (() -> Unit)? = null,
 ) {
-    var selectedCategory by rememberSaveable { mutableStateOf(-1L) }
-    val category = categories.firstOrNull { it.id == selectedCategory }
-    val shown = remember(items, category, folder.sortMode) {
-        val filtered = if (category == null) items else items.filter { it.categoryId == category.id }
-        AppSorter.sort(filtered, category?.sortMode ?: folder.sortMode) { labelOf(it.app) }
+    val allLabel = stringResource(R.string.category_all)
+    val otherLabel = stringResource(R.string.category_other)
+    val tabs = remember(folder, categories, items, allLabel, otherLabel) {
+        buildTabs(folder, categories, items, labelOf, allLabel, otherLabel)
+    }
+    val pagerState = rememberPagerState(pageCount = { tabs.size })
+    val scope = rememberCoroutineScope()
+
+    // Tall enough for the fullest page (assuming ~4 columns), capped so the card stays a popup.
+    val pagerHeight = remember(tabs) {
+        val maxCount = tabs.maxOfOrNull { it.items.size } ?: 0
+        val rows = ceil(maxCount / 4f).toInt().coerceAtLeast(1)
+        (rows * 96 + 16).coerceIn(112, 440).dp
     }
 
     Box(
@@ -86,49 +99,66 @@ fun FolderPopup(
         ) {
             Column(Modifier.padding(top = 8.dp, bottom = 12.dp)) {
                 Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(folder.name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        folder.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                     if (onShowWidget != null) {
                         IconButton(onClick = onShowWidget) { Icon(Icons.Default.Widgets, contentDescription = stringResource(R.string.show_widget)) }
                     }
                     IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings)) }
                 }
-                if (categories.isNotEmpty()) {
+                if (tabs.size > 1) {
                     Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp)) {
-                        FilterChip(selected = category == null, onClick = { selectedCategory = -1L }, label = { Text(stringResource(R.string.category_all)) }, modifier = Modifier.padding(end = 8.dp))
-                        categories.forEach { c ->
-                            FilterChip(selected = c.id == selectedCategory, onClick = { selectedCategory = c.id }, label = { Text(c.name) }, modifier = Modifier.padding(end = 8.dp))
+                        tabs.forEachIndexed { index, tab ->
+                            FilterChip(
+                                selected = pagerState.currentPage == index,
+                                onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                                label = { Text(tab.title) },
+                                modifier = Modifier.padding(end = 8.dp),
+                            )
                         }
                     }
                 }
-                if (shown.isEmpty()) {
-                    Text(
-                        stringResource(R.string.folder_empty),
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.fillMaxWidth().padding(24.dp),
-                    )
-                } else {
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minSize = 76.dp),
-                        modifier = Modifier.heightIn(max = 440.dp).padding(horizontal = 8.dp, vertical = 8.dp),
-                    ) {
-                        items(shown, key = { it.id }) { item ->
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier
-                                    .padding(4.dp)
-                                    .clickable { onLaunch(item) }
-                                    .padding(vertical = 8.dp, horizontal = 2.dp),
-                            ) {
-                                AppIconImage(app = item.app, size = 48.dp)
-                                Spacer(Modifier.padding(top = 4.dp))
-                                Text(
-                                    labelOf(item.app),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                    textAlign = TextAlign.Center,
-                                )
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxWidth().height(pagerHeight),
+                    verticalAlignment = Alignment.Top,
+                ) { page ->
+                    val shown = tabs[page].items
+                    if (shown.isEmpty()) {
+                        Text(
+                            stringResource(R.string.folder_empty),
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.fillMaxWidth().padding(24.dp),
+                        )
+                    } else {
+                        LazyVerticalGrid(
+                            columns = GridCells.Adaptive(minSize = 76.dp),
+                            modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 8.dp),
+                        ) {
+                            items(shown, key = { it.id }) { item ->
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier
+                                        .padding(4.dp)
+                                        .clickable { onLaunch(item) }
+                                        .padding(vertical = 8.dp, horizontal = 2.dp),
+                                ) {
+                                    AppIconImage(app = item.app, size = 48.dp)
+                                    Spacer(Modifier.padding(top = 4.dp))
+                                    Text(
+                                        labelOf(item.app),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                        textAlign = TextAlign.Center,
+                                    )
+                                }
                             }
                         }
                     }
@@ -136,4 +166,33 @@ fun FolderPopup(
             }
         }
     }
+}
+
+/**
+ * Pages: "All" (unless hidden and categories exist), one per category, and
+ * "Other" for uncategorised apps when "All" is hidden. Each page is sorted by
+ * the category's override or the folder's sort mode.
+ */
+private fun buildTabs(
+    folder: Folder,
+    categories: List<Category>,
+    items: List<FolderItem>,
+    labelOf: (AppRef) -> String,
+    allLabel: String,
+    otherLabel: String,
+): List<Tab> {
+    fun sorted(list: List<FolderItem>, mode: SortMode) = AppSorter.sort(list, mode) { labelOf(it.app) }
+    if (categories.isEmpty()) return listOf(Tab(allLabel, sorted(items, folder.sortMode)))
+
+    val tabs = mutableListOf<Tab>()
+    if (folder.showAllCategory) tabs += Tab(allLabel, sorted(items, folder.sortMode))
+    categories.forEach { category ->
+        tabs += Tab(category.name, sorted(items.filter { it.categoryId == category.id }, category.sortMode ?: folder.sortMode))
+    }
+    if (!folder.showAllCategory) {
+        val knownIds = categories.map { it.id }.toSet()
+        val other = items.filter { it.categoryId == null || it.categoryId !in knownIds }
+        if (other.isNotEmpty()) tabs += Tab(otherLabel, sorted(other, folder.sortMode))
+    }
+    return tabs
 }

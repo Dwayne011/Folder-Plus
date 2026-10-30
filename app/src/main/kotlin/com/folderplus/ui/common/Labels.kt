@@ -3,6 +3,7 @@ package com.folderplus.ui.common
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.folderplus.R
+import com.folderplus.core.model.Folder
 import com.folderplus.core.model.FolderIconMode
 import com.folderplus.core.model.LockMode
 import com.folderplus.core.model.SortMode
@@ -48,3 +49,7 @@ fun FolderIconMode.label(): String = stringResource(
         FolderIconMode.GLYPH -> R.string.icon_glyph
     },
 )
+
+/** Folder names may be blank (no label on the widget); the app still needs something to show. */
+@Composable
+fun Folder.displayName(): String = name.ifBlank { stringResource(R.string.untitled_folder) }

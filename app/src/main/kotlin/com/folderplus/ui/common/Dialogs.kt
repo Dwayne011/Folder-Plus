@@ -79,6 +79,8 @@ fun TextInputDialog(
     label: String,
     initial: String = "",
     confirmText: String = stringResource(R.string.save),
+    allowBlank: Boolean = false,
+    placeholder: String? = null,
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -91,12 +93,13 @@ fun TextInputDialog(
                 value = text,
                 onValueChange = { text = it },
                 label = { Text(label) },
+                placeholder = placeholder?.let { { Text(it) } },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
         },
         confirmButton = {
-            TextButton(enabled = text.isNotBlank(), onClick = { onConfirm(text.trim()); onDismiss() }) { Text(confirmText) }
+            TextButton(enabled = allowBlank || text.isNotBlank(), onClick = { onConfirm(text.trim()); onDismiss() }) { Text(confirmText) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )

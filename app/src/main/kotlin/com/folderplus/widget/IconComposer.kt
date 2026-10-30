@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.toBitmap
 import com.folderplus.R
 import com.folderplus.apps.InstalledApps
@@ -36,18 +37,17 @@ object IconComposer {
     fun glyph(context: Context, sizePx: Int): Bitmap =
         ContextCompat.getDrawable(context, R.drawable.ic_folder)!!.toBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
 
+    /** Launcher-style folder: a translucent disc holding up to four icons in a 2x2 grid. */
     private fun mosaic(context: Context, icons: List<Bitmap>, sizePx: Int): Bitmap {
         val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        val accent = ContextCompat.getColor(context, R.color.widget_glyph)
-        val bg = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = accent
-            alpha = 56
+        val disc = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = ColorUtils.setAlphaComponent(ContextCompat.getColor(context, R.color.widget_folder_disc), 0xCC)
         }
-        val radius = sizePx * 0.22f
-        canvas.drawRoundRect(RectF(0f, 0f, sizePx.toFloat(), sizePx.toFloat()), radius, radius, bg)
+        val half = sizePx / 2f
+        canvas.drawCircle(half, half, half, disc)
 
-        val pad = sizePx * 0.10f
+        val pad = sizePx * 0.14f
         val gap = sizePx * 0.06f
         val cell = (sizePx - 2 * pad - gap) / 2f
         val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)

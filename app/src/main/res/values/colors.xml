@@ -5,4 +5,5 @@
     <color name="widget_text">#DE000000</color>
     <color name="widget_badge_background">#3F51B5</color>
     <color name="widget_glyph">#3F51B5</color>
+    <color name="widget_folder_disc">#2E3133</color>
 </resources>

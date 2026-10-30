@@ -39,6 +39,7 @@ import com.folderplus.core.model.Folder
 import com.folderplus.graph
 import com.folderplus.ui.common.FolderIconImage
 import com.folderplus.ui.common.TextInputDialog
+import com.folderplus.ui.common.displayName
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -87,7 +88,7 @@ fun FolderListScreen(onOpenFolder: (Long) -> Unit) {
             LazyColumn(Modifier.fillMaxSize().padding(padding)) {
                 items(rows, key = { it.folder.id }) { row ->
                     ListItem(
-                        headlineContent = { Text(row.folder.name) },
+                        headlineContent = { Text(row.folder.displayName()) },
                         supportingContent = { Text(stringResource(R.string.apps_count, row.appCount)) },
                         leadingContent = { FolderIconImage(folder = row.folder, size = 44.dp) },
                         trailingContent = if (row.folder.lockMode.isLocked) {
@@ -106,7 +107,9 @@ fun FolderListScreen(onOpenFolder: (Long) -> Unit) {
         TextInputDialog(
             title = stringResource(R.string.new_folder),
             label = stringResource(R.string.folder_name),
+            placeholder = stringResource(R.string.folder_name_hint),
             confirmText = stringResource(R.string.create),
+            allowBlank = true,
             onConfirm = { name -> vm.create(name, onOpenFolder) },
             onDismiss = { showCreate = false },
         )

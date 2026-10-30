@@ -32,6 +32,8 @@ data class FolderEntity(
     // Added in schema v2: the app widget this folder can show in its popup.
     val hostedWidgetProvider: String? = null,
     @ColumnInfo(defaultValue = "0") val hostedWidgetId: Int = 0,
+    // Added in schema v3.
+    @ColumnInfo(defaultValue = "1") val showAllCategory: Boolean = true,
 )
 
 @Entity(
@@ -92,6 +94,7 @@ fun FolderEntity.toModel() = Folder(
     showLabel = showLabel,
     position = position,
     hostedWidget = hostedWidgetProvider?.takeIf { hostedWidgetId > 0 }?.let { HostedWidget(it, hostedWidgetId) },
+    showAllCategory = showAllCategory,
 )
 
 fun Folder.toEntity() = FolderEntity(
@@ -108,6 +111,7 @@ fun Folder.toEntity() = FolderEntity(
     position = position,
     hostedWidgetProvider = hostedWidget?.provider,
     hostedWidgetId = hostedWidget?.appWidgetId ?: 0,
+    showAllCategory = showAllCategory,
 )
 
 fun CategoryEntity.toModel() = Category(id, folderId, name, position, sortMode)

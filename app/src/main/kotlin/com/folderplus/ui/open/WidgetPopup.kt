@@ -33,6 +33,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.folderplus.R
 import com.folderplus.core.model.Folder
 import com.folderplus.core.model.HostedWidget
+import com.folderplus.ui.common.displayName
 import com.folderplus.widget.HostedWidgets
 
 /** Scrim + centred card showing the folder's hosted app widget, live. */
@@ -66,7 +67,7 @@ fun WidgetPopup(
             Column(Modifier.padding(top = 8.dp, bottom = 12.dp)) {
                 Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        if (info != null) hostedWidgets.label(info) else folder.name,
+                        if (info != null) hostedWidgets.label(info) else folder.displayName(),
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.weight(1f),
                         maxLines = 1,

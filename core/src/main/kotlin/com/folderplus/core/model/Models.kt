@@ -111,6 +111,8 @@ data class Folder(
     val showLabel: Boolean = true,
     val position: Int = 0,
     val hostedWidget: HostedWidget? = null,
+    /** Whether the popup offers an "All" tab in addition to the folder's categories. */
+    val showAllCategory: Boolean = true,
 ) {
     /** True when [action] can actually run given the folder's current configuration. */
     fun supports(action: TapAction): Boolean = when (action) {

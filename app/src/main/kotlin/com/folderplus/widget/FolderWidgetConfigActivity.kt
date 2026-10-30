@@ -45,6 +45,7 @@ import com.folderplus.graph
 import com.folderplus.ui.MainActivity
 import com.folderplus.ui.common.FolderIconImage
 import com.folderplus.ui.common.TextInputDialog
+import com.folderplus.ui.common.displayName
 import com.folderplus.ui.theme.FolderPlusTheme
 import kotlinx.coroutines.launch
 
@@ -119,7 +120,7 @@ private fun ConfigScreen(folders: List<Folder>, onPick: (Folder) -> Unit, onCrea
             LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
                 items(folders, key = { it.id }) { folder ->
                     ListItem(
-                        headlineContent = { Text(folder.name) },
+                        headlineContent = { Text(folder.displayName()) },
                         supportingContent = { Text(folder.widgetSize.label) },
                         leadingContent = { FolderIconImage(folder = folder, size = 40.dp) },
                         modifier = Modifier.fillMaxWidth().clickable { onPick(folder) },
@@ -142,7 +143,9 @@ private fun ConfigScreen(folders: List<Folder>, onPick: (Folder) -> Unit, onCrea
         TextInputDialog(
             title = stringResource(R.string.new_folder),
             label = stringResource(R.string.folder_name),
+            placeholder = stringResource(R.string.folder_name_hint),
             confirmText = stringResource(R.string.create),
+            allowBlank = true,
             onConfirm = onCreate,
             onDismiss = { showCreate = false },
         )

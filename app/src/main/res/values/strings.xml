@@ -13,6 +13,11 @@
     <string name="folders_empty">No folders yet. Create one, then add it to your home screen as a widget.</string>
     <string name="new_folder">New folder</string>
     <string name="folder_name">Folder name</string>
+    <string name="folder_name_hint">Leave blank for no label</string>
+    <string name="untitled_folder">Untitled folder</string>
+    <string name="show_all_tab">Show “All” tab</string>
+    <string name="show_all_tab_hint">Off: only your categories, plus “Other” for apps without one</string>
+    <string name="category_other">Other</string>
     <string name="create">Create</string>
     <string name="cancel">Cancel</string>
     <string name="save">Save</string>
