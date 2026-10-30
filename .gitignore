@@ -18,3 +18,4 @@ captures/
 *.jks
 *.keystore
 dist/
+.kotlin/
