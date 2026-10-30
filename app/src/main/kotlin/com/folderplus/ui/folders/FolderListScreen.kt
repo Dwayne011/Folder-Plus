@@ -16,17 +16,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import com.folderplus.ui.common.SectionTitle
+import com.folderplus.ui.common.SettingsGroup
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -132,10 +139,14 @@ fun FolderListScreen(onOpenFolder: (Long) -> Unit) {
         if (uri != null) pendingImport = uri
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.folders_title)) },
+            LargeTopAppBar(
+                title = { Text(stringResource(R.string.app_name)) },
+                scrollBehavior = scrollBehavior,
                 actions = {
                     IconButton(onClick = { menuOpen = true }) { Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.more)) }
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
@@ -159,9 +170,11 @@ fun FolderListScreen(onOpenFolder: (Long) -> Unit) {
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showCreate = true }) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_folder))
-            }
+            ExtendedFloatingActionButton(
+                onClick = { showCreate = true },
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text(stringResource(R.string.new_folder)) },
+            )
         },
     ) { padding ->
         if (rows.isEmpty()) {
@@ -174,18 +187,32 @@ fun FolderListScreen(onOpenFolder: (Long) -> Unit) {
                 )
             }
         } else {
-            LazyColumn(Modifier.fillMaxSize().padding(padding)) {
-                items(rows, key = { it.folder.id }) { row ->
-                    ListItem(
-                        headlineContent = { Text(row.folder.displayName()) },
-                        supportingContent = { Text(stringResource(R.string.apps_count, row.appCount)) },
-                        leadingContent = { FolderIconImage(folder = row.folder, size = 44.dp) },
-                        trailingContent = if (row.folder.lockMode.isLocked) {
-                            { Icon(Icons.Default.Lock, contentDescription = null) }
-                        } else {
-                            null
-                        },
-                        modifier = Modifier.fillMaxWidth().clickable { onOpenFolder(row.folder.id) },
+            LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = 96.dp)) {
+                item { SectionTitle(stringResource(R.string.folders_title)) }
+                item {
+                    SettingsGroup(rows = rows.map<FolderRow, @Composable () -> Unit> { row ->
+                        {
+                            ListItem(
+                                headlineContent = { Text(row.folder.displayName()) },
+                                supportingContent = { Text(stringResource(R.string.apps_count, row.appCount)) },
+                                leadingContent = { FolderIconImage(folder = row.folder, size = 44.dp) },
+                                trailingContent = if (row.folder.lockMode.isLocked) {
+                                    { Icon(Icons.Default.Lock, contentDescription = null) }
+                                } else {
+                                    null
+                                },
+                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                modifier = Modifier.fillMaxWidth().clickable { onOpenFolder(row.folder.id) },
+                            )
+                        }
+                    })
+                }
+                item {
+                    Text(
+                        stringResource(R.string.backup_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp),
                     )
                 }
             }

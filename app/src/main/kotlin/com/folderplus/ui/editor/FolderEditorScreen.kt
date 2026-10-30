@@ -6,36 +6,65 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Widgets
-import com.folderplus.widget.HostedWidgetPickerActivity
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddToHomeScreen
+import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.AspectRatio
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.filled.Gesture
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Label
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Pin
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Tab
+import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -54,18 +83,18 @@ import com.folderplus.ui.common.ConfirmDialog
 import com.folderplus.ui.common.FolderIconImage
 import com.folderplus.ui.common.Option
 import com.folderplus.ui.common.OptionPickerDialog
-import com.folderplus.ui.common.SectionHeader
+import com.folderplus.ui.common.RowIcon
+import com.folderplus.ui.common.SectionTitle
 import com.folderplus.ui.common.SetPinDialog
 import com.folderplus.ui.common.SettingRow
+import com.folderplus.ui.common.SettingsGroup
 import com.folderplus.ui.common.SwitchRow
 import com.folderplus.ui.common.TextInputDialog
 import com.folderplus.ui.common.displayName
 import com.folderplus.ui.common.label
+import com.folderplus.widget.HostedWidgetPickerActivity
 import com.folderplus.widget.WidgetPinner
 import com.folderplus.widget.WidgetUpdater
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -108,145 +137,242 @@ fun FolderEditorScreen(folderId: Long, onBack: () -> Unit, onManageApps: () -> U
         }
     }
 
+    val hosted = current.hostedWidget
+    val hostedLabel = remember(hosted) {
+        hosted?.let { h -> context.graph.hostedWidgets.info(h.appWidgetId)?.let { context.graph.hostedWidgets.label(it) } }
+    }
+    val widgetPicker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val data = result.data
+        val provider = data?.getStringExtra(HostedWidgetPickerActivity.EXTRA_PROVIDER)
+        val id = data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 0) ?: 0
+        if (result.resultCode == Activity.RESULT_OK && provider != null && id > 0) vm.setHostedWidget(provider, id)
+    }
+
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text(current.displayName()) },
+            LargeTopAppBar(
+                title = { Text(current.displayName(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
                     IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) }
                 },
                 actions = {
                     IconButton(onClick = { dialog = DIALOG_RENAME }) { Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.rename)) }
-                    IconButton(onClick = { dialog = DIALOG_DELETE }) { Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete_folder)) }
                 },
+                scrollBehavior = scrollBehavior,
             )
         },
     ) { padding ->
-        LazyColumn(Modifier.fillMaxSize().padding(padding)) {
-            item { SectionHeader(stringResource(R.string.section_widget)) }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            contentPadding = PaddingValues(bottom = 32.dp),
+        ) {
+            // Hero: the folder as it looks on the home screen.
             item {
-                SettingRow(
-                    title = stringResource(R.string.add_to_home),
-                    subtitle = if (widgetCount == 0) stringResource(R.string.widgets_showing_none)
-                    else stringResource(R.string.widgets_showing_folder, widgetCount),
-                    leading = { FolderIconImage(folder = current, size = 40.dp) },
-                    trailing = { Icon(Icons.Default.AddToHomeScreen, contentDescription = null) },
-                    onClick = {
-                        if (!WidgetPinner.pin(context, current)) {
-                            Toast.makeText(context, R.string.pin_not_supported, Toast.LENGTH_LONG).show()
-                        }
-                    },
-                )
-            }
-            item {
-                SettingRow(
-                    title = stringResource(R.string.widget_size),
-                    subtitle = current.widgetSize.label + " · " + stringResource(R.string.widget_size_hint),
-                    onClick = { dialog = DIALOG_SIZE },
-                )
-            }
-            item { SettingRow(title = stringResource(R.string.icon_mode), subtitle = current.iconMode.label(), onClick = { dialog = DIALOG_ICON }) }
-            item { SwitchRow(title = stringResource(R.string.show_label), checked = current.showLabel, onCheckedChange = vm::setShowLabel) }
-
-            item { HorizontalDivider() }
-            item { SectionHeader(stringResource(R.string.section_behaviour)) }
-            item {
-                val defaultApp = current.defaultApp
-                SettingRow(
-                    title = stringResource(R.string.default_app),
-                    subtitle = defaultApp?.let { vm.label(it) } ?: stringResource(R.string.default_app_none),
-                    leading = defaultApp?.let { { AppIconImage(app = it, size = 32.dp) } },
-                    onClick = { dialog = DIALOG_DEFAULT },
-                )
-            }
-            item {
-                val hosted = current.hostedWidget
-                val hostedLabel = remember(hosted) {
-                    hosted?.let { h -> context.graph.hostedWidgets.info(h.appWidgetId)?.let { context.graph.hostedWidgets.label(it) } }
-                }
-                val widgetPicker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                    val data = result.data
-                    val provider = data?.getStringExtra(HostedWidgetPickerActivity.EXTRA_PROVIDER)
-                    val id = data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 0) ?: 0
-                    if (result.resultCode == Activity.RESULT_OK && provider != null && id > 0) vm.setHostedWidget(provider, id)
-                }
-                SettingRow(
-                    title = stringResource(R.string.hosted_widget),
-                    subtitle = when {
-                        hosted == null -> stringResource(R.string.hosted_widget_none)
-                        hostedLabel == null -> stringResource(R.string.hosted_widget_unavailable)
-                        else -> hostedLabel
-                    },
-                    leading = { Icon(Icons.Default.Widgets, contentDescription = null) },
-                    trailing = if (hosted != null) {
-                        { IconButton(onClick = vm::clearHostedWidget) { Icon(Icons.Default.Close, contentDescription = stringResource(R.string.remove_widget)) } }
-                    } else {
-                        null
-                    },
-                    onClick = { widgetPicker.launch(Intent(context, HostedWidgetPickerActivity::class.java)) },
-                )
-            }
-            item { SettingRow(title = stringResource(R.string.single_tap), subtitle = current.tapAction.label(), onClick = { dialog = DIALOG_TAP }) }
-            item {
-                SettingRow(
-                    title = stringResource(R.string.double_tap),
-                    subtitle = current.doubleTapAction.label() +
-                        if (current.doubleTapAction != TapAction.NONE) "\n" + stringResource(R.string.double_tap_hint) else "",
-                    onClick = { dialog = DIALOG_DOUBLE_TAP },
-                )
-            }
-
-            item { HorizontalDivider() }
-            item { SectionHeader(stringResource(R.string.section_contents)) }
-            item {
-                SettingRow(
-                    title = stringResource(R.string.apps_in_folder),
-                    subtitle = stringResource(R.string.apps_count, items.size),
-                    onClick = onManageApps,
-                )
-            }
-            item { SettingRow(title = stringResource(R.string.sort_mode), subtitle = current.sortMode.label(), onClick = { dialog = DIALOG_SORT }) }
-            item {
-                SettingRow(
-                    title = stringResource(R.string.categories),
-                    subtitle = stringResource(R.string.categories_count, categories.size),
-                    trailing = {
-                        IconButton(onClick = { dialog = DIALOG_NEW_CATEGORY }) {
-                            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_category))
-                        }
-                    },
-                )
-            }
-            if (categories.isNotEmpty()) {
-                item {
-                    SwitchRow(
-                        title = stringResource(R.string.show_all_tab),
-                        subtitle = stringResource(R.string.show_all_tab_hint),
-                        checked = current.showAllCategory,
-                        onCheckedChange = vm::setShowAllCategory,
+                Column(
+                    Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    FolderIconImage(folder = current, size = 96.dp)
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        stringResource(R.string.apps_count, items.size) + " · " + stringResource(R.string.categories_count, categories.size),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
-            items(categories.size, key = { "cat-" + categories[it].id }) { index ->
-                val category = categories[index]
-                CategoryRow(
-                    category = category,
-                    inheritedSort = current.sortMode,
-                    onRename = { dialog = DIALOG_RENAME_CATEGORY + category.id },
-                    onSort = { dialog = DIALOG_CATEGORY_SORT + category.id },
-                    onDelete = { dialog = DIALOG_DELETE_CATEGORY + category.id },
-                )
+
+            item { SectionTitle(stringResource(R.string.section_widget)) }
+            item {
+                SettingsGroup(rows = listOf(
+                    {
+                        SettingRow(
+                            title = stringResource(R.string.add_to_home),
+                            subtitle = if (widgetCount == 0) stringResource(R.string.widgets_showing_none)
+                            else stringResource(R.string.widgets_showing_folder, widgetCount),
+                            leading = { RowIcon(Icons.Default.AddToHomeScreen) },
+                            onClick = {
+                                if (!WidgetPinner.pin(context, current)) {
+                                    Toast.makeText(context, R.string.pin_not_supported, Toast.LENGTH_LONG).show()
+                                }
+                            },
+                        )
+                    },
+                    {
+                        SettingRow(
+                            title = stringResource(R.string.widget_size),
+                            subtitle = current.widgetSize.label + " · " + stringResource(R.string.widget_size_hint),
+                            leading = { RowIcon(Icons.Default.AspectRatio) },
+                            onClick = { dialog = DIALOG_SIZE },
+                        )
+                    },
+                    {
+                        SettingRow(
+                            title = stringResource(R.string.icon_mode),
+                            subtitle = current.iconMode.label(),
+                            leading = { RowIcon(Icons.Default.Image) },
+                            onClick = { dialog = DIALOG_ICON },
+                        )
+                    },
+                    {
+                        SwitchRow(
+                            title = stringResource(R.string.show_label),
+                            checked = current.showLabel,
+                            onCheckedChange = vm::setShowLabel,
+                            leading = { RowIcon(Icons.Default.Label) },
+                        )
+                    },
+                ))
             }
 
-            item { HorizontalDivider() }
-            item { SectionHeader(stringResource(R.string.section_security)) }
-            item { SettingRow(title = stringResource(R.string.lock_mode), subtitle = current.lockMode.label(), onClick = { dialog = DIALOG_LOCK }) }
+            item { SectionTitle(stringResource(R.string.section_behaviour)) }
             item {
-                SettingRow(
-                    title = stringResource(if (vm.hasPin) R.string.change_pin else R.string.set_pin),
-                    subtitle = stringResource(if (vm.hasPin) R.string.pin_set else R.string.pin_not_set),
-                    onClick = { dialog = DIALOG_SET_PIN },
+                val defaultApp = current.defaultApp
+                SettingsGroup(rows = listOf(
+                    {
+                        SettingRow(
+                            title = stringResource(R.string.default_app),
+                            subtitle = defaultApp?.let { vm.label(it) } ?: stringResource(R.string.default_app_none),
+                            leading = if (defaultApp != null) {
+                                { AppIconImage(app = defaultApp, size = 28.dp) }
+                            } else {
+                                { RowIcon(Icons.Default.Star) }
+                            },
+                            onClick = { dialog = DIALOG_DEFAULT },
+                        )
+                    },
+                    {
+                        SettingRow(
+                            title = stringResource(R.string.hosted_widget),
+                            subtitle = when {
+                                hosted == null -> stringResource(R.string.hosted_widget_none)
+                                hostedLabel == null -> stringResource(R.string.hosted_widget_unavailable)
+                                else -> hostedLabel
+                            },
+                            leading = { RowIcon(Icons.Default.Widgets) },
+                            trailing = if (hosted != null) {
+                                { IconButton(onClick = vm::clearHostedWidget) { Icon(Icons.Default.Close, contentDescription = stringResource(R.string.remove_widget)) } }
+                            } else {
+                                null
+                            },
+                            onClick = { widgetPicker.launch(Intent(context, HostedWidgetPickerActivity::class.java)) },
+                        )
+                    },
+                    {
+                        SettingRow(
+                            title = stringResource(R.string.single_tap),
+                            subtitle = current.tapAction.label(),
+                            leading = { RowIcon(Icons.Default.TouchApp) },
+                            onClick = { dialog = DIALOG_TAP },
+                        )
+                    },
+                    {
+                        SettingRow(
+                            title = stringResource(R.string.double_tap),
+                            subtitle = current.doubleTapAction.label() +
+                                if (current.doubleTapAction != TapAction.NONE) "\n" + stringResource(R.string.double_tap_hint) else "",
+                            leading = { RowIcon(Icons.Default.Gesture) },
+                            onClick = { dialog = DIALOG_DOUBLE_TAP },
+                        )
+                    },
+                ))
+            }
+
+            item { SectionTitle(stringResource(R.string.section_contents)) }
+            item {
+                val rows = mutableListOf<@Composable () -> Unit>(
+                    {
+                        SettingRow(
+                            title = stringResource(R.string.apps_in_folder),
+                            subtitle = stringResource(R.string.apps_count, items.size),
+                            leading = { RowIcon(Icons.Default.Apps) },
+                            trailing = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+                            onClick = onManageApps,
+                        )
+                    },
+                    {
+                        SettingRow(
+                            title = stringResource(R.string.sort_mode),
+                            subtitle = current.sortMode.label(),
+                            leading = { RowIcon(Icons.AutoMirrored.Filled.Sort) },
+                            onClick = { dialog = DIALOG_SORT },
+                        )
+                    },
+                    {
+                        SettingRow(
+                            title = stringResource(R.string.categories),
+                            subtitle = stringResource(R.string.categories_count, categories.size),
+                            leading = { RowIcon(Icons.Default.Category) },
+                            trailing = {
+                                IconButton(onClick = { dialog = DIALOG_NEW_CATEGORY }) {
+                                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_category))
+                                }
+                            },
+                        )
+                    },
                 )
+                if (categories.isNotEmpty()) {
+                    rows.add {
+                        SwitchRow(
+                            title = stringResource(R.string.show_all_tab),
+                            subtitle = stringResource(R.string.show_all_tab_hint),
+                            checked = current.showAllCategory,
+                            onCheckedChange = vm::setShowAllCategory,
+                            leading = { RowIcon(Icons.Default.Tab) },
+                        )
+                    }
+                }
+                categories.forEach { category ->
+                    rows.add {
+                        CategoryRow(
+                            category = category,
+                            inheritedSort = current.sortMode,
+                            onRename = { dialog = DIALOG_RENAME_CATEGORY + category.id },
+                            onSort = { dialog = DIALOG_CATEGORY_SORT + category.id },
+                            onDelete = { dialog = DIALOG_DELETE_CATEGORY + category.id },
+                        )
+                    }
+                }
+                SettingsGroup(rows = rows)
+            }
+
+            item { SectionTitle(stringResource(R.string.section_security)) }
+            item {
+                SettingsGroup(rows = listOf(
+                    {
+                        SettingRow(
+                            title = stringResource(R.string.lock_mode),
+                            subtitle = current.lockMode.label(),
+                            leading = { RowIcon(Icons.Default.Lock) },
+                            onClick = { dialog = DIALOG_LOCK },
+                        )
+                    },
+                    {
+                        SettingRow(
+                            title = stringResource(if (vm.hasPin) R.string.change_pin else R.string.set_pin),
+                            subtitle = stringResource(if (vm.hasPin) R.string.pin_set else R.string.pin_not_set),
+                            leading = { RowIcon(Icons.Default.Pin) },
+                            onClick = { dialog = DIALOG_SET_PIN },
+                        )
+                    },
+                ))
+            }
+
+            item { Spacer(Modifier.height(24.dp)) }
+            item {
+                SettingsGroup(rows = listOf(
+                    {
+                        ListItem(
+                            headlineContent = { Text(stringResource(R.string.delete_folder), color = MaterialTheme.colorScheme.error) },
+                            leadingContent = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            modifier = Modifier.clickable { dialog = DIALOG_DELETE },
+                        )
+                    },
+                ))
             }
         }
     }
@@ -269,6 +395,7 @@ private fun CategoryRow(category: Category, inheritedSort: SortMode, onRename: (
     SettingRow(
         title = category.name,
         subtitle = (category.sortMode ?: inheritedSort).label(),
+        leading = { RowIcon(Icons.Default.FolderOpen) },
         trailing = {
             IconButton(onClick = { menu = true }) { Icon(Icons.Default.MoreVert, contentDescription = null) }
             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {

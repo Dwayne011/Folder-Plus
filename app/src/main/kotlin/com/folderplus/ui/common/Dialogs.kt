@@ -10,10 +10,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -21,8 +23,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.Icon
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -165,7 +172,10 @@ fun SetPinDialog(onSet: (String) -> Unit, onDismiss: () -> Unit) {
     )
 }
 
-/** Settings-style row used across the editor. */
+/**
+ * Settings-style row. Transparent so it takes the colour of the
+ * [SettingsGroup] surface it sits on.
+ */
 @Composable
 fun SettingRow(
     title: String,
@@ -180,18 +190,43 @@ fun SettingRow(
         supportingContent = subtitle?.let { { Text(it) } },
         leadingContent = leading,
         trailingContent = trailing,
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = if (onClick != null) Modifier.clickable(enabled = enabled, onClick = onClick) else Modifier,
     )
 }
 
+/** Row with a trailing switch; the thumb shows a tick when on, per Material 3 guidance. */
 @Composable
-fun SwitchRow(title: String, subtitle: String? = null, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+fun SwitchRow(
+    title: String,
+    subtitle: String? = null,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    leading: (@Composable () -> Unit)? = null,
+) {
     SettingRow(
         title = title,
         subtitle = subtitle,
+        leading = leading,
         onClick = { onCheckedChange(!checked) },
-        trailing = { Switch(checked = checked, onCheckedChange = onCheckedChange) },
+        trailing = {
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                thumbContent = if (checked) {
+                    { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(SwitchDefaults.IconSize)) }
+                } else {
+                    null
+                },
+            )
+        },
     )
+}
+
+/** Tinted leading icon for settings rows. */
+@Composable
+fun RowIcon(icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable
