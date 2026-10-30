@@ -16,7 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import com.folderplus.R
 import com.folderplus.core.model.Folder
 import com.folderplus.core.model.FolderItem
@@ -25,6 +24,9 @@ import com.folderplus.launch.AppLauncher
 import com.folderplus.ui.MainActivity
 import com.folderplus.ui.theme.FolderPlusTheme
 import com.folderplus.widget.WidgetUpdater
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -95,8 +97,9 @@ class FolderOpenActivity : FragmentActivity() {
 
     private fun launch(folder: Folder, item: FolderItem) {
         if (AppLauncher.launch(this, item.app)) {
+            // Not lifecycleScope: finish() below would cancel it before the write lands.
             val appContext = applicationContext
-            lifecycleScope.launch {
+            CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
                 appContext.graph.repository.recordLaunch(item.id)
                 WidgetUpdater.updateForFolder(appContext, folder.id)
             }

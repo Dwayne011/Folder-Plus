@@ -75,12 +75,21 @@ class FolderRepository(private val db: FolderPlusDatabase) {
         db.items().updateAll(renumbered.map { it.toEntity() })
     }
 
-    /** Removes items whose apps were uninstalled. Returns how many were removed. */
-    suspend fun pruneMissingApps(installed: Set<AppRef>): Int {
+    /**
+     * Removes items whose apps were uninstalled and clears default apps that
+     * point at them. Returns how many items were removed.
+     */
+    suspend fun pruneMissingApps(installed: Set<AppRef>): Int = db.withTransaction {
         val all = db.items().getAll()
         val missing = all.filter { entity -> AppRef.unflatten(entity.app)?.let { it !in installed } ?: true }
         if (missing.isNotEmpty()) db.items().deleteEntities(missing)
-        return missing.size
+        db.folders().getAll().forEach { entity ->
+            val default = entity.defaultApp?.let(AppRef::unflatten)
+            if (entity.defaultApp != null && (default == null || default !in installed)) {
+                db.folders().update(entity.copy(defaultApp = null))
+            }
+        }
+        missing.size
     }
 
     // ---- widget bindings ----

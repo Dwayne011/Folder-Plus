@@ -4,6 +4,8 @@ import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import android.widget.Toast
 import com.folderplus.R
 import com.folderplus.core.model.AppRef
@@ -19,10 +21,18 @@ object AppLauncher {
         context.startActivity(intentFor(app))
         true
     } catch (e: ActivityNotFoundException) {
-        Toast.makeText(context, R.string.app_not_found, Toast.LENGTH_SHORT).show()
+        notFound(context)
         false
     } catch (e: SecurityException) {
-        Toast.makeText(context, R.string.app_not_found, Toast.LENGTH_SHORT).show()
+        notFound(context)
         false
+    }
+
+    /** Callers may be on a background thread (widget tap receiver); toasts need the main looper. */
+    private fun notFound(context: Context) {
+        val appContext = context.applicationContext
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(appContext, R.string.app_not_found, Toast.LENGTH_SHORT).show()
+        }
     }
 }
