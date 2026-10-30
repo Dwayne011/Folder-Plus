@@ -64,6 +64,7 @@ fun FolderPopup(
     onOpenSettings: () -> Unit,
     onDismiss: () -> Unit,
     onShowWidget: (() -> Unit)? = null,
+    frosting: Int = Folder.DEFAULT_FROSTING,
 ) {
     val allLabel = stringResource(R.string.category_all)
     val otherLabel = stringResource(R.string.category_other)
@@ -83,13 +84,13 @@ fun FolderPopup(
     Box(
         Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.45f))
+            .background(Color.Black.copy(alpha = scrimAlpha(frosting)))
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDismiss),
         contentAlignment = Alignment.Center,
     ) {
         Surface(
             shape = RoundedCornerShape(28.dp),
-            tonalElevation = 6.dp,
+            color = popupContainerColor(frosting),
             modifier = Modifier
                 .padding(24.dp)
                 .widthIn(max = 420.dp)
@@ -97,31 +98,36 @@ fun FolderPopup(
                 // Swallow clicks so they don't reach the scrim.
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = {}),
         ) {
-            Column(Modifier.padding(top = 8.dp, bottom = 12.dp)) {
-                Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.padding(top = 4.dp, bottom = 8.dp)) {
+                if (folder.name.isNotBlank()) {
                     Text(
                         folder.name,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
+                }
+                // One compact row: category chips on the left, actions on the right. No empty header.
+                Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (tabs.size > 1) {
+                        Row(Modifier.weight(1f).horizontalScroll(rememberScrollState())) {
+                            tabs.forEachIndexed { index, tab ->
+                                FilterChip(
+                                    selected = pagerState.currentPage == index,
+                                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                                    label = { Text(tab.title) },
+                                    modifier = Modifier.padding(end = 8.dp),
+                                )
+                            }
+                        }
+                    } else {
+                        Spacer(Modifier.weight(1f))
+                    }
                     if (onShowWidget != null) {
                         IconButton(onClick = onShowWidget) { Icon(Icons.Default.Widgets, contentDescription = stringResource(R.string.show_widget)) }
                     }
                     IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings)) }
-                }
-                if (tabs.size > 1) {
-                    Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp)) {
-                        tabs.forEachIndexed { index, tab ->
-                            FilterChip(
-                                selected = pagerState.currentPage == index,
-                                onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                                label = { Text(tab.title) },
-                                modifier = Modifier.padding(end = 8.dp),
-                            )
-                        }
-                    }
                 }
                 HorizontalPager(
                     state = pagerState,

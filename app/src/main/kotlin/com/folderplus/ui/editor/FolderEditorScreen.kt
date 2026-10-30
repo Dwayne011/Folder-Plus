@@ -7,40 +7,42 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddToHomeScreen
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.AspectRatio
-import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Gesture
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Pin
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tab
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.Widgets
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
@@ -48,11 +50,13 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -97,6 +101,7 @@ import com.folderplus.widget.WidgetPinner
 import com.folderplus.widget.WidgetUpdater
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 
 /** Which dialog the editor is showing; kept as a string so it survives rotation. */
 private const val DIALOG_NONE = ""
@@ -116,9 +121,49 @@ private const val DIALOG_RENAME_CATEGORY = "rename_category:"
 private const val DIALOG_DELETE_CATEGORY = "delete_category:"
 private const val DIALOG_CATEGORY_SORT = "category_sort:"
 
+/** Shared scaffold for the editor and its sub-pages: large collapsing title, back arrow, optional actions. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FolderEditorScreen(folderId: Long, onBack: () -> Unit, onManageApps: () -> Unit) {
+private fun EditorScaffold(
+    title: String,
+    onBack: () -> Unit,
+    actions: @Composable () -> Unit = {},
+    content: androidx.compose.foundation.lazy.LazyListScope.() -> Unit,
+) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            LargeTopAppBar(
+                title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) }
+                },
+                actions = { actions() },
+                scrollBehavior = scrollBehavior,
+            )
+        },
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            contentPadding = PaddingValues(bottom = 32.dp),
+            content = content,
+        )
+    }
+}
+
+/**
+ * Main folder page: a hero with the two things people do most (put it on the
+ * home screen, edit its apps) and one short list. Details live on sub-pages.
+ */
+@Composable
+fun FolderEditorScreen(
+    folderId: Long,
+    onBack: () -> Unit,
+    onManageApps: () -> Unit,
+    onGestures: () -> Unit,
+    onAppearance: () -> Unit,
+) {
     val context = LocalContext.current
     val vm: FolderEditorViewModel = viewModel(key = "editor-$folderId") { FolderEditorViewModel(context.graph, folderId) }
     val folder by vm.folder.collectAsStateWithLifecycle()
@@ -128,252 +173,115 @@ fun FolderEditorScreen(folderId: Long, onBack: () -> Unit, onManageApps: () -> U
 
     val current = folder ?: return
 
-    // How many placed widgets currently show this folder (so it's clear edits reach them).
-    var widgetCount by remember { mutableIntStateOf(0) }
-    LaunchedEffect(current.id, items) {
-        widgetCount = withContext(Dispatchers.IO) {
-            val placed = WidgetUpdater.placedWidgetIds(context).toSet()
-            context.graph.repository.widgetIdsForFolder(current.id).count { it in placed }
-        }
-    }
-
-    val hosted = current.hostedWidget
-    val hostedLabel = remember(hosted) {
-        hosted?.let { h -> context.graph.hostedWidgets.info(h.appWidgetId)?.let { context.graph.hostedWidgets.label(it) } }
-    }
-    val widgetPicker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val data = result.data
-        val provider = data?.getStringExtra(HostedWidgetPickerActivity.EXTRA_PROVIDER)
-        val id = data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 0) ?: 0
-        if (result.resultCode == Activity.RESULT_OK && provider != null && id > 0) vm.setHostedWidget(provider, id)
-    }
-
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            LargeTopAppBar(
-                title = { Text(current.displayName(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) }
-                },
-                actions = {
-                    IconButton(onClick = { dialog = DIALOG_RENAME }) { Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.rename)) }
-                },
-                scrollBehavior = scrollBehavior,
-            )
+    EditorScaffold(
+        title = current.displayName(),
+        onBack = onBack,
+        actions = {
+            IconButton(onClick = { dialog = DIALOG_RENAME }) { Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.rename)) }
         },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(bottom = 32.dp),
-        ) {
-            // Hero: the folder as it looks on the home screen.
-            item {
-                Column(
-                    Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    FolderIconImage(folder = current, size = 96.dp)
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        stringResource(R.string.apps_count, items.size) + " · " + stringResource(R.string.categories_count, categories.size),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    ) {
+        item {
+            Column(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                FolderIconImage(folder = current, size = 96.dp)
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    stringResource(R.string.apps_categories_summary, items.size, categories.size),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(16.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    FilledTonalButton(onClick = {
+                        if (!WidgetPinner.pin(context, current)) {
+                            Toast.makeText(context, R.string.pin_not_supported, Toast.LENGTH_LONG).show()
+                        }
+                    }) {
+                        Icon(Icons.Default.AddToHomeScreen, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                        Text(stringResource(R.string.add_to_home))
+                    }
+                    FilledTonalButton(onClick = onManageApps) {
+                        Icon(Icons.Default.Apps, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                        Text(stringResource(R.string.edit_apps))
+                    }
+                }
+            }
+        }
+
+        item { SectionTitle(stringResource(R.string.section_folder)) }
+        item {
+            val chevron: @Composable () -> Unit = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) }
+            val rows = mutableListOf<@Composable () -> Unit>(
+                {
+                    SettingRow(
+                        title = stringResource(R.string.apps_and_categories),
+                        subtitle = stringResource(R.string.apps_categories_summary, items.size, categories.size),
+                        leading = { RowIcon(Icons.Default.Apps) },
+                        trailing = chevron,
+                        onClick = onManageApps,
+                    )
+                },
+                {
+                    SettingRow(
+                        title = stringResource(R.string.sort_mode),
+                        subtitle = current.sortMode.label(),
+                        leading = { RowIcon(Icons.AutoMirrored.Filled.Sort) },
+                        onClick = { dialog = DIALOG_SORT },
+                    )
+                },
+                {
+                    SettingRow(
+                        title = stringResource(R.string.taps),
+                        subtitle = stringResource(R.string.taps_summary, current.effectiveTapAction.label(), current.effectiveDoubleTapAction.label()),
+                        leading = { RowIcon(Icons.Default.TouchApp) },
+                        trailing = chevron,
+                        onClick = onGestures,
+                    )
+                },
+                {
+                    SettingRow(
+                        title = stringResource(R.string.appearance),
+                        subtitle = current.iconMode.label() + " · " + current.widgetSize.label,
+                        leading = { RowIcon(Icons.Default.Palette) },
+                        trailing = chevron,
+                        onClick = onAppearance,
+                    )
+                },
+                {
+                    SettingRow(
+                        title = stringResource(R.string.lock_mode),
+                        subtitle = current.lockMode.label(),
+                        leading = { RowIcon(Icons.Default.Lock) },
+                        onClick = { dialog = DIALOG_LOCK },
+                    )
+                },
+            )
+            if (current.lockMode.allowsPin) {
+                rows.add {
+                    SettingRow(
+                        title = stringResource(if (vm.hasPin) R.string.change_pin else R.string.set_pin),
+                        subtitle = stringResource(if (vm.hasPin) R.string.pin_set else R.string.pin_not_set),
+                        leading = { RowIcon(Icons.Default.Pin) },
+                        onClick = { dialog = DIALOG_SET_PIN },
                     )
                 }
             }
+            SettingsGroup(rows = rows)
+        }
 
-            item { SectionTitle(stringResource(R.string.section_widget)) }
-            item {
-                SettingsGroup(rows = listOf(
-                    {
-                        SettingRow(
-                            title = stringResource(R.string.add_to_home),
-                            subtitle = if (widgetCount == 0) stringResource(R.string.widgets_showing_none)
-                            else stringResource(R.string.widgets_showing_folder, widgetCount),
-                            leading = { RowIcon(Icons.Default.AddToHomeScreen) },
-                            onClick = {
-                                if (!WidgetPinner.pin(context, current)) {
-                                    Toast.makeText(context, R.string.pin_not_supported, Toast.LENGTH_LONG).show()
-                                }
-                            },
-                        )
-                    },
-                    {
-                        SettingRow(
-                            title = stringResource(R.string.widget_size),
-                            subtitle = current.widgetSize.label + " · " + stringResource(R.string.widget_size_hint),
-                            leading = { RowIcon(Icons.Default.AspectRatio) },
-                            onClick = { dialog = DIALOG_SIZE },
-                        )
-                    },
-                    {
-                        SettingRow(
-                            title = stringResource(R.string.icon_mode),
-                            subtitle = current.iconMode.label(),
-                            leading = { RowIcon(Icons.Default.Image) },
-                            onClick = { dialog = DIALOG_ICON },
-                        )
-                    },
-                    {
-                        SwitchRow(
-                            title = stringResource(R.string.show_label),
-                            checked = current.showLabel,
-                            onCheckedChange = vm::setShowLabel,
-                            leading = { RowIcon(Icons.Default.Label) },
-                        )
-                    },
-                ))
-            }
-
-            item { SectionTitle(stringResource(R.string.section_behaviour)) }
-            item {
-                val defaultApp = current.defaultApp
-                SettingsGroup(rows = listOf(
-                    {
-                        SettingRow(
-                            title = stringResource(R.string.default_app),
-                            subtitle = defaultApp?.let { vm.label(it) } ?: stringResource(R.string.default_app_none),
-                            leading = if (defaultApp != null) {
-                                { AppIconImage(app = defaultApp, size = 28.dp) }
-                            } else {
-                                { RowIcon(Icons.Default.Star) }
-                            },
-                            onClick = { dialog = DIALOG_DEFAULT },
-                        )
-                    },
-                    {
-                        SettingRow(
-                            title = stringResource(R.string.hosted_widget),
-                            subtitle = when {
-                                hosted == null -> stringResource(R.string.hosted_widget_none)
-                                hostedLabel == null -> stringResource(R.string.hosted_widget_unavailable)
-                                else -> hostedLabel
-                            },
-                            leading = { RowIcon(Icons.Default.Widgets) },
-                            trailing = if (hosted != null) {
-                                { IconButton(onClick = vm::clearHostedWidget) { Icon(Icons.Default.Close, contentDescription = stringResource(R.string.remove_widget)) } }
-                            } else {
-                                null
-                            },
-                            onClick = { widgetPicker.launch(Intent(context, HostedWidgetPickerActivity::class.java)) },
-                        )
-                    },
-                    {
-                        SettingRow(
-                            title = stringResource(R.string.single_tap),
-                            subtitle = current.tapAction.label(),
-                            leading = { RowIcon(Icons.Default.TouchApp) },
-                            onClick = { dialog = DIALOG_TAP },
-                        )
-                    },
-                    {
-                        SettingRow(
-                            title = stringResource(R.string.double_tap),
-                            subtitle = current.doubleTapAction.label() +
-                                if (current.doubleTapAction != TapAction.NONE) "\n" + stringResource(R.string.double_tap_hint) else "",
-                            leading = { RowIcon(Icons.Default.Gesture) },
-                            onClick = { dialog = DIALOG_DOUBLE_TAP },
-                        )
-                    },
-                ))
-            }
-
-            item { SectionTitle(stringResource(R.string.section_contents)) }
-            item {
-                val rows = mutableListOf<@Composable () -> Unit>(
-                    {
-                        SettingRow(
-                            title = stringResource(R.string.apps_in_folder),
-                            subtitle = stringResource(R.string.apps_count, items.size),
-                            leading = { RowIcon(Icons.Default.Apps) },
-                            trailing = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-                            onClick = onManageApps,
-                        )
-                    },
-                    {
-                        SettingRow(
-                            title = stringResource(R.string.sort_mode),
-                            subtitle = current.sortMode.label(),
-                            leading = { RowIcon(Icons.AutoMirrored.Filled.Sort) },
-                            onClick = { dialog = DIALOG_SORT },
-                        )
-                    },
-                    {
-                        SettingRow(
-                            title = stringResource(R.string.categories),
-                            subtitle = stringResource(R.string.categories_count, categories.size),
-                            leading = { RowIcon(Icons.Default.Category) },
-                            trailing = {
-                                IconButton(onClick = { dialog = DIALOG_NEW_CATEGORY }) {
-                                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_category))
-                                }
-                            },
-                        )
-                    },
-                )
-                if (categories.isNotEmpty()) {
-                    rows.add {
-                        SwitchRow(
-                            title = stringResource(R.string.show_all_tab),
-                            subtitle = stringResource(R.string.show_all_tab_hint),
-                            checked = current.showAllCategory,
-                            onCheckedChange = vm::setShowAllCategory,
-                            leading = { RowIcon(Icons.Default.Tab) },
-                        )
-                    }
-                }
-                categories.forEach { category ->
-                    rows.add {
-                        CategoryRow(
-                            category = category,
-                            inheritedSort = current.sortMode,
-                            onRename = { dialog = DIALOG_RENAME_CATEGORY + category.id },
-                            onSort = { dialog = DIALOG_CATEGORY_SORT + category.id },
-                            onDelete = { dialog = DIALOG_DELETE_CATEGORY + category.id },
-                        )
-                    }
-                }
-                SettingsGroup(rows = rows)
-            }
-
-            item { SectionTitle(stringResource(R.string.section_security)) }
-            item {
-                SettingsGroup(rows = listOf(
-                    {
-                        SettingRow(
-                            title = stringResource(R.string.lock_mode),
-                            subtitle = current.lockMode.label(),
-                            leading = { RowIcon(Icons.Default.Lock) },
-                            onClick = { dialog = DIALOG_LOCK },
-                        )
-                    },
-                    {
-                        SettingRow(
-                            title = stringResource(if (vm.hasPin) R.string.change_pin else R.string.set_pin),
-                            subtitle = stringResource(if (vm.hasPin) R.string.pin_set else R.string.pin_not_set),
-                            leading = { RowIcon(Icons.Default.Pin) },
-                            onClick = { dialog = DIALOG_SET_PIN },
-                        )
-                    },
-                ))
-            }
-
-            item { Spacer(Modifier.height(24.dp)) }
-            item {
-                SettingsGroup(rows = listOf(
-                    {
-                        ListItem(
-                            headlineContent = { Text(stringResource(R.string.delete_folder), color = MaterialTheme.colorScheme.error) },
-                            leadingContent = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                            modifier = Modifier.clickable { dialog = DIALOG_DELETE },
-                        )
-                    },
-                ))
-            }
+        item { Spacer(Modifier.height(24.dp)) }
+        item {
+            SettingsGroup(rows = listOf(
+                {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.delete_folder), color = MaterialTheme.colorScheme.error) },
+                        leadingContent = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier.clickable { dialog = DIALOG_DELETE },
+                    )
+                },
+            ))
         }
     }
 
@@ -389,22 +297,227 @@ fun FolderEditorScreen(folderId: Long, onBack: () -> Unit, onManageApps: () -> U
     )
 }
 
+/** Sub-page: what single and double taps do, plus the default app and hosted widget they can use. */
 @Composable
-private fun CategoryRow(category: Category, inheritedSort: SortMode, onRename: () -> Unit, onSort: () -> Unit, onDelete: () -> Unit) {
-    var menu by rememberSaveable { mutableStateOf(false) }
-    SettingRow(
-        title = category.name,
-        subtitle = (category.sortMode ?: inheritedSort).label(),
-        leading = { RowIcon(Icons.Default.FolderOpen) },
-        trailing = {
-            IconButton(onClick = { menu = true }) { Icon(Icons.Default.MoreVert, contentDescription = null) }
-            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                DropdownMenuItem(text = { Text(stringResource(R.string.rename)) }, onClick = { menu = false; onRename() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.sort_mode)) }, onClick = { menu = false; onSort() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.delete)) }, onClick = { menu = false; onDelete() })
-            }
-        },
+fun GesturesScreen(folderId: Long, onBack: () -> Unit) {
+    val context = LocalContext.current
+    val vm: FolderEditorViewModel = viewModel(key = "editor-$folderId") { FolderEditorViewModel(context.graph, folderId) }
+    val folder by vm.folder.collectAsStateWithLifecycle()
+    val categories by vm.categories.collectAsStateWithLifecycle()
+    val items by vm.items.collectAsStateWithLifecycle()
+    var dialog by rememberSaveable { mutableStateOf(DIALOG_NONE) }
+    val current = folder ?: return
+
+    val hosted = current.hostedWidget
+    val hostedLabel = remember(hosted) {
+        hosted?.let { h -> context.graph.hostedWidgets.info(h.appWidgetId)?.let { context.graph.hostedWidgets.label(it) } }
+    }
+    val widgetPicker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val data = result.data
+        val provider = data?.getStringExtra(HostedWidgetPickerActivity.EXTRA_PROVIDER)
+        val id = data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 0) ?: 0
+        if (result.resultCode == Activity.RESULT_OK && provider != null && id > 0) vm.setHostedWidget(provider, id)
+    }
+
+    EditorScaffold(title = stringResource(R.string.taps), onBack = onBack) {
+        item { SectionTitle(stringResource(R.string.section_behaviour)) }
+        item {
+            SettingsGroup(rows = listOf(
+                {
+                    SettingRow(
+                        title = stringResource(R.string.single_tap),
+                        subtitle = current.tapAction.label(),
+                        leading = { RowIcon(Icons.Default.TouchApp) },
+                        onClick = { dialog = DIALOG_TAP },
+                    )
+                },
+                {
+                    SettingRow(
+                        title = stringResource(R.string.double_tap),
+                        subtitle = current.doubleTapAction.label(),
+                        leading = { RowIcon(Icons.Default.Gesture) },
+                        onClick = { dialog = DIALOG_DOUBLE_TAP },
+                    )
+                },
+            ))
+        }
+        item {
+            Text(
+                stringResource(R.string.double_tap_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp),
+            )
+        }
+        item { SectionTitle(stringResource(R.string.taps_targets)) }
+        item {
+            val defaultApp = current.defaultApp
+            SettingsGroup(rows = listOf(
+                {
+                    SettingRow(
+                        title = stringResource(R.string.default_app),
+                        subtitle = defaultApp?.let { vm.label(it) } ?: stringResource(R.string.default_app_none),
+                        leading = if (defaultApp != null) {
+                            { AppIconImage(app = defaultApp, size = 28.dp) }
+                        } else {
+                            { RowIcon(Icons.Default.Star) }
+                        },
+                        onClick = { dialog = DIALOG_DEFAULT },
+                    )
+                },
+                {
+                    SettingRow(
+                        title = stringResource(R.string.hosted_widget),
+                        subtitle = when {
+                            hosted == null -> stringResource(R.string.hosted_widget_none)
+                            hostedLabel == null -> stringResource(R.string.hosted_widget_unavailable)
+                            else -> hostedLabel
+                        },
+                        leading = { RowIcon(Icons.Default.Widgets) },
+                        trailing = if (hosted != null) {
+                            { IconButton(onClick = vm::clearHostedWidget) { Icon(Icons.Default.Close, contentDescription = stringResource(R.string.remove_widget)) } }
+                        } else {
+                            null
+                        },
+                        onClick = { widgetPicker.launch(Intent(context, HostedWidgetPickerActivity::class.java)) },
+                    )
+                },
+            ))
+        }
+    }
+
+    EditorDialogs(
+        dialog = dialog,
+        folder = current,
+        categories = categories,
+        itemApps = items.map { it.app },
+        vm = vm,
+        onDismiss = { dialog = DIALOG_NONE },
+        onShow = { dialog = it },
+        onDeleted = onBack,
     )
+}
+
+/** Sub-page: how the home-screen widget and the popup look. */
+@Composable
+fun AppearanceScreen(folderId: Long, onBack: () -> Unit) {
+    val context = LocalContext.current
+    val vm: FolderEditorViewModel = viewModel(key = "editor-$folderId") { FolderEditorViewModel(context.graph, folderId) }
+    val folder by vm.folder.collectAsStateWithLifecycle()
+    val categories by vm.categories.collectAsStateWithLifecycle()
+    val items by vm.items.collectAsStateWithLifecycle()
+    var dialog by rememberSaveable { mutableStateOf(DIALOG_NONE) }
+    val current = folder ?: return
+
+    var widgetCount by remember { mutableIntStateOf(0) }
+    LaunchedEffect(current.id, items) {
+        widgetCount = withContext(Dispatchers.IO) {
+            val placed = WidgetUpdater.placedWidgetIds(context).toSet()
+            context.graph.repository.widgetIdsForFolder(current.id).count { it in placed }
+        }
+    }
+
+    EditorScaffold(title = stringResource(R.string.appearance), onBack = onBack) {
+        item { SectionTitle(stringResource(R.string.widget_section)) }
+        item {
+            SettingsGroup(rows = listOf(
+                {
+                    SettingRow(
+                        title = stringResource(R.string.add_to_home),
+                        subtitle = if (widgetCount == 0) stringResource(R.string.widgets_showing_none)
+                        else stringResource(R.string.widgets_showing_folder, widgetCount),
+                        leading = { RowIcon(Icons.Default.AddToHomeScreen) },
+                        onClick = {
+                            if (!WidgetPinner.pin(context, current)) {
+                                Toast.makeText(context, R.string.pin_not_supported, Toast.LENGTH_LONG).show()
+                            }
+                        },
+                    )
+                },
+                {
+                    SettingRow(
+                        title = stringResource(R.string.widget_size),
+                        subtitle = current.widgetSize.label + " · " + stringResource(R.string.widget_size_hint),
+                        leading = { RowIcon(Icons.Default.AspectRatio) },
+                        onClick = { dialog = DIALOG_SIZE },
+                    )
+                },
+                {
+                    SettingRow(
+                        title = stringResource(R.string.icon_mode),
+                        subtitle = current.iconMode.label(),
+                        leading = { RowIcon(Icons.Default.Image) },
+                        onClick = { dialog = DIALOG_ICON },
+                    )
+                },
+                {
+                    SwitchRow(
+                        title = stringResource(R.string.show_label),
+                        checked = current.showLabel,
+                        onCheckedChange = vm::setShowLabel,
+                        leading = { RowIcon(Icons.Default.Label) },
+                    )
+                },
+            ))
+        }
+
+        item { SectionTitle(stringResource(R.string.popup_section)) }
+        item {
+            val rows = mutableListOf<@Composable () -> Unit>(
+                {
+                    FrostingRow(level = current.frosting, onCommit = vm::setFrosting)
+                },
+            )
+            if (categories.isNotEmpty()) {
+                rows.add {
+                    SwitchRow(
+                        title = stringResource(R.string.show_all_tab),
+                        subtitle = stringResource(R.string.show_all_tab_hint),
+                        checked = current.showAllCategory,
+                        onCheckedChange = vm::setShowAllCategory,
+                        leading = { RowIcon(Icons.Default.Tab) },
+                    )
+                }
+            }
+            SettingsGroup(rows = rows)
+        }
+    }
+
+    EditorDialogs(
+        dialog = dialog,
+        folder = current,
+        categories = categories,
+        itemApps = items.map { it.app },
+        vm = vm,
+        onDismiss = { dialog = DIALOG_NONE },
+        onShow = { dialog = it },
+        onDeleted = onBack,
+    )
+}
+
+/** Slider row for the popup's translucency/blur; commits when the drag ends. */
+@Composable
+private fun FrostingRow(level: Int, onCommit: (Int) -> Unit) {
+    var value by remember(level) { mutableFloatStateOf(level.toFloat()) }
+    Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            RowIcon(Icons.Default.BlurOn)
+            Spacer(Modifier.width(16.dp))
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.frosting), style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.frosting_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Text("${value.roundToInt()}%", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+        }
+        Slider(
+            value = value,
+            onValueChange = { value = it },
+            onValueChangeFinished = { onCommit(value.roundToInt()) },
+            valueRange = 0f..Folder.MAX_FROSTING.toFloat(),
+            steps = 9,
+            modifier = Modifier.padding(start = 40.dp),
+        )
+    }
 }
 
 @Composable

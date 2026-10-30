@@ -113,7 +113,14 @@ data class Folder(
     val hostedWidget: HostedWidget? = null,
     /** Whether the popup offers an "All" tab in addition to the folder's categories. */
     val showAllCategory: Boolean = true,
+    /** 0..100: how translucent/blurred the popup card is (0 = opaque). */
+    val frosting: Int = DEFAULT_FROSTING,
 ) {
+    companion object {
+        const val DEFAULT_FROSTING = 40
+        const val MAX_FROSTING = 100
+    }
+
     /** True when [action] can actually run given the folder's current configuration. */
     fun supports(action: TapAction): Boolean = when (action) {
         TapAction.LAUNCH_DEFAULT_APP -> defaultApp != null

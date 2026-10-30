@@ -69,6 +69,7 @@ class FolderEditorViewModel(private val graph: Graph, val folderId: Long) : View
     fun setWidgetSize(size: WidgetSize) = update { it.copy(widgetSize = size) }
     fun setShowLabel(show: Boolean) = update { it.copy(showLabel = show) }
     fun setShowAllCategory(show: Boolean) = update { it.copy(showAllCategory = show) }
+    fun setFrosting(level: Int) = update { it.copy(frosting = level.coerceIn(0, Folder.MAX_FROSTING)) }
 
     /** Stores the widget picked in HostedWidgetPickerActivity, releasing any previous one. */
     fun setHostedWidget(provider: String, appWidgetId: Int) = update { old ->

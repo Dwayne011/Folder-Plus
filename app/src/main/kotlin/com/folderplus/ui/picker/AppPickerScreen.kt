@@ -1,7 +1,10 @@
 package com.folderplus.ui.picker
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,7 +16,10 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.OutlinedTextField
@@ -45,9 +51,12 @@ fun AppPickerScreen(folderId: Long, categoryId: Long?, onDone: () -> Unit) {
     val vm: FolderEditorViewModel = viewModel(key = "editor-$folderId") { FolderEditorViewModel(graph, folderId) }
     val installed by graph.installedApps.apps.collectAsStateWithLifecycle()
     val existing by vm.items.collectAsStateWithLifecycle()
+    val categories by vm.categories.collectAsStateWithLifecycle()
 
     var query by rememberSaveable { mutableStateOf("") }
     var selected by rememberSaveable { mutableStateOf(setOf<String>()) }
+    // Category the added apps go into; preset from the Apps screen's active chip.
+    var target by rememberSaveable { mutableStateOf(categoryId ?: -1L) }
 
     val inFolder = existing.map { it.app.flatten() }.toSet()
     val candidates = installed
@@ -61,6 +70,13 @@ fun AppPickerScreen(folderId: Long, categoryId: Long?, onDone: () -> Unit) {
                 navigationIcon = {
                     IconButton(onClick = onDone) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) }
                 },
+                actions = {
+                    if (candidates.isNotEmpty()) {
+                        TextButton(onClick = { selected = selected + candidates.map { it.ref.flatten() } }) {
+                            Text(stringResource(R.string.select_all))
+                        }
+                    }
+                },
             )
         },
         floatingActionButton = {
@@ -68,7 +84,7 @@ fun AppPickerScreen(folderId: Long, categoryId: Long?, onDone: () -> Unit) {
                 ExtendedFloatingActionButton(
                     onClick = {
                         val refs = installed.filter { it.ref.flatten() in selected }.map { it.ref }
-                        vm.addApps(refs, categoryId)
+                        vm.addApps(refs, target.takeIf { it > 0 })
                         onDone()
                     },
                     icon = { Icon(Icons.Default.Check, contentDescription = null) },
@@ -85,6 +101,30 @@ fun AppPickerScreen(folderId: Long, categoryId: Long?, onDone: () -> Unit) {
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             )
+            if (categories.isNotEmpty()) {
+                Text(
+                    stringResource(R.string.target_category),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 16.dp, top = 4.dp),
+                )
+                Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp)) {
+                    FilterChip(
+                        selected = target <= 0,
+                        onClick = { target = -1L },
+                        label = { Text(stringResource(R.string.category_none)) },
+                        modifier = Modifier.padding(end = 8.dp),
+                    )
+                    categories.forEach { category ->
+                        FilterChip(
+                            selected = target == category.id,
+                            onClick = { target = category.id },
+                            label = { Text(category.name) },
+                            modifier = Modifier.padding(end = 8.dp),
+                        )
+                    }
+                }
+            }
             LazyColumn(Modifier.fillMaxSize()) {
                 items(candidates, key = { it.ref.flatten() }) { app ->
                     val key = app.ref.flatten()

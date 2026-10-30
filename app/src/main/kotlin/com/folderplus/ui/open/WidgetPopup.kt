@@ -45,19 +45,20 @@ fun WidgetPopup(
     onShowFolder: () -> Unit,
     onOpenSettings: () -> Unit,
     onDismiss: () -> Unit,
+    frosting: Int = Folder.DEFAULT_FROSTING,
 ) {
     val info = remember(hosted) { hostedWidgets.info(hosted.appWidgetId) }
 
     Box(
         Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.45f))
+            .background(Color.Black.copy(alpha = scrimAlpha(frosting)))
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDismiss),
         contentAlignment = Alignment.Center,
     ) {
         Surface(
             shape = RoundedCornerShape(28.dp),
-            tonalElevation = 6.dp,
+            color = popupContainerColor(frosting),
             modifier = Modifier
                 .padding(24.dp)
                 .widthIn(max = 420.dp)

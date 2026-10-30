@@ -26,12 +26,13 @@ import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.DriveFileMove
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -68,6 +69,8 @@ import com.folderplus.ui.common.AppIconImage
 import com.folderplus.ui.common.ConfirmDialog
 import com.folderplus.ui.common.Option
 import com.folderplus.ui.common.OptionPickerDialog
+import com.folderplus.ui.common.TextInputDialog
+import com.folderplus.ui.common.label
 
 /** Lists the apps in one folder: filter by category, assign categories, remove, and drag to reorder. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,6 +90,10 @@ fun AppsScreen(folderId: Long, onBack: () -> Unit, onAddApps: (categoryId: Long?
     var selectedIds by rememberSaveable { mutableStateOf(setOf<Long>()) }
     var bulkCategoryDialog by rememberSaveable { mutableStateOf(false) }
     var bulkRemoveDialog by rememberSaveable { mutableStateOf(false) }
+
+    // Category management lives here, next to the chips: "new", "rename", "sort", "delete".
+    var categoryDialog by rememberSaveable { mutableStateOf("") }
+    var categoryMenu by remember { mutableStateOf(false) }
     fun exitSelection() {
         selecting = false
         selectedIds = emptySet()
@@ -95,6 +102,8 @@ fun AppsScreen(folderId: Long, onBack: () -> Unit, onAddApps: (categoryId: Long?
     val current = folder ?: return
     val manual = current.sortMode == SortMode.MANUAL
     val filtering = selectedCategory > 0
+    val activeCategory = categories.firstOrNull { it.id == selectedCategory }
+    if (filtering && activeCategory == null) selectedCategory = -1L
     val visible = if (filtering) sortedItems.filter { it.categoryId == selectedCategory } else sortedItems
 
     Scaffold(
@@ -130,21 +139,30 @@ fun AppsScreen(folderId: Long, onBack: () -> Unit, onAddApps: (categoryId: Long?
         },
         floatingActionButton = {
             if (!selecting) {
-                FloatingActionButton(onClick = { onAddApps(selectedCategory.takeIf { it > 0 }) }) {
-                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_apps))
-                }
+                ExtendedFloatingActionButton(
+                    onClick = { onAddApps(selectedCategory.takeIf { it > 0 }) },
+                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    text = {
+                        Text(
+                            if (activeCategory != null) stringResource(R.string.add_to_category, activeCategory.name)
+                            else stringResource(R.string.add_apps),
+                        )
+                    },
+                )
             }
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
-            if (categories.isNotEmpty()) {
-                Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 4.dp)) {
-                    FilterChip(
-                        selected = !filtering,
-                        onClick = { selectedCategory = -1L },
-                        label = { Text(stringResource(R.string.category_all)) },
-                        modifier = Modifier.padding(end = 8.dp),
-                    )
+            Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.weight(1f).horizontalScroll(rememberScrollState())) {
+                    if (categories.isNotEmpty()) {
+                        FilterChip(
+                            selected = !filtering,
+                            onClick = { selectedCategory = -1L },
+                            label = { Text(stringResource(R.string.category_all)) },
+                            modifier = Modifier.padding(end = 8.dp),
+                        )
+                    }
                     categories.forEach { category ->
                         FilterChip(
                             selected = selectedCategory == category.id,
@@ -152,6 +170,20 @@ fun AppsScreen(folderId: Long, onBack: () -> Unit, onAddApps: (categoryId: Long?
                             label = { Text(category.name) },
                             modifier = Modifier.padding(end = 8.dp),
                         )
+                    }
+                    AssistChip(
+                        onClick = { categoryDialog = "new" },
+                        label = { Text(stringResource(R.string.new_category)) },
+                        leadingIcon = { Icon(Icons.Default.Add, contentDescription = null) },
+                        modifier = Modifier.padding(end = 8.dp),
+                    )
+                }
+                if (activeCategory != null) {
+                    IconButton(onClick = { categoryMenu = true }) { Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.category_options)) }
+                    DropdownMenu(expanded = categoryMenu, onDismissRequest = { categoryMenu = false }) {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.rename)) }, onClick = { categoryMenu = false; categoryDialog = "rename" })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.sort_mode)) }, onClick = { categoryMenu = false; categoryDialog = "sort" })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.delete)) }, onClick = { categoryMenu = false; categoryDialog = "delete" })
                     }
                 }
             }
@@ -185,6 +217,44 @@ fun AppsScreen(folderId: Long, onBack: () -> Unit, onAddApps: (categoryId: Long?
                     onChangeCategory = { categoryDialogFor = it.id },
                 )
             }
+        }
+    }
+
+    when (categoryDialog) {
+        "new" -> TextInputDialog(
+            title = stringResource(R.string.new_category),
+            label = stringResource(R.string.category_name),
+            confirmText = stringResource(R.string.create),
+            onConfirm = vm::addCategory,
+            onDismiss = { categoryDialog = "" },
+        )
+        "rename" -> activeCategory?.let { category ->
+            TextInputDialog(
+                title = stringResource(R.string.rename),
+                label = stringResource(R.string.category_name),
+                initial = category.name,
+                onConfirm = { vm.renameCategory(category, it) },
+                onDismiss = { categoryDialog = "" },
+            )
+        }
+        "sort" -> activeCategory?.let { category ->
+            OptionPickerDialog(
+                title = category.name + " · " + stringResource(R.string.sort_mode),
+                options = listOf(Option<SortMode?>(null, stringResource(R.string.sort_inherit, current.sortMode.label()))) +
+                    SortMode.entries.map { Option<SortMode?>(it, it.label()) },
+                selected = category.sortMode,
+                onSelect = { vm.setCategorySort(category, it) },
+                onDismiss = { categoryDialog = "" },
+            )
+        }
+        "delete" -> activeCategory?.let { category ->
+            ConfirmDialog(
+                title = stringResource(R.string.delete),
+                text = stringResource(R.string.delete_category_confirm, category.name),
+                confirmText = stringResource(R.string.delete),
+                onConfirm = { vm.deleteCategory(category); selectedCategory = -1L },
+                onDismiss = { categoryDialog = "" },
+            )
         }
     }
 

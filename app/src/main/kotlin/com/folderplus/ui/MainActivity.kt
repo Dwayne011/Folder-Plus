@@ -16,8 +16,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.folderplus.graph
+import com.folderplus.ui.editor.AppearanceScreen
 import com.folderplus.ui.editor.AppsScreen
 import com.folderplus.ui.editor.FolderEditorScreen
+import com.folderplus.ui.editor.GesturesScreen
 import com.folderplus.ui.folders.FolderListScreen
 import com.folderplus.ui.picker.AppPickerScreen
 import com.folderplus.ui.theme.FolderPlusTheme
@@ -82,6 +84,8 @@ data class Screen(val kind: Int, val folderId: Long = -1L, val categoryId: Long 
         const val EDITOR = 1
         const val APPS = 2
         const val PICKER = 3
+        const val GESTURES = 4
+        const val APPEARANCE = 5
 
         val Saver = listSaver<Screen, Long>(
             save = { listOf(it.kind.toLong(), it.folderId, it.categoryId) },
@@ -106,6 +110,7 @@ fun FolderPlusNavHost(requestedFolderId: Long, requestSerial: Int) {
             Screen.EDITOR -> Screen(Screen.FOLDERS)
             Screen.APPS -> Screen(Screen.EDITOR, folderId)
             Screen.PICKER -> Screen(Screen.APPS, folderId)
+            Screen.GESTURES, Screen.APPEARANCE -> Screen(Screen.EDITOR, folderId)
             else -> Screen(Screen.FOLDERS)
         }
     }
@@ -116,7 +121,11 @@ fun FolderPlusNavHost(requestedFolderId: Long, requestSerial: Int) {
             folderId = folderId,
             onBack = { screen = Screen(Screen.FOLDERS) },
             onManageApps = { screen = Screen(Screen.APPS, folderId) },
+            onGestures = { screen = Screen(Screen.GESTURES, folderId) },
+            onAppearance = { screen = Screen(Screen.APPEARANCE, folderId) },
         )
+        Screen.GESTURES -> GesturesScreen(folderId = folderId, onBack = { screen = Screen(Screen.EDITOR, folderId) })
+        Screen.APPEARANCE -> AppearanceScreen(folderId = folderId, onBack = { screen = Screen(Screen.EDITOR, folderId) })
         Screen.APPS -> AppsScreen(
             folderId = folderId,
             onBack = { screen = Screen(Screen.EDITOR, folderId) },

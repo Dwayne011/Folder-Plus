@@ -2,7 +2,9 @@ package com.folderplus.ui.open
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.biometric.BiometricManager.Authenticators
@@ -68,6 +70,7 @@ class FolderOpenActivity : FragmentActivity() {
                 if (folder == null) return@FolderPlusTheme
 
                 LaunchedEffect(Unit) { appGraph.installedApps.ensureLoaded() }
+                LaunchedEffect(folder.frosting) { applyFrosting(folder.frosting) }
 
                 if (!unlocked && lock.requiresUnlock(folder.lockMode)) {
                     LockGate(
@@ -87,6 +90,7 @@ class FolderOpenActivity : FragmentActivity() {
                             hosted = hosted,
                             hostedWidgets = appGraph.hostedWidgets,
                             onShowFolder = { showingWidget = false },
+                            frosting = folder.frosting,
                             onOpenSettings = {
                                 startActivity(MainActivity.editorIntent(this, folder.id))
                                 finish()
@@ -106,11 +110,26 @@ class FolderOpenActivity : FragmentActivity() {
                             },
                             onDismiss = ::finish,
                             onShowWidget = if (hosted != null) ({ showingWidget = true }) else null,
+                            frosting = folder.frosting,
                         )
                     }
                 }
             }
         }
+    }
+
+    /** Real blur behind the window on Android 12+, scaled by the folder's frosting level. */
+    private fun applyFrosting(level: Int) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        val radiusPx = (level / 100f * MAX_BLUR_DP * resources.displayMetrics.density).toInt()
+        if (radiusPx > 0) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+        }
+        val params = window.attributes
+        params.blurBehindRadius = radiusPx
+        window.attributes = params
     }
 
     override fun onStart() {
@@ -159,6 +178,7 @@ class FolderOpenActivity : FragmentActivity() {
     companion object {
         const val EXTRA_FOLDER_ID = "folder_id"
         const val EXTRA_SHOW_WIDGET = "show_widget"
+        private const val MAX_BLUR_DP = 40
 
         fun intent(context: Context, folderId: Long, showWidget: Boolean = false): Intent =
             Intent(context, FolderOpenActivity::class.java)
