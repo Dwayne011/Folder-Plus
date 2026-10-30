@@ -124,4 +124,15 @@
     <string name="remove_selected_confirm">Remove %1$d apps from this folder?</string>
     <string name="open_app">Open Folder Plus</string>
     <string name="settings">Settings</string>
+    <string name="more">More</string>
+    <string name="backup_export">Export backup…</string>
+    <string name="backup_import">Import backup…</string>
+    <string name="backup_exported">Backup saved</string>
+    <string name="backup_export_failed">Could not save the backup</string>
+    <string name="backup_import_title">Import backup</string>
+    <string name="backup_import_confirm">Replace all your folders with the ones in this backup? Home-screen widgets will ask to be linked to a folder again, and the PIN is not part of backups.</string>
+    <string name="backup_import_action">Replace</string>
+    <string name="backup_imported">Restored %1$d folders</string>
+    <string name="backup_import_failed">That file is not a Folder Plus backup</string>
+    <string name="backup_hint">Backups are plain files you can keep in Google Drive. Android also backs the app up automatically with your Google account.</string>
 </resources>

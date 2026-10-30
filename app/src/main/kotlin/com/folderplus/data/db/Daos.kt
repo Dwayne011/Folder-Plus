@@ -33,6 +33,9 @@ interface FolderDao {
 
     @Query("DELETE FROM folders WHERE id = :id")
     suspend fun delete(id: Long)
+
+    @Query("DELETE FROM folders")
+    suspend fun deleteAll()
 }
 
 @Dao
@@ -114,4 +117,7 @@ interface WidgetBindingDao {
 
     @Query("DELETE FROM widget_bindings WHERE appWidgetId IN (:ids)")
     suspend fun delete(ids: List<Int>)
+
+    @Query("DELETE FROM widget_bindings")
+    suspend fun deleteAll()
 }

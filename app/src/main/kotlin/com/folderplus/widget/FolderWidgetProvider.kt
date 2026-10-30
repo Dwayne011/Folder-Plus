@@ -44,6 +44,20 @@ abstract class FolderWidgetProvider : AppWidgetProvider() {
         }
     }
 
+    /** The launcher restored our widgets from a backup under new ids. */
+    override fun onRestored(context: Context, oldWidgetIds: IntArray, newWidgetIds: IntArray) {
+        val pending = goAsync()
+        scope.launch {
+            try {
+                context.graph.repository.remapWidgetIds(oldWidgetIds, newWidgetIds)
+                val manager = AppWidgetManager.getInstance(context)
+                newWidgetIds.forEach { WidgetRenderer.render(context, manager, it) }
+            } finally {
+                pending.finish()
+            }
+        }
+    }
+
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         val pending = goAsync()
         scope.launch {

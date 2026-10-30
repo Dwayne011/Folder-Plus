@@ -13,6 +13,9 @@ import com.folderplus.data.db.toModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+/** A folder with everything inside it, as moved around by backup/restore. */
+data class FolderExport(val folder: Folder, val categories: List<Category>, val items: List<FolderItem>)
+
 /** Single entry point for reading and writing folders, categories, items and widget bindings. */
 class FolderRepository(private val db: FolderPlusDatabase) {
 
@@ -90,6 +93,56 @@ class FolderRepository(private val db: FolderPlusDatabase) {
             }
         }
         missing.size
+    }
+
+    // ---- backup / restore ----
+    suspend fun exportAll(): List<FolderExport> = db.withTransaction {
+        getFolders().map { folder -> FolderExport(folder, getCategories(folder.id), getItems(folder.id)) }
+    }
+
+    /**
+     * Replaces every folder with [data]. Ids are reassigned, so home-screen
+     * widget bindings and hosted widget ids from the backup's device are dropped;
+     * widgets on this device will ask to be linked to a folder again.
+     */
+    suspend fun replaceAll(data: List<FolderExport>) = db.withTransaction {
+        db.widgetBindings().deleteAll()
+        db.folders().deleteAll()
+        data.forEachIndexed { index, export ->
+            val folderId = db.folders().insert(export.folder.copy(id = 0, position = index, hostedWidget = null).toEntity())
+            val categoryIds = HashMap<Long, Long>()
+            export.categories.sortedBy { it.position }.forEachIndexed { cIndex, category ->
+                val newId = db.categories().insert(category.copy(id = 0, folderId = folderId, position = cIndex).toEntity())
+                categoryIds[category.id] = newId
+            }
+            val items = export.items.sortedBy { it.manualOrder }.mapIndexed { iIndex, item ->
+                item.copy(id = 0, folderId = folderId, categoryId = item.categoryId?.let { categoryIds[it] }, manualOrder = iIndex).toEntity()
+            }
+            db.items().insertAll(items)
+        }
+    }
+
+    /** Forgets hosted widgets whose ids are no longer valid (e.g. after a restore onto another device). */
+    suspend fun sanitizeHostedWidgets(isValid: (Int) -> Boolean): Int {
+        var fixed = 0
+        db.folders().getAll().forEach { entity ->
+            if (entity.hostedWidgetId > 0 && !isValid(entity.hostedWidgetId)) {
+                db.folders().update(entity.copy(hostedWidgetProvider = null, hostedWidgetId = 0))
+                fixed++
+            }
+        }
+        return fixed
+    }
+
+    /** Applies the launcher's old-to-new widget id mapping after a device restore. */
+    suspend fun remapWidgetIds(oldIds: IntArray, newIds: IntArray) = db.withTransaction {
+        val bindings = db.widgetBindings().getAll().associateBy { it.appWidgetId }
+        oldIds.forEachIndexed { index, oldId ->
+            val newId = newIds.getOrNull(index) ?: return@forEachIndexed
+            val binding = bindings[oldId] ?: return@forEachIndexed
+            db.widgetBindings().delete(listOf(oldId))
+            db.widgetBindings().upsert(WidgetBindingEntity(newId, binding.folderId))
+        }
     }
 
     // ---- widget bindings ----

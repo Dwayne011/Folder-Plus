@@ -7,6 +7,10 @@ import com.folderplus.data.FolderRepository
 import com.folderplus.data.db.FolderPlusDatabase
 import com.folderplus.security.LockManager
 import com.folderplus.widget.HostedWidgets
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /**
  * Tiny service locator. The app is small enough that a DI framework would be
@@ -19,6 +23,11 @@ class FolderPlusApp : Application() {
     override fun onCreate() {
         super.onCreate()
         graph = Graph(this)
+        // After a restore onto another device, hosted widget ids point nowhere; forget them
+        // so "Show widget" falls back to opening the folder until the user picks again.
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            graph.repository.sanitizeHostedWidgets { id -> graph.hostedWidgets.info(id) != null }
+        }
     }
 }
 

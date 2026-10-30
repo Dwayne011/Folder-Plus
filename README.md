@@ -15,6 +15,7 @@ folder through a second gesture. Works on any launcher that supports widgets.
 | Widget size | Three widget providers appear in the launcher picker (1×1, 2×2, 4×1), every one of them resizable. The folder's *Widget size* setting picks which one "Add to home screen" uses, and the widget adapts its layout (icon only → icon + label → quick-launch strip) to the space the launcher gives it. |
 | Sorting | Manual (long-press and drag), name A–Z / Z–A, most used, recently used, recently added. |
 | Lock | Per folder: off, PIN, biometrics, or PIN **or** biometrics. One app-wide PIN, stored as a salted PBKDF2 hash. Biometrics use the system `BiometricPrompt`. |
+| Backup | Android's automatic Google-account backup covers the app's data (folders, categories, PIN). The Folders screen's menu also exports/imports a plain JSON backup you can keep in Drive. Home-screen widget links and hosted widget ids are device-specific and are re-linked after a restore. |
 | Material You | Dynamic colours on Android 12+, light/dark widgets. |
 
 ### Why double tap and a badge rather than swipe or long press?

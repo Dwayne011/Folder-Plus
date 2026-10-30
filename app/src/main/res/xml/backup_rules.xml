@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 and below: what Google's automatic backup (tied to the device's
+     Google account) saves. Folders live in the Room database; the PIN hash in
+     shared preferences. -->
+<full-backup-content>
+    <include domain="database" path="." />
+    <include domain="sharedpref" path="." />
+</full-backup-content>
