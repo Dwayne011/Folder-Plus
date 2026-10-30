@@ -21,7 +21,6 @@
     <string name="back">Back</string>
     <string name="ok">OK</string>
 
-    <string name="editor_title">Edit folder</string>
     <string name="delete_folder">Delete folder</string>
     <string name="delete_folder_confirm">Delete “%1$s” and remove its widgets?</string>
     <string name="section_widget">Widget</string>
@@ -73,16 +72,13 @@
     <string name="confirm_pin">Confirm PIN</string>
     <string name="pin_mismatch">PINs do not match</string>
     <string name="pin_invalid">PIN must be 4–12 digits</string>
-    <string name="pin_required_for_lock">Set a PIN before enabling PIN lock</string>
     <string name="biometric_unavailable">Biometrics are not available on this device</string>
 
     <string name="unlock_title">Unlock %1$s</string>
     <string name="unlock_subtitle">Confirm it’s you to open this folder</string>
-    <string name="unlock_pin_hint">Enter PIN</string>
     <string name="unlock_wrong_pin">Wrong PIN</string>
     <string name="unlock_use_biometrics">Use biometrics</string>
     <string name="unlock_use_pin">Use PIN</string>
-    <string name="unlock_failed">Authentication failed</string>
 
     <string name="category_all">All</string>
     <string name="category_none">No category</string>

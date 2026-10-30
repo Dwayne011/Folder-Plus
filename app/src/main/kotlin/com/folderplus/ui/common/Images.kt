@@ -9,8 +9,11 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -28,9 +31,9 @@ import kotlinx.coroutines.withContext
 @Composable
 fun AppIconImage(app: AppRef, size: Dp = 48.dp, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val bitmap by produceState<Bitmap?>(initialValue = null, key1 = app) {
-        val loaded = withContext(Dispatchers.IO) { context.graph.installedApps.icon(app) }
-        value = loaded
+    var bitmap by remember(app) { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(app) {
+        bitmap = withContext(Dispatchers.IO) { context.graph.installedApps.icon(app) }
     }
     val current = bitmap
     if (current != null) {
@@ -45,14 +48,14 @@ fun AppIconImage(app: AppRef, size: Dp = 48.dp, modifier: Modifier = Modifier) {
 fun FolderIconImage(folder: Folder, size: Dp = 48.dp, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val sizePx = with(androidx.compose.ui.platform.LocalDensity.current) { size.roundToPx() }
-    val bitmap by produceState<Bitmap?>(initialValue = null, key1 = folder, key2 = sizePx) {
-        val composed = withContext(Dispatchers.IO) {
+    var bitmap by remember(folder, sizePx) { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(folder, sizePx) {
+        bitmap = withContext(Dispatchers.IO) {
             val graph = context.graph
             graph.installedApps.ensureLoaded()
             val items = AppSorter.sort(graph.repository.getItems(folder.id), folder.sortMode) { graph.installedApps.label(it.app) }
             IconComposer.folderIcon(context, folder, items, graph.installedApps, sizePx.coerceAtLeast(1))
         }
-        value = composed
     }
     val current = bitmap
     if (current != null) {
