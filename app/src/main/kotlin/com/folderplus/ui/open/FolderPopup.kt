@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,6 +58,7 @@ fun FolderPopup(
     onLaunch: (FolderItem) -> Unit,
     onOpenSettings: () -> Unit,
     onDismiss: () -> Unit,
+    onShowWidget: (() -> Unit)? = null,
 ) {
     var selectedCategory by rememberSaveable { mutableStateOf(-1L) }
     val category = categories.firstOrNull { it.id == selectedCategory }
@@ -85,6 +87,9 @@ fun FolderPopup(
             Column(Modifier.padding(top = 8.dp, bottom = 12.dp)) {
                 Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(folder.name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    if (onShowWidget != null) {
+                        IconButton(onClick = onShowWidget) { Icon(Icons.Default.Widgets, contentDescription = stringResource(R.string.show_widget)) }
+                    }
                     IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings)) }
                 }
                 if (categories.isNotEmpty()) {

@@ -43,7 +43,17 @@
     <string name="double_tap">Double tap</string>
     <string name="action_open_folder">Open folder</string>
     <string name="action_launch_default">Launch default app</string>
+    <string name="action_show_widget">Show widget</string>
     <string name="action_none">Nothing</string>
+    <string name="hosted_widget">Widget to show</string>
+    <string name="hosted_widget_none">Not set — choose a widget to use the “Show widget” action</string>
+    <string name="choose_widget">Choose a widget</string>
+    <string name="remove_widget">Remove widget</string>
+    <string name="show_folder">Show folder</string>
+    <string name="show_widget">Show widget</string>
+    <string name="hosted_widget_unavailable">This widget’s app is no longer installed. Choose another in the folder settings.</string>
+    <string name="widget_bind_denied">Folder Plus needs permission to show widgets. Try again and allow it.</string>
+    <string name="widget_size_label">%1$d × %2$d dp</string>
     <string name="double_tap_hint">Single taps wait briefly for a second tap when a double-tap action is set.</string>
 
     <string name="apps_in_folder">Apps</string>

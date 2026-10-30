@@ -9,7 +9,8 @@ folder through a second gesture. Works on any launcher that supports widgets.
 | Feature | How it works |
 | --- | --- |
 | Tap to launch | Each folder has a *default app*. A single tap on the widget launches it (or opens the folder, your choice). |
-| Second gesture | A **double tap** can run a second action (open folder / launch default app). A small **corner badge** always opens the folder when the main tap launches an app. |
+| Second gesture | A **double tap** can run a second action (open folder / launch default app / show widget). A small **corner badge** always opens the folder when the main tap does something else. |
+| Show a widget | Each folder can host one app widget from any installed app (like Action Launcher "Shutters"). The **Show widget** action opens it live in the popup; the popup toggles between the widget and the app grid. The first time, Android asks you to allow Folder Plus to display widgets. |
 | Categories | Folders contain categories (tabs inside the popup). Each category can override the folder's sort order. |
 | Widget size | Three widget providers appear in the launcher picker (1×1, 2×2, 4×1), every one of them resizable. The folder's *Widget size* setting picks which one "Add to home screen" uses, and the widget adapts its layout (icon only → icon + label → quick-launch strip) to the space the launcher gives it. |
 | Sorting | Manual (long-press and drag), name A–Z / Z–A, most used, recently used, recently added. |
@@ -32,9 +33,10 @@ restrictions, which silently block receivers from opening activities on many
 launchers. When no double-tap action is set, taps use direct intents with no
 delay.
 
-Launching *another app's widget* from a folder is likewise outside what a widget
-can do; that would require the app to host widgets itself (`AppWidgetHost`),
-which is a possible later addition inside the folder popup.
+Showing another app's widget is done by hosting it ourselves with
+`AppWidgetHost` (`app/.../widget/HostedWidgets.kt`): the folder popup contains
+a live `AppWidgetHostView`. Binding a widget needs a one-time permission that
+the system asks for through `ACTION_APPWIDGET_BIND`.
 
 ## Project layout
 

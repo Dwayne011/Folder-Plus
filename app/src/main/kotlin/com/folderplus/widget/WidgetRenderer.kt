@@ -108,6 +108,8 @@ object WidgetRenderer {
                 views.setOnClickPendingIntent(R.id.widget_main, gestureActivity(context, appWidgetId, folder.id))
             tap == TapAction.OPEN_FOLDER ->
                 views.setOnClickPendingIntent(R.id.widget_main, openFolder(context, appWidgetId, folder.id, ZONE_MAIN))
+            tap == TapAction.SHOW_WIDGET ->
+                views.setOnClickPendingIntent(R.id.widget_main, openFolder(context, appWidgetId, folder.id, ZONE_MAIN, showWidget = true))
             tap == TapAction.LAUNCH_DEFAULT_APP -> {
                 val app = folder.defaultApp!!
                 val item = items.firstOrNull { it.app == app }
@@ -169,11 +171,11 @@ object WidgetRenderer {
 
     private fun immutableFlags() = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 
-    private fun openFolder(context: Context, appWidgetId: Int, folderId: Long, zone: Int): PendingIntent =
+    private fun openFolder(context: Context, appWidgetId: Int, folderId: Long, zone: Int, showWidget: Boolean = false): PendingIntent =
         PendingIntent.getActivity(
             context,
             requestCode(appWidgetId, zone),
-            FolderOpenActivity.intent(context, folderId),
+            FolderOpenActivity.intent(context, folderId, showWidget),
             immutableFlags(),
         )
 

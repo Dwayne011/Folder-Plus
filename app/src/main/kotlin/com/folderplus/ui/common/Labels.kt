@@ -25,6 +25,7 @@ fun TapAction.label(): String = stringResource(
     when (this) {
         TapAction.OPEN_FOLDER -> R.string.action_open_folder
         TapAction.LAUNCH_DEFAULT_APP -> R.string.action_launch_default
+        TapAction.SHOW_WIDGET -> R.string.action_show_widget
         TapAction.NONE -> R.string.action_none
     },
 )

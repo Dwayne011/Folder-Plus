@@ -104,6 +104,7 @@ class WidgetTapActivity : Activity() {
     private fun perform(folder: Folder, action: TapAction) {
         when (action) {
             TapAction.OPEN_FOLDER -> startActivity(FolderOpenActivity.intent(this, folder.id))
+            TapAction.SHOW_WIDGET -> startActivity(FolderOpenActivity.intent(this, folder.id, showWidget = true))
             TapAction.LAUNCH_DEFAULT_APP -> {
                 val app = folder.defaultApp ?: return
                 if (AppLauncher.launch(this, app)) {

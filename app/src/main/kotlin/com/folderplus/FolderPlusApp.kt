@@ -6,6 +6,7 @@ import com.folderplus.apps.InstalledApps
 import com.folderplus.data.FolderRepository
 import com.folderplus.data.db.FolderPlusDatabase
 import com.folderplus.security.LockManager
+import com.folderplus.widget.HostedWidgets
 
 /**
  * Tiny service locator. The app is small enough that a DI framework would be
@@ -27,6 +28,7 @@ class Graph(context: Context) {
     val repository: FolderRepository = FolderRepository(database)
     val installedApps: InstalledApps = InstalledApps(context)
     val lockManager: LockManager = LockManager(context)
+    val hostedWidgets: HostedWidgets = HostedWidgets(context)
 }
 
 val Context.graph: Graph

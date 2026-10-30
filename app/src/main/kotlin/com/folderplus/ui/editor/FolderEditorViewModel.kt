@@ -8,6 +8,7 @@ import com.folderplus.core.model.Category
 import com.folderplus.core.model.Folder
 import com.folderplus.core.model.FolderIconMode
 import com.folderplus.core.model.FolderItem
+import com.folderplus.core.model.HostedWidget
 import com.folderplus.core.model.LockMode
 import com.folderplus.core.model.SortMode
 import com.folderplus.core.model.TapAction
@@ -68,8 +69,20 @@ class FolderEditorViewModel(private val graph: Graph, val folderId: Long) : View
     fun setWidgetSize(size: WidgetSize) = update { it.copy(widgetSize = size) }
     fun setShowLabel(show: Boolean) = update { it.copy(showLabel = show) }
 
+    /** Stores the widget picked in HostedWidgetPickerActivity, releasing any previous one. */
+    fun setHostedWidget(provider: String, appWidgetId: Int) = update { old ->
+        old.hostedWidget?.takeIf { it.appWidgetId != appWidgetId }?.let { graph.hostedWidgets.deleteId(it.appWidgetId) }
+        old.copy(hostedWidget = HostedWidget(provider, appWidgetId))
+    }
+
+    fun clearHostedWidget() = update { old ->
+        old.hostedWidget?.let { graph.hostedWidgets.deleteId(it.appWidgetId) }
+        old.copy(hostedWidget = null)
+    }
+
     fun deleteFolder(onDeleted: () -> Unit) {
         viewModelScope.launch {
+            repo.getFolder(folderId)?.hostedWidget?.let { graph.hostedWidgets.deleteId(it.appWidgetId) }
             repo.deleteFolder(folderId)
             WidgetUpdater.updateAll(graph.appContext)
             onDeleted()

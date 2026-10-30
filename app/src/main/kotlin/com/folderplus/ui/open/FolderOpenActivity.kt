@@ -49,6 +49,7 @@ class FolderOpenActivity : FragmentActivity() {
         val repo = appGraph.repository
         val lock = appGraph.lockManager
 
+        val startOnWidget = intent.getBooleanExtra(EXTRA_SHOW_WIDGET, false)
         setContent {
             FolderPlusTheme {
                 val state by remember(folderId) {
@@ -58,6 +59,7 @@ class FolderOpenActivity : FragmentActivity() {
                 }.collectAsStateWithLifecycle(initialValue = PopupState())
 
                 var unlocked by rememberSaveable { mutableStateOf(false) }
+                var showingWidget by rememberSaveable { mutableStateOf(startOnWidget) }
                 val folder = state.folder
 
                 LaunchedEffect(state.loaded, folder) {
@@ -78,21 +80,47 @@ class FolderOpenActivity : FragmentActivity() {
                         onDismiss = ::finish,
                     )
                 } else {
-                    FolderPopup(
-                        folder = folder,
-                        categories = state.categories,
-                        items = state.items,
-                        labelOf = { appGraph.installedApps.label(it) },
-                        onLaunch = { launch(folder, it) },
-                        onOpenSettings = {
-                            startActivity(MainActivity.editorIntent(this, folder.id))
-                            finish()
-                        },
-                        onDismiss = ::finish,
-                    )
+                    val hosted = folder.hostedWidget
+                    if (showingWidget && hosted != null) {
+                        WidgetPopup(
+                            folder = folder,
+                            hosted = hosted,
+                            hostedWidgets = appGraph.hostedWidgets,
+                            onShowFolder = { showingWidget = false },
+                            onOpenSettings = {
+                                startActivity(MainActivity.editorIntent(this, folder.id))
+                                finish()
+                            },
+                            onDismiss = ::finish,
+                        )
+                    } else {
+                        FolderPopup(
+                            folder = folder,
+                            categories = state.categories,
+                            items = state.items,
+                            labelOf = { appGraph.installedApps.label(it) },
+                            onLaunch = { launch(folder, it) },
+                            onOpenSettings = {
+                                startActivity(MainActivity.editorIntent(this, folder.id))
+                                finish()
+                            },
+                            onDismiss = ::finish,
+                            onShowWidget = if (hosted != null) ({ showingWidget = true }) else null,
+                        )
+                    }
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        graph.hostedWidgets.startListening()
+    }
+
+    override fun onStop() {
+        graph.hostedWidgets.stopListening()
+        super.onStop()
     }
 
     private fun launch(folder: Folder, item: FolderItem) {
@@ -130,10 +158,12 @@ class FolderOpenActivity : FragmentActivity() {
 
     companion object {
         const val EXTRA_FOLDER_ID = "folder_id"
+        const val EXTRA_SHOW_WIDGET = "show_widget"
 
-        fun intent(context: Context, folderId: Long): Intent =
+        fun intent(context: Context, folderId: Long, showWidget: Boolean = false): Intent =
             Intent(context, FolderOpenActivity::class.java)
                 .putExtra(EXTRA_FOLDER_ID, folderId)
+                .putExtra(EXTRA_SHOW_WIDGET, showWidget)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
     }
 }

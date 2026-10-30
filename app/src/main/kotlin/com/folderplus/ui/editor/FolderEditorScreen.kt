@@ -1,6 +1,14 @@
 package com.folderplus.ui.editor
 
+import android.app.Activity
+import android.appwidget.AppWidgetManager
+import android.content.Intent
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Widgets
+import com.folderplus.widget.HostedWidgetPickerActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -150,6 +158,33 @@ fun FolderEditorScreen(folderId: Long, onBack: () -> Unit, onManageApps: () -> U
                     onClick = { dialog = DIALOG_DEFAULT },
                 )
             }
+            item {
+                val hosted = current.hostedWidget
+                val hostedLabel = remember(hosted) {
+                    hosted?.let { h -> context.graph.hostedWidgets.info(h.appWidgetId)?.let { context.graph.hostedWidgets.label(it) } }
+                }
+                val widgetPicker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                    val data = result.data
+                    val provider = data?.getStringExtra(HostedWidgetPickerActivity.EXTRA_PROVIDER)
+                    val id = data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 0) ?: 0
+                    if (result.resultCode == Activity.RESULT_OK && provider != null && id > 0) vm.setHostedWidget(provider, id)
+                }
+                SettingRow(
+                    title = stringResource(R.string.hosted_widget),
+                    subtitle = when {
+                        hosted == null -> stringResource(R.string.hosted_widget_none)
+                        hostedLabel == null -> stringResource(R.string.hosted_widget_unavailable)
+                        else -> hostedLabel
+                    },
+                    leading = { Icon(Icons.Default.Widgets, contentDescription = null) },
+                    trailing = if (hosted != null) {
+                        { IconButton(onClick = vm::clearHostedWidget) { Icon(Icons.Default.Close, contentDescription = stringResource(R.string.remove_widget)) } }
+                    } else {
+                        null
+                    },
+                    onClick = { widgetPicker.launch(Intent(context, HostedWidgetPickerActivity::class.java)) },
+                )
+            }
             item { SettingRow(title = stringResource(R.string.single_tap), subtitle = current.tapAction.label(), onClick = { dialog = DIALOG_TAP }) }
             item {
                 SettingRow(
@@ -290,8 +325,8 @@ private fun EditorDialogs(
 
         dialog == DIALOG_TAP -> OptionPickerDialog(
             title = stringResource(R.string.single_tap),
-            options = listOf(TapAction.OPEN_FOLDER, TapAction.LAUNCH_DEFAULT_APP).map {
-                Option(it, it.label(), enabled = it != TapAction.LAUNCH_DEFAULT_APP || folder.defaultApp != null)
+            options = listOf(TapAction.OPEN_FOLDER, TapAction.LAUNCH_DEFAULT_APP, TapAction.SHOW_WIDGET).map {
+                Option(it, it.label(), enabled = folder.supports(it))
             },
             selected = folder.tapAction,
             onSelect = vm::setTapAction,
@@ -300,9 +335,7 @@ private fun EditorDialogs(
 
         dialog == DIALOG_DOUBLE_TAP -> OptionPickerDialog(
             title = stringResource(R.string.double_tap),
-            options = TapAction.entries.map {
-                Option(it, it.label(), enabled = it != TapAction.LAUNCH_DEFAULT_APP || folder.defaultApp != null)
-            },
+            options = TapAction.entries.map { Option(it, it.label(), enabled = folder.supports(it)) },
             selected = folder.doubleTapAction,
             onSelect = vm::setDoubleTapAction,
             onDismiss = onDismiss,

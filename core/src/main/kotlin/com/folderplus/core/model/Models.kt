@@ -20,9 +20,18 @@ enum class TapAction {
     OPEN_FOLDER,
     /** Launch the folder's default (cover) app directly. */
     LAUNCH_DEFAULT_APP,
+    /** Show the folder's hosted app widget in a popup (like Action Launcher "Shutters"). */
+    SHOW_WIDGET,
     /** Do nothing. */
     NONE,
 }
+
+/**
+ * An app widget from another app that this folder can display in its popup.
+ * [provider] is the flattened ComponentName of the widget provider and
+ * [appWidgetId] the id allocated by our AppWidgetHost when it was bound.
+ */
+data class HostedWidget(val provider: String, val appWidgetId: Int)
 
 /** How a folder is protected. */
 enum class LockMode {
@@ -101,17 +110,25 @@ data class Folder(
     val widgetSize: WidgetSize = WidgetSize.ONE_BY_ONE,
     val showLabel: Boolean = true,
     val position: Int = 0,
+    val hostedWidget: HostedWidget? = null,
 ) {
+    /** True when [action] can actually run given the folder's current configuration. */
+    fun supports(action: TapAction): Boolean = when (action) {
+        TapAction.LAUNCH_DEFAULT_APP -> defaultApp != null
+        TapAction.SHOW_WIDGET -> hostedWidget != null
+        TapAction.OPEN_FOLDER, TapAction.NONE -> true
+    }
+
     /**
-     * The action a single tap resolves to. If the user chose "launch default app"
-     * but no default app is set yet, fall back to opening the folder so the
-     * widget is never dead.
+     * The action a single tap resolves to. If the chosen action needs something
+     * that is not configured (default app, hosted widget), fall back to opening
+     * the folder so the widget is never dead.
      */
     val effectiveTapAction: TapAction
-        get() = if (tapAction == TapAction.LAUNCH_DEFAULT_APP && defaultApp == null) TapAction.OPEN_FOLDER else tapAction
+        get() = if (supports(tapAction)) tapAction else TapAction.OPEN_FOLDER
 
     val effectiveDoubleTapAction: TapAction
-        get() = if (doubleTapAction == TapAction.LAUNCH_DEFAULT_APP && defaultApp == null) TapAction.NONE else doubleTapAction
+        get() = if (supports(doubleTapAction)) doubleTapAction else TapAction.NONE
 }
 
 data class Category(

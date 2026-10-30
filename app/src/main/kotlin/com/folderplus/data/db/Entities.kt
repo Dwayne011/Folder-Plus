@@ -1,5 +1,6 @@
 package com.folderplus.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -9,6 +10,7 @@ import com.folderplus.core.model.Category
 import com.folderplus.core.model.Folder
 import com.folderplus.core.model.FolderIconMode
 import com.folderplus.core.model.FolderItem
+import com.folderplus.core.model.HostedWidget
 import com.folderplus.core.model.LockMode
 import com.folderplus.core.model.SortMode
 import com.folderplus.core.model.TapAction
@@ -27,6 +29,9 @@ data class FolderEntity(
     val widgetSize: String,
     val showLabel: Boolean,
     val position: Int,
+    // Added in schema v2: the app widget this folder can show in its popup.
+    val hostedWidgetProvider: String? = null,
+    @ColumnInfo(defaultValue = "0") val hostedWidgetId: Int = 0,
 )
 
 @Entity(
@@ -86,6 +91,7 @@ fun FolderEntity.toModel() = Folder(
     widgetSize = WidgetSize.parse(widgetSize) ?: WidgetSize.ONE_BY_ONE,
     showLabel = showLabel,
     position = position,
+    hostedWidget = hostedWidgetProvider?.takeIf { hostedWidgetId > 0 }?.let { HostedWidget(it, hostedWidgetId) },
 )
 
 fun Folder.toEntity() = FolderEntity(
@@ -100,6 +106,8 @@ fun Folder.toEntity() = FolderEntity(
     widgetSize = "${widgetSize.columns}x${widgetSize.rows}",
     showLabel = showLabel,
     position = position,
+    hostedWidgetProvider = hostedWidget?.provider,
+    hostedWidgetId = hostedWidget?.appWidgetId ?: 0,
 )
 
 fun CategoryEntity.toModel() = Category(id, folderId, name, position, sortMode)
