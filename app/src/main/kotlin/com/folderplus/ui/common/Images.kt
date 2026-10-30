@@ -29,7 +29,8 @@ import kotlinx.coroutines.withContext
 fun AppIconImage(app: AppRef, size: Dp = 48.dp, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val bitmap by produceState<Bitmap?>(initialValue = null, key1 = app) {
-        value = withContext(Dispatchers.IO) { context.graph.installedApps.icon(app) }
+        val loaded = withContext(Dispatchers.IO) { context.graph.installedApps.icon(app) }
+        value = loaded
     }
     val current = bitmap
     if (current != null) {
@@ -45,12 +46,13 @@ fun FolderIconImage(folder: Folder, size: Dp = 48.dp, modifier: Modifier = Modif
     val context = LocalContext.current
     val sizePx = with(androidx.compose.ui.platform.LocalDensity.current) { size.roundToPx() }
     val bitmap by produceState<Bitmap?>(initialValue = null, key1 = folder, key2 = sizePx) {
-        value = withContext(Dispatchers.IO) {
+        val composed = withContext(Dispatchers.IO) {
             val graph = context.graph
             graph.installedApps.ensureLoaded()
             val items = AppSorter.sort(graph.repository.getItems(folder.id), folder.sortMode) { graph.installedApps.label(it.app) }
             IconComposer.folderIcon(context, folder, items, graph.installedApps, sizePx.coerceAtLeast(1))
         }
+        value = composed
     }
     val current = bitmap
     if (current != null) {
