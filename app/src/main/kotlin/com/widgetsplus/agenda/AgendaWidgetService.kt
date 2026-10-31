@@ -47,10 +47,10 @@ class AgendaRemoteViewsFactory(private val context: Context, private val slotCou
         val views = RemoteViews(context.packageName, R.layout.widget_agenda_day)
         val visibleSlots = slotCount.coerceIn(1, slots.size)
 
-        // Date card (opaque: cards in a stack must not show the next day through)
-        AgendaPalette.tint(views, R.id.day_date_bg, palette.card, 255)
-        // Accent ring around every date card (a plate behind the 2dp-inset card); today's is full strength.
-        AgendaPalette.tint(views, R.id.day_today_ring, palette.accent, if (day.isToday) 255 else 150)
+        // Date card: accent-blue face (as the author prefers) inside a pale ring; today's ring is
+        // brighter. Opaque, because cards in a stack must not show the next day through.
+        AgendaPalette.tint(views, R.id.day_date_bg, palette.badge, 255)
+        AgendaPalette.tint(views, R.id.day_today_ring, if (day.isToday) palette.onPlate else palette.card, 255)
         views.setTextViewText(R.id.day_dow, AgendaFormat.dow(day.date))
         views.setTextViewText(R.id.day_num, day.date.dayOfMonth.toString())
         views.setTextViewText(R.id.day_mon, AgendaFormat.mon(day.date))

@@ -97,7 +97,7 @@ class AgendaWidgetProvider : AppWidgetProvider() {
 
         private fun build(context: Context, appWidgetId: Int, size: SizeF): RemoteViews {
             val palette = AgendaPalette(context)
-            val views = RemoteViews(context.packageName, R.layout.widget_agenda)
+            val views = RemoteViews(context.packageName, R.layout.widget_agenda_stack)
             AgendaPalette.tint(views, R.id.agenda_plate, palette.plate, AgendaPalette.PLATE_ALPHA)
             views.setInt(R.id.agenda_hairline, "setImageAlpha", AgendaPalette.HAIRLINE_ALPHA)
             views.setTextColor(R.id.agenda_empty, palette.onPlate)
