@@ -85,37 +85,40 @@ class AgendaWidgetProvider : AppWidgetProvider() {
             }
 
         fun render(context: Context, manager: AppWidgetManager, appWidgetId: Int) {
-            val options = manager.getAppWidgetOptions(appWidgetId)
-            val views = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                // One layout per size the launcher may use, so the row count fits each.
-                val sizes = sizes(options)?.takeIf { it.isNotEmpty() } ?: listOf(portraitSize(context, options))
-                if (sizes.size == 1) build(context, appWidgetId, sizes[0])
-                else RemoteViews(sizes.associateWith { build(context, appWidgetId, it) })
-            } else {
-                build(context, appWidgetId, portraitSize(context, options))
-            }
-            manager.updateAppWidget(appWidgetId, views)
+            manager.updateAppWidget(appWidgetId, widgetViews(context, manager, appWidgetId, showIndex = null))
             manager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.agenda_stack)
         }
 
+        /** The full widget: one layout per size the launcher may use, so the row count fits each. */
+        private fun widgetViews(context: Context, manager: AppWidgetManager, appWidgetId: Int, showIndex: Int?): RemoteViews {
+            val options = manager.getAppWidgetOptions(appWidgetId)
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val sizes = sizes(options)?.takeIf { it.isNotEmpty() } ?: listOf(portraitSize(context, options))
+                if (sizes.size == 1) build(context, appWidgetId, sizes[0], showIndex)
+                else RemoteViews(sizes.associateWith { build(context, appWidgetId, it, showIndex) })
+            } else {
+                build(context, appWidgetId, portraitSize(context, options), showIndex)
+            }
+        }
+
         /**
-         * Shows the day at [index] (0 = today) on the widget: StackView's own "show this card"
-         * (AdapterViewAnimator.setDisplayedChild), sent as a partial update so nothing else is
-         * rebuilt. It needs the widget's adapter to be connected, which it is while the widget
-         * is on screen.
+         * Shows the day at [index] (0 = today) on the widget with StackView's own "show this card"
+         * (AdapterViewAnimator.setDisplayedChild). It has to go out as a full update: the widget
+         * has one layout per size, and a partial update is merged only into the outer wrapper of
+         * those layouts, never into the one on screen, so the command was lost. The full update
+         * re-applies the same layout and adapter (the host keeps the connected adapter because the
+         * adapter intent is unchanged), then the jump. It needs the widget to be on screen.
          */
         fun showDay(context: Context, appWidgetId: Int, index: Int) {
             if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID || index < 0) return
-            val layout = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) R.layout.widget_agenda_stack else R.layout.widget_agenda_stack_compat
-            val views = RemoteViews(context.packageName, layout)
-            views.setDisplayedChild(R.id.agenda_stack, index)
-            AppWidgetManager.getInstance(context).partiallyUpdateAppWidget(appWidgetId, views)
+            val manager = AppWidgetManager.getInstance(context)
+            manager.updateAppWidget(appWidgetId, widgetViews(context, manager, appWidgetId, showIndex = index))
         }
 
         /** StackView wraps each card in a frame with this much padding on every side (dp). */
         private const val STACK_FRAME_PADDING_DP = 4f
 
-        private fun build(context: Context, appWidgetId: Int, size: SizeF): RemoteViews {
+        private fun build(context: Context, appWidgetId: Int, size: SizeF, showIndex: Int?): RemoteViews {
             val palette = AgendaPalette(context)
             // The frame is the plate minus its 16dp padding; each card is exactly that tall.
             val frameH = size.height - FRAME_PADDING_DP
@@ -160,6 +163,8 @@ class AgendaWidgetProvider : AppWidgetProvider() {
                     .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 views.setPendingIntentTemplate(R.id.agenda_stack, PendingIntent.getActivity(context, appWidgetId, trampoline, flags))
+                // Applied after the adapter, so the connected stack moves to that card.
+                if (showIndex != null) views.setDisplayedChild(R.id.agenda_stack, showIndex)
             }
             return views
         }
