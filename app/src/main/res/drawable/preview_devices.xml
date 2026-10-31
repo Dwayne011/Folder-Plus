@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget-picker image for the connected devices widget: frame, well, earbuds with a bar, two rings. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="344dp" android:height="160dp"
+    android:viewportWidth="344" android:viewportHeight="160">
+    <path android:fillColor="@color/dev_frame" android:fillAlpha="0.34"
+        android:pathData="M28,0h288a28,28 0 0,1 28,28v104a28,28 0 0,1 -28,28h-288a28,28 0 0,1 -28,-28v-104a28,28 0 0,1 28,-28z" />
+    <path android:fillColor="@color/dev_well" android:fillAlpha="0.62"
+        android:pathData="M28,28h288a22,22 0 0,1 22,22v66a22,22 0 0,1 -22,22h-288a22,22 0 0,1 -22,-22v-66a22,22 0 0,1 22,-22z" />
+    <path android:fillColor="@color/dev_on_well" android:pathData="M146,12h52a2,2 0 0,1 0,4h-52a2,2 0 0,1 0,-4z" />
+    <group android:translateX="22" android:translateY="46">
+        <group android:translateX="19" android:translateY="16" android:rotation="-22">
+            <path android:fillColor="@color/dev_frame" android:pathData="M-11.5,0a11.5,9.5 0 1,0 23,0a11.5,9.5 0 1,0 -23,0z" />
+            <path android:fillColor="@color/dev_frame" android:pathData="M6.5,3h0a3.5,3.5 0 0,1 3.5,3.5v9a3.5,3.5 0 0,1 -7,0v-9a3.5,3.5 0 0,1 3.5,-3.5z" />
+        </group>
+        <group android:translateX="46" android:translateY="29" android:rotation="-22">
+            <path android:fillColor="@color/dev_frame" android:pathData="M-11.5,0a11.5,9.5 0 1,0 23,0a11.5,9.5 0 1,0 -23,0z" />
+            <path android:fillColor="@color/dev_frame" android:pathData="M6.5,3h0a3.5,3.5 0 0,1 3.5,3.5v9a3.5,3.5 0 0,1 -7,0v-9a3.5,3.5 0 0,1 3.5,-3.5z" />
+        </group>
+        <path android:fillColor="@color/dev_frame" android:pathData="M84,2h4a16,16 0 0,1 16,16v12a16,16 0 0,1 -16,16h-4a16,16 0 0,1 -16,-16v-12a16,16 0 0,1 16,-16z" />
+    </group>
+    <path android:fillColor="@color/dev_track" android:pathData="M42,118h72a2.5,2.5 0 0,1 0,5h-72a2.5,2.5 0 0,1 0,-5z" />
+    <path android:fillColor="@color/dev_frame" android:pathData="M42,118h60a2.5,2.5 0 0,1 0,5h-60a2.5,2.5 0 0,1 0,-5z" />
+    <path android:strokeColor="@color/dev_track" android:strokeWidth="5" android:pathData="M210,72m-23.5,0a23.5,23.5 0 1,0 47,0a23.5,23.5 0 1,0 -47,0" />
+    <path android:strokeColor="@color/dev_frame" android:strokeWidth="5" android:strokeLineCap="round" android:pathData="M210,48.5a23.5,23.5 0 1,1 -20.3,35.3" />
+    <path android:strokeColor="@color/dev_track" android:strokeWidth="5" android:pathData="M290,72m-23.5,0a23.5,23.5 0 1,0 47,0a23.5,23.5 0 1,0 -47,0" />
+    <path android:strokeColor="@color/dev_frame" android:strokeWidth="5" android:strokeLineCap="round" android:pathData="M290,48.5a23.5,23.5 0 1,1 -23.5,23.5" />
+</vector>

@@ -132,6 +132,34 @@
     <string name="agenda_all_day">All day</string>
     <string name="agenda_more">+%1$d more</string>
     <string name="agenda_today">Go to Today</string>
+
+    <!-- Connected devices widget -->
+    <string name="devices_widget_label">Connected devices</string>
+    <string name="devices_widget_description">Battery of the Bluetooth devices connected to this phone, or this phone\'s battery when none are.</string>
+    <string name="devices_header_connected">Connected</string>
+    <string name="devices_header_none">No devices</string>
+    <string name="devices_header_off">Bluetooth off</string>
+    <string name="devices_this_phone">This phone</string>
+    <string name="devices_tap_to_connect">Tap to connect in Bluetooth</string>
+    <string name="devices_need_permission">Tap to allow Nearby devices</string>
+    <string name="devices_kind_buds">Buds</string>
+    <string name="devices_kind_headphones">Headphones</string>
+    <string name="devices_kind_watch">Watch</string>
+    <string name="devices_kind_keyboard">Keyboard</string>
+    <string name="devices_kind_mouse">Mouse</string>
+    <string name="devices_kind_speaker">Speaker</string>
+    <string name="devices_kind_car">Car</string>
+    <string name="devices_kind_other">Device</string>
+    <string name="devices_setup_title">Connected devices widget</string>
+    <string name="devices_setup_body">Shows the battery of each connected Bluetooth device that reports one, such as earbuds, headphones, keyboards and mice. Android shares one level per device. It needs the Nearby devices permission to see them; nothing is sent anywhere.</string>
+    <string name="devices_allow">Allow Nearby devices</string>
+    <string name="devices_granted">Nearby devices allowed</string>
+    <string name="devices_permission_hint">Lets the widget see connected devices and their battery</string>
+    <string name="devices_add_widget">Add to home screen</string>
+    <string name="devices_add_widget_hint">4 by 2; it adapts to one, two or three devices</string>
+    <string name="devices_bluetooth_settings">Bluetooth settings</string>
+    <string name="devices_bluetooth_settings_hint">Connect or forget devices</string>
+    <string name="devices_menu">Devices widget…</string>
     <string name="agenda_next_days">Next 30 days</string>
     <string name="agenda_range">%1$s to %2$s</string>
     <string name="agenda_show_day">Show %1$s on the widget</string>

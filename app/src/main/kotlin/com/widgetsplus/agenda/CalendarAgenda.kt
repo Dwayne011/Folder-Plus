@@ -21,6 +21,8 @@ data class AgendaEvent(
     val location: String = "",
     val description: String = "",
     val calendarId: Long = 0,
+    /** The colour Calendar shows the event in (its own colour, or its calendar's); 0 if none. */
+    val color: Int = 0,
 )
 
 /** One day of the agenda. [date] is the local calendar day; [events] may be empty. */
@@ -77,6 +79,7 @@ object CalendarAgenda {
             CalendarContract.Instances.EVENT_LOCATION,
             CalendarContract.Instances.DESCRIPTION,
             CalendarContract.Instances.CALENDAR_ID,
+            CalendarContract.Instances.DISPLAY_COLOR,
         )
         val selection = "${CalendarContract.Instances.VISIBLE} = 1 AND " +
             "${CalendarContract.Instances.SELF_ATTENDEE_STATUS} != ${CalendarContract.Attendees.ATTENDEE_STATUS_DECLINED}"
@@ -91,6 +94,7 @@ object CalendarAgenda {
                 val iLoc = c.getColumnIndexOrThrow(CalendarContract.Instances.EVENT_LOCATION)
                 val iDesc = c.getColumnIndexOrThrow(CalendarContract.Instances.DESCRIPTION)
                 val iCal = c.getColumnIndexOrThrow(CalendarContract.Instances.CALENDAR_ID)
+                val iColor = c.getColumnIndexOrThrow(CalendarContract.Instances.DISPLAY_COLOR)
                 while (c.moveToNext()) {
                     val calendarId = c.getLong(iCal)
                     if (calendarId in excluded) continue
@@ -106,6 +110,7 @@ object CalendarAgenda {
                             location = c.getString(iLoc)?.trim().orEmpty(),
                             description = c.getString(iDesc)?.trim().orEmpty(),
                             calendarId = calendarId,
+                            color = if (c.isNull(iColor)) 0 else c.getInt(iColor),
                         ),
                     )
                 }

@@ -33,14 +33,14 @@ class AgendaRemoteViewsFactory(
     private var days: List<AgendaDay> = emptyList()
     private lateinit var palette: AgendaPalette
 
-    private class Slot(val root: Int, val bg: Int, val badge: Int, val icon: Int, val whenText: Int, val title: Int, val loc: Int)
+    private class Slot(val root: Int, val bg: Int, val badge: Int, val icon: Int, val whenText: Int, val title: Int, val loc: Int, val dot: Int)
 
     private val slots = listOf(
-        Slot(R.id.ev1, R.id.ev1_bg, R.id.ev1_badge, R.id.ev1_icon, R.id.ev1_when, R.id.ev1_title, R.id.ev1_loc),
-        Slot(R.id.ev2, R.id.ev2_bg, R.id.ev2_badge, R.id.ev2_icon, R.id.ev2_when, R.id.ev2_title, R.id.ev2_loc),
-        Slot(R.id.ev3, R.id.ev3_bg, R.id.ev3_badge, R.id.ev3_icon, R.id.ev3_when, R.id.ev3_title, R.id.ev3_loc),
-        Slot(R.id.ev4, R.id.ev4_bg, R.id.ev4_badge, R.id.ev4_icon, R.id.ev4_when, R.id.ev4_title, R.id.ev4_loc),
-        Slot(R.id.ev5, R.id.ev5_bg, R.id.ev5_badge, R.id.ev5_icon, R.id.ev5_when, R.id.ev5_title, R.id.ev5_loc),
+        Slot(R.id.ev1, R.id.ev1_bg, R.id.ev1_badge, R.id.ev1_icon, R.id.ev1_when, R.id.ev1_title, R.id.ev1_loc, R.id.ev1_dot),
+        Slot(R.id.ev2, R.id.ev2_bg, R.id.ev2_badge, R.id.ev2_icon, R.id.ev2_when, R.id.ev2_title, R.id.ev2_loc, R.id.ev2_dot),
+        Slot(R.id.ev3, R.id.ev3_bg, R.id.ev3_badge, R.id.ev3_icon, R.id.ev3_when, R.id.ev3_title, R.id.ev3_loc, R.id.ev3_dot),
+        Slot(R.id.ev4, R.id.ev4_bg, R.id.ev4_badge, R.id.ev4_icon, R.id.ev4_when, R.id.ev4_title, R.id.ev4_loc, R.id.ev4_dot),
+        Slot(R.id.ev5, R.id.ev5_bg, R.id.ev5_badge, R.id.ev5_icon, R.id.ev5_when, R.id.ev5_title, R.id.ev5_loc, R.id.ev5_dot),
     )
 
     override fun onCreate() { palette = AgendaPalette(context) }
@@ -120,6 +120,13 @@ class AgendaRemoteViewsFactory(
             views.setTextViewText(slot.whenText, AgendaFormat.whenLabel(context, day.date, event))
             views.setTextViewText(slot.title, event.title)
             views.setTextColor(slot.whenText, palette.onCardVar)
+            // Calendar colour: a small dot before the time, in the colour Calendar shows the event in.
+            if (event.color != 0) {
+                views.setViewVisibility(slot.dot, View.VISIBLE)
+                AgendaPalette.tint(views, slot.dot, event.color, 255)
+            } else {
+                views.setViewVisibility(slot.dot, View.GONE)
+            }
             views.setTextColor(slot.title, palette.onCard)
             views.setTextColor(slot.loc, palette.onCardVar)
             if (event.location.isNotEmpty()) {

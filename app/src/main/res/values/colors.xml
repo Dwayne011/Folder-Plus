@@ -19,4 +19,12 @@
     <color name="agenda_on_plate">#F5EDE8</color>
     <color name="agenda_on_plate_var">#C7B8B0</color>
     <color name="agenda_accent">#F5B895</color>
+    <!-- Connected devices widget: spec palette (Material You overrides on API 31+) -->
+    <color name="dev_frame">#99FFDE</color>
+    <color name="dev_well">#2E3D3A</color>
+    <color name="dev_track">#425450</color>
+    <color name="dev_tone2">#4A6B62</color>
+    <color name="dev_on_well">#E0F2EE</color>
+    <color name="dev_on_well_var">#A3BDB7</color>
+    <color name="dev_error">#FFB4AB</color>
 </resources>
