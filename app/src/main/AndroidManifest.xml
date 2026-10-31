@@ -134,20 +134,17 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_agenda" />
         </receiver>
-        <service
-            android:name=".agenda.AgendaWidgetService"
+        <activity
+            android:name=".agenda.AgendaPopupActivity"
+            android:excludeFromRecents="true"
             android:exported="false"
-            android:permission="android.permission.BIND_REMOTEVIEWS" />
+            android:launchMode="singleTask"
+            android:noHistory="true"
+            android:taskAffinity="com.folderplus.popup"
+            android:theme="@style/Theme.FolderPlus.Popup" />
         <activity
             android:name=".agenda.AgendaSetupActivity"
             android:exported="false"
             android:label="@string/agenda_setup_title" />
-        <activity
-            android:name=".agenda.AgendaOpenActivity"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:noHistory="true"
-            android:taskAffinity="com.folderplus.popup"
-            android:theme="@style/Theme.FolderPlus.Invisible" />
     </application>
 </manifest>

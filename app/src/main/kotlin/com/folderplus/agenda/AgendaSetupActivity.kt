@@ -4,7 +4,7 @@ import android.Manifest
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
-import android.os.Build
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddToHomeScreen
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -62,7 +63,7 @@ class AgendaSetupActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        AgendaWidgetProvider.updateAll(this)
+        AgendaWidgetProvider.updateAllAsync(this)
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -71,7 +72,7 @@ class AgendaSetupActivity : ComponentActivity() {
         var granted by remember { mutableStateOf(CalendarAgenda.hasPermission(this)) }
         val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
             granted = ok
-            if (ok) AgendaWidgetProvider.updateAll(this)
+            if (ok) AgendaWidgetProvider.updateAllAsync(this)
         }
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
         Scaffold(
@@ -109,6 +110,15 @@ class AgendaSetupActivity : ComponentActivity() {
                             subtitle = stringResource(R.string.agenda_add_widget_hint),
                             leading = { RowIcon(Icons.Default.AddToHomeScreen) },
                             onClick = { pinWidget() },
+                        )
+                    },
+                    {
+                        SettingRow(
+                            title = stringResource(R.string.agenda_preview),
+                            subtitle = stringResource(R.string.agenda_preview_hint),
+                            leading = { RowIcon(Icons.Default.OpenInNew) },
+                            enabled = granted,
+                            onClick = { startActivity(Intent(this@AgendaSetupActivity, AgendaPopupActivity::class.java)) },
                         )
                     },
                 ))
