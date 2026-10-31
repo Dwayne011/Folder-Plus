@@ -11,12 +11,13 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.SizeF
+import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import com.widgetsplus.R
 
 /**
- * Agenda widget: a solid plate holding a StackView with one opaque card per day.
+ * Agenda widget: a see-through plate holding a StackView with one card per day.
  * The launcher animates the swipe between days; this class only draws.
  */
 class AgendaWidgetProvider : AppWidgetProvider() {
@@ -37,6 +38,8 @@ class AgendaWidgetProvider : AppWidgetProvider() {
     companion object {
         const val ACTION_REFRESH = "com.widgetsplus.agenda.REFRESH"
         const val EXTRA_SLOTS = "slots"
+        /** Card height in dp for the option 2 stack (Android 12+); 0 selects the fallback layout. */
+        const val EXTRA_CARD_HEIGHT = "card_height_dp"
 
         fun placedIds(context: Context): IntArray =
             AppWidgetManager.getInstance(context).getAppWidgetIds(ComponentName(context, AgendaWidgetProvider::class.java))
@@ -95,16 +98,28 @@ class AgendaWidgetProvider : AppWidgetProvider() {
             manager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.agenda_stack)
         }
 
+        /** StackView wraps each card in a frame with this much padding on every side (dp). */
+        private const val STACK_FRAME_PADDING_DP = 4f
+
         private fun build(context: Context, appWidgetId: Int, size: SizeF): RemoteViews {
             val palette = AgendaPalette(context)
-            val views = RemoteViews(context.packageName, R.layout.widget_agenda_stack)
-            AgendaPalette.tint(views, R.id.agenda_plate, palette.plateSolid, 255)
+            // The frame is the plate minus its 16dp padding; each card is exactly that tall.
+            val frameH = size.height - FRAME_PADDING_DP
+            val parked = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && frameH > 0f
+            val views = RemoteViews(context.packageName, if (parked) R.layout.widget_agenda_stack else R.layout.widget_agenda_stack_compat)
+            if (parked) {
+                // Option 2: see-through plate as in the mockup. The stack is made about four
+                // card-heights tall so the cards behind the front one wait above the frame.
+                AgendaPalette.tint(views, R.id.agenda_plate, palette.plate, AgendaPalette.PLATE_ALPHA)
+                val frame = frameH + 2 * STACK_FRAME_PADDING_DP
+                views.setViewLayoutHeight(R.id.agenda_stack_column, 4 * frame + 16f, TypedValue.COMPLEX_UNIT_DIP)
+            } else {
+                // Android 8 to 11 cannot size views at runtime: every card is opaque instead.
+                AgendaPalette.tint(views, R.id.agenda_plate, palette.plateSolid, 255)
+            }
             views.setInt(R.id.agenda_hairline, "setImageAlpha", AgendaPalette.HAIRLINE_ALPHA)
             views.setTextColor(R.id.agenda_empty, palette.onPlate)
             val immutable = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            // The stack geometry is handled proportionally in the layout; only the number
-            // of event rows per card depends on the size the launcher reports.
-            val frameH = size.height - FRAME_PADDING_DP
 
             if (!CalendarAgenda.hasPermission(context)) {
                 views.setViewVisibility(R.id.agenda_stack_column, View.GONE)
@@ -118,6 +133,7 @@ class AgendaWidgetProvider : AppWidgetProvider() {
                 val adapter = Intent(context, AgendaWidgetService::class.java)
                     .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
                     .putExtra(EXTRA_SLOTS, slotsFor(frameH))
+                    .putExtra(EXTRA_CARD_HEIGHT, if (parked) frameH else 0f)
                 adapter.data = Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME))
                 @Suppress("DEPRECATION")
                 views.setRemoteAdapter(R.id.agenda_stack, adapter)

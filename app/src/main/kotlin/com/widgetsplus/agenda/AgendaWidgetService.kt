@@ -3,6 +3,8 @@ package com.widgetsplus.agenda
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
@@ -12,10 +14,22 @@ import java.time.DayOfWeek
 /** Supplies the day cards for the agenda widget's stack. */
 class AgendaWidgetService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory =
-        AgendaRemoteViewsFactory(applicationContext, intent.getIntExtra(AgendaWidgetProvider.EXTRA_SLOTS, 3))
+        AgendaRemoteViewsFactory(
+            applicationContext,
+            intent.getIntExtra(AgendaWidgetProvider.EXTRA_SLOTS, 3),
+            intent.getFloatExtra(AgendaWidgetProvider.EXTRA_CARD_HEIGHT, 0f),
+        )
 }
 
-class AgendaRemoteViewsFactory(private val context: Context, private val slotCount: Int) : RemoteViewsService.RemoteViewsFactory {
+/**
+ * [cardHeightDp] > 0: Android 12+ "parked" stack; each card is set to exactly the frame's height
+ * so the cards behind it wait out of sight. 0: fallback stack, where every card is opaque.
+ */
+class AgendaRemoteViewsFactory(
+    private val context: Context,
+    private val slotCount: Int,
+    private val cardHeightDp: Float,
+) : RemoteViewsService.RemoteViewsFactory {
     private var days: List<AgendaDay> = emptyList()
     private lateinit var palette: AgendaPalette
 
@@ -48,21 +62,28 @@ class AgendaRemoteViewsFactory(private val context: Context, private val slotCou
         val views = RemoteViews(context.packageName, R.layout.widget_agenda_day)
         val visibleSlots = slotCount.coerceIn(1, slots.size)
 
-        // The whole card is opaque: its backing (day_root's 2dp padding and the gaps) is the
-        // plate colour, so the next day's card behind it can never show through.
-        views.setInt(R.id.day_root, "setBackgroundColor", palette.plateSolid)
-
-        // Date card with a 2dp ring as in the mockup. Weekdays: pale face, accent ring (full
-        // strength on today, softer on other days). Weekends: accent-blue face with a pale ring
-        // (white on today).
-        val weekend = day.date.dayOfWeek == DayOfWeek.SATURDAY || day.date.dayOfWeek == DayOfWeek.SUNDAY
-        if (weekend) {
-            AgendaPalette.tint(views, R.id.day_date_bg, palette.accent, 255)
-            AgendaPalette.tint(views, R.id.day_today_ring, if (day.isToday) palette.onPlate else palette.card, 255)
+        if (cardHeightDp > 0f && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            views.setViewLayoutHeight(R.id.day_root, cardHeightDp, TypedValue.COMPLEX_UNIT_DIP)
         } else {
-            AgendaPalette.tint(views, R.id.day_date_bg, palette.card, 255)
-            AgendaPalette.tint(views, R.id.day_today_ring, palette.accent, if (day.isToday) 255 else 150)
+            // Fallback stack: the card is opaque (plate-coloured backing around the content),
+            // so the next day's card behind it can never show through.
+            val pad = (2 * context.resources.displayMetrics.density).toInt()
+            views.setInt(R.id.day_root, "setBackgroundColor", palette.plateSolid)
+            views.setViewPadding(R.id.day_root, pad, pad, pad, pad)
         }
+
+        // Date card as in the mockup: a 2dp accent ring on today only. Weekends have a blue
+        // (accent) face; today's ring on a blue face is pale so it still shows. The ring is a
+        // plate behind the face, so on other days it takes the face colour and disappears.
+        val weekend = day.date.dayOfWeek == DayOfWeek.SATURDAY || day.date.dayOfWeek == DayOfWeek.SUNDAY
+        val face = if (weekend) palette.accent else palette.card
+        val ring = when {
+            !day.isToday -> face
+            weekend -> palette.card
+            else -> palette.accent
+        }
+        AgendaPalette.tint(views, R.id.day_date_bg, face, 255)
+        AgendaPalette.tint(views, R.id.day_today_ring, ring, 255)
         views.setTextViewText(R.id.day_dow, AgendaFormat.dow(day.date))
         views.setTextViewText(R.id.day_num, day.date.dayOfMonth.toString())
         views.setTextViewText(R.id.day_mon, AgendaFormat.mon(day.date))

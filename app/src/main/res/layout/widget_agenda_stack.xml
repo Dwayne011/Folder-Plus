@@ -1,21 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Agenda widget: a solid plate holding a card stack of days.
-     StackView keeps the next days' cards directly behind the front one, offset up and to the
-     right, so every card is fully opaque (each has a backing in the plate colour) and only the
-     front card can ever be seen.
-     StackView lays the front card out in the bottom-left 90% of its own bounds. The stack is
-     therefore made 10/9 of its box (LinearLayouts with weightSum 9 and a weight-10 child,
-     bottom-aligned) so the front card fills the box exactly at any widget size.
-     StackView also wraps each card in a frame with 4dp padding. The box is the clipping frame
-     grown by 5dp per side (agenda_stack_overhang): 4dp cancels that padding and 1dp lets the
-     front card overflow the frame, so rounding can never expose an edge of the card behind.
-     The overhang is set per side on purpose: Android ignores a negative all-sides margin.
-     The card's own 2dp backing padding puts its content exactly 16dp inside the plate. -->
+<!-- Agenda widget (Android 12+), "option 2": the approved mockup's see-through plate holding a
+     card stack of days, with the cards StackView keeps behind the front one parked out of sight.
+
+     StackView positions the front card at the bottom of its own bounds and the cards behind it
+     up and to the right, a third of (stack height - card height) apart. The provider makes the
+     stack about four card-heights tall (agenda_stack_column's height is set at runtime from the
+     size the launcher reports) and the cards exactly the frame's height, so every card behind
+     the front one waits at least one card-height above the frame, where the frame clips it.
+     Nothing can show through the gap between the date card and the events, or the corners.
+
+     Width uses the 10/9 trick: a weight-10 child in a weightSum-9 LinearLayout is 10/9 of it,
+     which leaves the front card exactly as wide as the frame. The -4dp margins cancel the 4dp
+     padding StackView puts around every card (negative margins are set per side on purpose:
+     Android ignores a negative all-sides margin). -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/agenda_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:ignore="SpUsage,UnusedAttribute">
 
     <ImageView android:id="@+id/agenda_plate" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_plate" />
     <ImageView android:id="@+id/agenda_hairline" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_hairline" />
@@ -26,35 +29,26 @@
         android:layout_height="match_parent"
         android:clipChildren="true"
         android:clipToPadding="true"
-        android:padding="15dp">
+        android:padding="16dp">
 
         <LinearLayout
             android:id="@+id/agenda_stack_column"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="@dimen/agenda_stack_overhang"
-            android:layout_marginTop="@dimen/agenda_stack_overhang"
-            android:layout_marginEnd="@dimen/agenda_stack_overhang"
-            android:layout_marginBottom="@dimen/agenda_stack_overhang"
-            android:gravity="bottom"
-            android:orientation="vertical"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="-4dp"
+            android:layout_marginEnd="-4dp"
+            android:layout_marginBottom="-4dp"
+            android:layoutDirection="ltr"
+            android:orientation="horizontal"
             android:weightSum="9">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
+            <StackView
+                android:id="@+id/agenda_stack"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
                 android:layout_weight="10"
-                android:layoutDirection="ltr"
-                android:orientation="horizontal"
-                android:weightSum="9">
-
-                <StackView
-                    android:id="@+id/agenda_stack"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="10"
-                    android:loopViews="false" />
-            </LinearLayout>
+                android:loopViews="false" />
         </LinearLayout>
 
         <TextView
@@ -65,9 +59,8 @@
             android:gravity="center"
             android:padding="12dp"
             android:textFontWeight="500"
-            android:textSize="14sp"
+            android:textSize="14dp"
             android:textStyle="bold"
-            android:visibility="gone"
-            tools:ignore="UnusedAttribute" />
+            android:visibility="gone" />
     </FrameLayout>
 </FrameLayout>
