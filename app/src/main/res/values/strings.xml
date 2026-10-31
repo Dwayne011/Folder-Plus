@@ -126,7 +126,7 @@
     <string name="settings">Settings</string>
 
     <string name="agenda_widget_label">Agenda</string>
-    <string name="agenda_widget_description">Your next two weeks, one day per card. Swipe to move between days.</string>
+    <string name="agenda_widget_description">Your next two weeks as a scrolling agenda, each day with its own date card.</string>
     <string name="agenda_untitled">(No title)</string>
     <string name="agenda_nothing_planned">Nothing planned</string>
     <string name="agenda_all_day">All day</string>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Frosted plate holding a card stack of days. The stack is drawn larger than its
-     clipping frame and shifted up so the strip where back cards peek out is cut off,
-     leaving one agenda card per day with the system's swipe animation. -->
+<!-- Frosted plate holding a natively scrolling list of days. Every row carries its own
+     date card beside that day's events, so the visible date always matches the
+     visible events, and translucent surfaces never overlap. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/agenda_root"
     android:layout_width="match_parent"
@@ -24,21 +24,20 @@
         android:src="@drawable/agenda_hairline" />
 
     <FrameLayout
-        android:id="@+id/agenda_clip"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipChildren="true"
-        android:clipToPadding="true"
         android:padding="16dp">
 
-        <StackView
-            android:id="@+id/agenda_stack"
+        <ListView
+            android:id="@+id/agenda_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="-26dp"
-            android:layout_marginStart="-20dp"
-            android:layout_marginEnd="-20dp"
-            android:loopViews="false" />
+            android:cacheColorHint="@android:color/transparent"
+            android:divider="@null"
+            android:dividerHeight="12dp"
+            android:listSelector="@android:color/transparent"
+            android:overScrollMode="ifContentScrolls"
+            android:scrollbars="none" />
 
         <TextView
             android:id="@+id/agenda_empty"

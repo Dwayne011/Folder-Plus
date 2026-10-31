@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.CalendarContract
 import android.text.format.DateFormat
+import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
@@ -15,7 +16,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-/** Supplies the day cards for the agenda widget's stack. */
+/** Supplies the day rows for the agenda widget's list. */
 class AgendaWidgetService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory = AgendaRemoteViewsFactory(applicationContext)
 }
@@ -63,6 +64,11 @@ class AgendaRemoteViewsFactory(private val context: Context) : RemoteViewsServic
         if (day.isToday) AgendaPalette.tint(views, R.id.day_today_ring, palette.accent, 255)
         views.setTextViewText(R.id.day_dow, day.date.format(DateTimeFormatter.ofPattern("EEE", locale)))
         views.setTextViewText(R.id.day_num, day.date.dayOfMonth.toString())
+        // Rows with one event (or none) are short, so the numeral steps down to fit the card.
+        val compact = day.events.size <= 1
+        views.setTextViewTextSize(R.id.day_num, TypedValue.COMPLEX_UNIT_SP, if (compact) 34f else 56f)
+        views.setTextViewTextSize(R.id.day_dow, TypedValue.COMPLEX_UNIT_SP, if (compact) 12f else 16f)
+        views.setTextViewTextSize(R.id.day_mon, TypedValue.COMPLEX_UNIT_SP, if (compact) 12f else 16f)
         views.setTextViewText(R.id.day_mon, day.date.format(DateTimeFormatter.ofPattern("MMM", locale)))
         views.setTextColor(R.id.day_dow, palette.onCardVar)
         views.setTextColor(R.id.day_num, palette.onCard)

@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One day: date card on the left, that day's events (up to three) on the right. -->
+<!-- One list row = one day: date card on the left, that day's events (up to three) on the right. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/day_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false"
     android:orientation="horizontal">
 
     <FrameLayout
         android:id="@+id/day_date"
         android:layout_width="104dp"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:minHeight="72dp">
 
         <ImageView
             android:id="@+id/day_date_bg"
@@ -65,7 +67,7 @@
 
     <FrameLayout
         android:layout_width="0dp"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:layout_weight="1">
 
@@ -79,7 +81,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="6dp">
 

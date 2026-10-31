@@ -14,8 +14,8 @@ import android.widget.RemoteViews
 import com.folderplus.R
 
 /**
- * Calendar & Agenda widget: a frosted plate holding a card stack with one card per
- * day. The launcher animates the swipe between days; this class only draws.
+ * Calendar & Agenda widget: a frosted plate holding a natively scrolling list with
+ * one row per day (date card + events). This class only draws; the launcher scrolls.
  */
 class AgendaWidgetProvider : AppWidgetProvider() {
 
@@ -48,7 +48,7 @@ class AgendaWidgetProvider : AppWidgetProvider() {
 
         fun notifyDataChanged(context: Context) {
             val ids = placedIds(context)
-            if (ids.isNotEmpty()) AppWidgetManager.getInstance(context).notifyAppWidgetViewDataChanged(ids, R.id.agenda_stack)
+            if (ids.isNotEmpty()) AppWidgetManager.getInstance(context).notifyAppWidgetViewDataChanged(ids, R.id.agenda_list)
         }
 
         fun render(context: Context, manager: AppWidgetManager, appWidgetId: Int) {
@@ -59,7 +59,7 @@ class AgendaWidgetProvider : AppWidgetProvider() {
             views.setTextColor(R.id.agenda_empty, palette.onPlate)
 
             if (!CalendarAgenda.hasPermission(context)) {
-                views.setViewVisibility(R.id.agenda_stack, View.GONE)
+                views.setViewVisibility(R.id.agenda_list, View.GONE)
                 views.setViewVisibility(R.id.agenda_empty, View.VISIBLE)
                 views.setTextViewText(R.id.agenda_empty, context.getString(R.string.agenda_need_permission))
                 val setup = Intent(context, AgendaSetupActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -68,14 +68,14 @@ class AgendaWidgetProvider : AppWidgetProvider() {
                     PendingIntent.getActivity(context, appWidgetId, setup, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE),
                 )
             } else {
-                views.setViewVisibility(R.id.agenda_stack, View.VISIBLE)
+                views.setViewVisibility(R.id.agenda_list, View.VISIBLE)
                 views.setTextViewText(R.id.agenda_empty, context.getString(R.string.agenda_empty))
                 val adapter = Intent(context, AgendaWidgetService::class.java)
                     .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
                 adapter.data = Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME))
                 @Suppress("DEPRECATION")
-                views.setRemoteAdapter(R.id.agenda_stack, adapter)
-                views.setEmptyView(R.id.agenda_stack, R.id.agenda_empty)
+                views.setRemoteAdapter(R.id.agenda_list, adapter)
+                views.setEmptyView(R.id.agenda_list, R.id.agenda_empty)
                 // Items fill in the event or day to open. The template must be mutable for
                 // that, and (Android 14) a mutable PendingIntent must name its component, so
                 // it targets our trampoline, which forwards to the Calendar app.
@@ -83,10 +83,10 @@ class AgendaWidgetProvider : AppWidgetProvider() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) flags = flags or PendingIntent.FLAG_MUTABLE
                 val trampoline = Intent(context, AgendaOpenActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 val template = PendingIntent.getActivity(context, appWidgetId, trampoline, flags)
-                views.setPendingIntentTemplate(R.id.agenda_stack, template)
+                views.setPendingIntentTemplate(R.id.agenda_list, template)
             }
             manager.updateAppWidget(appWidgetId, views)
-            manager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.agenda_stack)
+            manager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.agenda_list)
         }
     }
 }
