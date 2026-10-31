@@ -8,6 +8,7 @@
      whatever size the launcher really gives the widget.
      StackView also wraps each card in a frame with 4dp padding, so the box the stack is sized
      from is the clipping frame grown by at least 4dp on every side (agenda_stack_overhang).
+     The overhang is set per side on purpose: Android ignores a negative all-sides layout_margin.
      On Android 12+ the frame clips to a rounded outline and the overhang is a little larger, so
      the front card overflows the frame slightly and no sliver of the next card can show. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -39,7 +40,10 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_margin="@dimen/agenda_stack_overhang"
+                android:layout_marginStart="@dimen/agenda_stack_overhang"
+                android:layout_marginTop="@dimen/agenda_stack_overhang"
+                android:layout_marginEnd="@dimen/agenda_stack_overhang"
+                android:layout_marginBottom="@dimen/agenda_stack_overhang"
                 android:gravity="bottom"
                 android:orientation="vertical"
                 android:weightSum="9">
