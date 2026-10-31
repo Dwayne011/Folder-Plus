@@ -40,7 +40,7 @@
             android:exported="false"
             android:launchMode="singleTask"
             android:noHistory="true"
-            android:taskAffinity="com.folderplus.popup"
+            android:taskAffinity="com.widgetsplus.popup"
             android:theme="@style/Theme.FolderPlus.Popup" />
 
         <!-- Invisible activity that tells a single tap from a double tap on a widget. -->
@@ -50,7 +50,7 @@
             android:exported="false"
             android:launchMode="singleTask"
             android:noHistory="true"
-            android:taskAffinity="com.folderplus.popup"
+            android:taskAffinity="com.widgetsplus.popup"
             android:theme="@style/Theme.FolderPlus.Invisible" />
 
         <!-- Invisible trampoline used by widget quick-launch icons so usage is recorded. -->
@@ -59,7 +59,7 @@
             android:excludeFromRecents="true"
             android:exported="false"
             android:noHistory="true"
-            android:taskAffinity="com.folderplus.popup"
+            android:taskAffinity="com.widgetsplus.popup"
             android:theme="@style/Theme.FolderPlus.Invisible" />
 
         <activity
@@ -140,7 +140,7 @@
             android:excludeFromRecents="true"
             android:exported="false"
             android:noHistory="true"
-            android:taskAffinity="com.folderplus.popup"
+            android:taskAffinity="com.widgetsplus.popup"
             android:theme="@style/Theme.FolderPlus.Invisible" />
         <activity
             android:name=".agenda.AgendaDayActivity"
@@ -148,7 +148,7 @@
             android:exported="false"
             android:launchMode="singleTask"
             android:noHistory="true"
-            android:taskAffinity="com.folderplus.popup"
+            android:taskAffinity="com.widgetsplus.popup"
             android:theme="@style/Theme.FolderPlus.Popup" />
         <activity
             android:name=".agenda.AgendaConfigActivity"

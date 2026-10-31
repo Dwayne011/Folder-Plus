@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.folderplus"
+    namespace = "com.widgetsplus"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.folderplus"
+        applicationId = "com.widgetsplus"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
