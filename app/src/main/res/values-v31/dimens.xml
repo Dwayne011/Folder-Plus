@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ can clip the frame to a rounded outline, so the front card is deliberately
+         3dp larger than the frame on every side: any sub-pixel mismatch between the launcher's
+         size and the stack's maths then hides behind the clip instead of showing the next card. -->
+    <dimen name="agenda_stack_overhang">-7dp</dimen>
+</resources>
