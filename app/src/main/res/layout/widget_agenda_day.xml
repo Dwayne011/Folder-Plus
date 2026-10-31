@@ -37,7 +37,7 @@
             <FrameLayout
                 android:id="@+id/ev1"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
+                android:layout_height="54dp"
                 android:layout_marginTop="0dp"
                 android:visibility="gone">
                 <ImageView android:id="@+id/ev1_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
@@ -56,7 +56,7 @@
             <FrameLayout
                 android:id="@+id/ev2"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
+                android:layout_height="54dp"
                 android:layout_marginTop="6dp"
                 android:visibility="gone">
                 <ImageView android:id="@+id/ev2_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
@@ -75,7 +75,7 @@
             <FrameLayout
                 android:id="@+id/ev3"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
+                android:layout_height="54dp"
                 android:layout_marginTop="6dp"
                 android:visibility="gone">
                 <ImageView android:id="@+id/ev3_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
@@ -94,7 +94,7 @@
             <FrameLayout
                 android:id="@+id/ev4"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
+                android:layout_height="54dp"
                 android:layout_marginTop="6dp"
                 android:visibility="gone">
                 <ImageView android:id="@+id/ev4_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
@@ -113,7 +113,7 @@
             <FrameLayout
                 android:id="@+id/ev5"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
+                android:layout_height="54dp"
                 android:layout_marginTop="6dp"
                 android:visibility="gone">
                 <ImageView android:id="@+id/ev5_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
@@ -134,7 +134,7 @@
                 <TextView android:id="@+id/day_more" android:layout_width="wrap_content" android:layout_height="match_parent" android:gravity="center" android:includeFontPadding="false" android:paddingStart="10dp" android:paddingEnd="10dp" android:textSize="10.5sp" android:textStyle="bold" android:visibility="gone" />
             </FrameLayout>
 
-            <FrameLayout android:id="@+id/day_free" android:layout_width="match_parent" android:layout_height="44dp" android:visibility="gone">
+            <FrameLayout android:id="@+id/day_free" android:layout_width="match_parent" android:layout_height="54dp" android:visibility="gone">
                 <ImageView android:id="@+id/day_free_outline" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_free_outline" />
                 <TextView android:id="@+id/day_free_text" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="@string/agenda_nothing_planned" android:textSize="11sp" android:textStyle="bold" />
             </FrameLayout>

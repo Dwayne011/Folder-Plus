@@ -1,7 +1,8 @@
 # Widgets Plus
 
-A widget pack for Android with no app icon: drop a widget on the home screen,
-long-press it for its settings. Works on any launcher that supports widgets.
+A widget pack for Android: drop a widget on the home screen and long-press it
+for its settings. The app icon opens the same folder screens (and makes the app
+easy to uninstall). Works on any launcher that supports widgets.
 
 - **Folder** widgets, inspired by Action Launcher's "Covers": a folder that
   **launches an app when tapped** and still opens the full folder through a
@@ -20,7 +21,7 @@ long-press it for its settings. Works on any launcher that supports widgets.
 | Widget size | Three widget providers appear in the launcher picker (1×1, 2×2, 4×1), every one of them resizable. The folder's *Widget size* setting picks which one "Add to home screen" uses, and the widget adapts its layout (icon only → icon + label → quick-launch strip) to the space the launcher gives it. |
 | Sorting | Manual (long-press and drag), name A–Z / Z–A, most used, recently used, recently added. |
 | Lock | Per folder: off, PIN, biometrics, or PIN **or** biometrics. One app-wide PIN, stored as a salted PBKDF2 hash. Biometrics use the system `BiometricPrompt`. |
-| Agenda widget | Full width (5×3, resizable to 5×4): a frosted plate holding a card stack (Android `StackView`), one opaque card per day with the date on the left and compact event rows (time, title, location) on the right. The launcher animates the swipe between days. Tap the date to open Calendar on that day, tap an event to open it, tap **+N more** for a day sheet that lists every event with time range, location and description and is swiped down to close; in the sheet the location chip opens a meeting link or searches Maps. Long-press → settings chooses which calendars are shown. Material You colours, blur behind the sheet on Android 12+. |
+| Agenda widget | Full width (5×3, resizable to 5×4): a frosted plate holding a card stack (Android `StackView`), one opaque card per day with the date on the left and compact event rows (time, title, location) on the right. The launcher animates the swipe between days. Tap the date to open Calendar on that day, tap an event to open it, tap **+N more** for a centred day sheet that lists every event with time range, location and description and is swiped down to close; in the sheet the location chip opens a meeting link or searches Maps. Long-press → settings chooses which calendars are shown. Material You colours, blur behind the sheet on Android 12+. |
 | Backup | Android's automatic Google-account backup covers the app's data (folders, categories, PIN). The Folders screen's menu (folder settings → back) also exports/imports a plain JSON backup you can keep in Drive; backups written under the old "Folder Plus" name still import. Home-screen widget links and hosted widget ids are device-specific and are re-linked after a restore. |
 | Material You | Dynamic colours on Android 12+, light/dark widgets. |
 
@@ -76,8 +77,8 @@ Minimum Android version: 8.0 (API 26). Target: Android 15 (API 35).
 
 ## Using it
 
-There is no app icon. Everything starts from the launcher's widget picker,
-under **Widgets Plus**.
+Everything starts from the launcher's widget picker, under **Widgets Plus**;
+the app icon is a shortcut to the same folder settings.
 
 1. Drop a **Folder** widget (1×1, 2×2 or 4×1; all resizable). The launcher opens
    the setup screen: pick an existing folder or create a new one, then add apps

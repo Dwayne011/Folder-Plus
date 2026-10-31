@@ -54,7 +54,7 @@ class AgendaWidgetProvider : AppWidgetProvider() {
 
         /** Padding of the clipping frame around the stack, in dp (see widget_agenda.xml). */
         private const val FRAME_PADDING_DP = 32f
-        private const val ROW_DP = 44f
+        private const val ROW_DP = 54f
         private const val ROW_GAP_DP = 6f
         private const val GROUP_PADDING_DP = 12f
         private const val CHIP_DP = 24f

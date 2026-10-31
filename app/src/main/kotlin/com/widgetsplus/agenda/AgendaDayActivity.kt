@@ -24,7 +24,6 @@ class AgendaDayActivity : ComponentActivity() {
         enableEdgeToEdge()
         applyBlur()
         val date = LocalDate.ofEpochDay(intent.getLongExtra(EXTRA_EPOCH_DAY, LocalDate.now().toEpochDay()))
-        val anchorTopPx = intent.getIntExtra(EXTRA_ANCHOR_TOP_PX, -1)
         setContent {
             WidgetsPlusTheme {
                 var day by remember { mutableStateOf<AgendaDay?>(null) }
@@ -35,7 +34,6 @@ class AgendaDayActivity : ComponentActivity() {
                     date = date,
                     day = day,
                     palette = remember { AgendaPalette(this) },
-                    anchorTopPx = anchorTopPx,
                     onOpenEvent = { AgendaFormat.open(this, AgendaFormat.eventIntent(it)); finish() },
                     onOpenLocation = { loc -> AgendaFormat.locationIntent(loc)?.let { AgendaFormat.open(this, it) }; finish() },
                     onDismiss = ::finish,
@@ -54,6 +52,5 @@ class AgendaDayActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_EPOCH_DAY = "epoch_day"
-        const val EXTRA_ANCHOR_TOP_PX = "anchor_top_px"
     }
 }

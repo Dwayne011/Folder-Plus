@@ -25,13 +25,18 @@
         android:theme="@style/Theme.WidgetsPlus"
         tools:targetApi="34">
 
-        <!-- No launcher icon: everything is set up by dropping a widget and long-pressing it
-             for its settings. This screen is the folder editor those settings open. -->
+        <!-- Widgets are set up by dropping them and long-pressing for settings; the launcher
+             icon opens the same folder screens and makes the app easy to find and uninstall. -->
         <activity
             android:name=".ui.MainActivity"
-            android:exported="false"
+            android:exported="true"
             android:launchMode="singleTop"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
         <!-- The folder popup shown over the home screen when a widget is tapped. -->
         <activity

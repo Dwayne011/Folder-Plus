@@ -18,12 +18,9 @@ class AgendaTapActivity : Activity() {
         val date = AgendaFormat.dateFromMoreUri(data)
         when {
             date != null -> {
-                // sourceBounds is the tapped view's rect on screen: anchor the sheet near the widget.
-                val top = intent.sourceBounds?.top ?: -1
                 startActivity(
                     Intent(this, AgendaDayActivity::class.java)
                         .putExtra(AgendaDayActivity.EXTRA_EPOCH_DAY, date.toEpochDay())
-                        .putExtra(AgendaDayActivity.EXTRA_ANCHOR_TOP_PX, top)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                 )
             }

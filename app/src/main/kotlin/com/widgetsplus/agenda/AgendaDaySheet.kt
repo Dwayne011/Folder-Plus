@@ -62,7 +62,7 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 /**
- * Frosted sheet anchored near the widget with that day's events. Drag down (from the
+ * Frosted sheet centred on the screen with that day's events. Drag down (from the
  * grab bar, the header, or the list when it is at the top) to dismiss.
  */
 @Composable
@@ -70,16 +70,13 @@ fun AgendaDaySheet(
     date: LocalDate,
     day: AgendaDay?,
     palette: AgendaPalette,
-    anchorTopPx: Int,
     onOpenEvent: (AgendaEvent) -> Unit,
     onOpenLocation: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val density = LocalDensity.current
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val anchorTop = if (anchorTopPx >= 0) with(density) { (anchorTopPx.toFloat()).toDp() - 56.dp } else screenHeight * 0.18f
-    val top = anchorTop.coerceIn(48.dp, screenHeight * 0.45f)
-    val maxHeight = screenHeight - top - 96.dp
+    val maxHeight = screenHeight * 0.72f
     val dismissPx = with(density) { 90.dp.toPx() }
 
     var drag by remember { mutableFloatStateOf(0f) }
@@ -112,11 +109,11 @@ fun AgendaDaySheet(
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.35f))
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDismiss),
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             Modifier
                 .padding(horizontal = 8.dp)
-                .padding(top = top)
                 .fillMaxWidth()
                 .heightIn(max = maxHeight)
                 .offset { IntOffset(0, settled.roundToInt()) }

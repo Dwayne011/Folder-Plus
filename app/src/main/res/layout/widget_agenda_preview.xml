@@ -35,7 +35,7 @@
             <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_group" android:tint="@color/agenda_group" />
             <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="6dp">
 
-                <FrameLayout android:layout_width="match_parent" android:layout_height="44dp">
+                <FrameLayout android:layout_width="match_parent" android:layout_height="54dp">
                     <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" android:tint="@color/agenda_card" />
                     <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
                         <FrameLayout android:layout_width="32dp" android:layout_height="32dp">
@@ -50,7 +50,7 @@
                     </LinearLayout>
                 </FrameLayout>
 
-                <FrameLayout android:layout_width="match_parent" android:layout_height="44dp" android:layout_marginTop="6dp">
+                <FrameLayout android:layout_width="match_parent" android:layout_height="54dp" android:layout_marginTop="6dp">
                     <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" android:tint="@color/agenda_card" />
                     <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
                         <FrameLayout android:layout_width="32dp" android:layout_height="32dp">
@@ -64,7 +64,7 @@
                     </LinearLayout>
                 </FrameLayout>
 
-                <FrameLayout android:layout_width="match_parent" android:layout_height="44dp" android:layout_marginTop="6dp">
+                <FrameLayout android:layout_width="match_parent" android:layout_height="54dp" android:layout_marginTop="6dp">
                     <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" android:tint="@color/agenda_card" />
                     <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
                         <FrameLayout android:layout_width="32dp" android:layout_height="32dp">
