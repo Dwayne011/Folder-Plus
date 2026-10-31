@@ -156,6 +156,14 @@
             android:taskAffinity="com.widgetsplus.popup"
             android:theme="@style/Theme.WidgetsPlus.Popup" />
         <activity
+            android:name=".agenda.AgendaMonthActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:noHistory="true"
+            android:taskAffinity="com.widgetsplus.popup"
+            android:theme="@style/Theme.WidgetsPlus.Popup" />
+        <activity
             android:name=".agenda.AgendaConfigActivity"
             android:exported="true"
             android:label="@string/agenda_calendars">

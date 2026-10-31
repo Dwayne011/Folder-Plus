@@ -12,7 +12,13 @@
      Width uses the 10/9 trick: a weight-10 child in a weightSum-9 LinearLayout is 10/9 of it,
      which leaves the front card exactly as wide as the frame. The -4dp margins cancel the 4dp
      padding StackView puts around every card (negative margins are set per side on purpose:
-     Android ignores a negative all-sides margin). -->
+     Android ignores a negative all-sides margin).
+
+     Swipe area: the stack reaches far above the frame and past its right edge already, so
+     swipes on the top and right plate border count. On the left it starts at the plate's edge
+     (-16dp) with 12dp of padding, which StackView subtracts from the card's width and adds to
+     its position, so the card still lands exactly on the frame. Only the bottom border strip
+     is outside the stack. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/agenda_root"
@@ -36,7 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="bottom"
-            android:layout_marginStart="-4dp"
+            android:layout_marginStart="-16dp"
             android:layout_marginEnd="-4dp"
             android:layout_marginBottom="-4dp"
             android:layoutDirection="ltr"
@@ -48,7 +54,8 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="10"
-                android:loopViews="false" />
+                android:loopViews="false"
+                android:paddingStart="12dp" />
         </LinearLayout>
 
         <TextView

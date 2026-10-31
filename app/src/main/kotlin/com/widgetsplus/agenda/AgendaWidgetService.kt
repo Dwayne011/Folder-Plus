@@ -86,10 +86,22 @@ class AgendaRemoteViewsFactory(
         AgendaPalette.tint(views, R.id.day_today_ring, ring, 255)
         views.setTextViewText(R.id.day_dow, AgendaFormat.dow(day.date))
         views.setTextViewText(R.id.day_num, day.date.dayOfMonth.toString())
-        views.setTextViewText(R.id.day_mon, AgendaFormat.mon(day.date))
         views.setTextColor(R.id.day_dow, palette.onCardVar)
         views.setTextColor(R.id.day_num, palette.onCard)
-        views.setTextColor(R.id.day_mon, palette.onCardVar)
+
+        // Pills on the date card: the month (top) opens the next 30 days; Today (bottom, every
+        // day but today) shows today's card again. On a blue weekend face they are pale.
+        val pill = if (weekend) palette.card else palette.badge
+        views.setTextViewText(R.id.day_month_text, AgendaFormat.mon(day.date))
+        views.setTextColor(R.id.day_month_text, palette.onCard)
+        AgendaPalette.tint(views, R.id.day_month_bg, pill, 255)
+        views.setOnClickFillInIntent(R.id.day_month_pill, Intent().setData(AgendaFormat.monthUri(day.date)))
+        views.setViewVisibility(R.id.day_today_pill, if (day.isToday) View.GONE else View.VISIBLE)
+        if (!day.isToday) {
+            views.setTextColor(R.id.day_today_text, palette.onCard)
+            AgendaPalette.tint(views, R.id.day_today_bg, pill, 255)
+            views.setOnClickFillInIntent(R.id.day_today_pill, Intent().setData(AgendaFormat.todayUri()))
+        }
         views.setOnClickFillInIntent(R.id.day_date, Intent().setData(AgendaFormat.dayIntent(day.date).data))
 
         // Event group

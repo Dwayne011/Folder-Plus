@@ -59,6 +59,28 @@ object AgendaFormat {
 
     fun moreUri(date: LocalDate): Uri = Uri.parse("$SCHEME://agenda/day/${date.toEpochDay()}")
 
+    /** The date card's Today pill: show the first card (today) on the widget. */
+    fun todayUri(): Uri = Uri.parse("$SCHEME://agenda/today")
+
+    fun isTodayUri(uri: Uri?): Boolean =
+        uri != null && uri.scheme == SCHEME && uri.host == "agenda" && uri.pathSegments == listOf("today")
+
+    /** The date card's month pill: open the "Next 30 days" sheet scrolled to [date]. */
+    fun monthUri(date: LocalDate): Uri = Uri.parse("$SCHEME://agenda/month/${date.toEpochDay()}")
+
+    fun dateFromMonthUri(uri: Uri?): LocalDate? {
+        if (uri == null || uri.scheme != SCHEME || uri.host != "agenda") return null
+        val segments = uri.pathSegments
+        if (segments.size != 2 || segments[0] != "month") return null
+        return segments[1].toLongOrNull()?.let(LocalDate::ofEpochDay)
+    }
+
+    /** e.g. "November". */
+    fun monthName(date: LocalDate): String = date.format(DateTimeFormatter.ofPattern("LLLL", Locale.getDefault()))
+
+    /** e.g. "30 Oct". */
+    fun shortDate(date: LocalDate): String = date.format(DateTimeFormatter.ofPattern("d MMM", Locale.getDefault()))
+
     /** The date carried by a [moreUri], or null for any other URI. */
     fun dateFromMoreUri(uri: Uri?): LocalDate? {
         if (uri == null || uri.scheme != SCHEME || uri.host != "agenda") return null

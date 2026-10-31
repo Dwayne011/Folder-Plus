@@ -1,6 +1,7 @@
 package com.widgetsplus.agenda
 
 import android.app.Activity
+import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.os.Bundle
 
@@ -16,7 +17,18 @@ class AgendaTapActivity : Activity() {
         super.onCreate(savedInstanceState)
         val data = intent.data
         val date = AgendaFormat.dateFromMoreUri(data)
+        val monthFrom = AgendaFormat.dateFromMonthUri(data)
+        val widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
         when {
+            AgendaFormat.isTodayUri(data) -> AgendaWidgetProvider.showDay(this, widgetId, 0)
+            monthFrom != null -> {
+                startActivity(
+                    Intent(this, AgendaMonthActivity::class.java)
+                        .putExtra(AgendaMonthActivity.EXTRA_EPOCH_DAY, monthFrom.toEpochDay())
+                        .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                )
+            }
             date != null -> {
                 startActivity(
                     Intent(this, AgendaDayActivity::class.java)
@@ -27,6 +39,7 @@ class AgendaTapActivity : Activity() {
             data != null -> {
                 val view = Intent(Intent.ACTION_VIEW, data).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 intent.extras?.let { view.putExtras(it) }
+                view.removeExtra(AppWidgetManager.EXTRA_APPWIDGET_ID)
                 AgendaFormat.open(this, view)
             }
         }

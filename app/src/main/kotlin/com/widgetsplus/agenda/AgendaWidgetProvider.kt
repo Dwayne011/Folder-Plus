@@ -98,6 +98,20 @@ class AgendaWidgetProvider : AppWidgetProvider() {
             manager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.agenda_stack)
         }
 
+        /**
+         * Shows the day at [index] (0 = today) on the widget: StackView's own "show this card"
+         * (AdapterViewAnimator.setDisplayedChild), sent as a partial update so nothing else is
+         * rebuilt. It needs the widget's adapter to be connected, which it is while the widget
+         * is on screen.
+         */
+        fun showDay(context: Context, appWidgetId: Int, index: Int) {
+            if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID || index < 0) return
+            val layout = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) R.layout.widget_agenda_stack else R.layout.widget_agenda_stack_compat
+            val views = RemoteViews(context.packageName, layout)
+            views.setDisplayedChild(R.id.agenda_stack, index)
+            AppWidgetManager.getInstance(context).partiallyUpdateAppWidget(appWidgetId, views)
+        }
+
         /** StackView wraps each card in a frame with this much padding on every side (dp). */
         private const val STACK_FRAME_PADDING_DP = 4f
 
@@ -142,7 +156,9 @@ class AgendaWidgetProvider : AppWidgetProvider() {
                 // mutable PendingIntent must be explicit, so it targets our trampoline.
                 var flags = PendingIntent.FLAG_UPDATE_CURRENT
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) flags = flags or PendingIntent.FLAG_MUTABLE
-                val trampoline = Intent(context, AgendaTapActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                val trampoline = Intent(context, AgendaTapActivity::class.java)
+                    .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 views.setPendingIntentTemplate(R.id.agenda_stack, PendingIntent.getActivity(context, appWidgetId, trampoline, flags))
             }
             return views

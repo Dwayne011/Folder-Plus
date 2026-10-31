@@ -131,6 +131,10 @@
     <string name="agenda_nothing_planned">Nothing planned</string>
     <string name="agenda_all_day">All day</string>
     <string name="agenda_more">+%1$d more</string>
+    <string name="agenda_today">Today</string>
+    <string name="agenda_next_days">Next 30 days</string>
+    <string name="agenda_range">%1$s to %2$s</string>
+    <string name="agenda_show_day">Show %1$s on the widget</string>
     <string name="agenda_need_permission">Tap to allow calendar access</string>
     <string name="agenda_empty">Nothing in the next two weeks</string>
     <string name="agenda_setup_title">Agenda widget</string>

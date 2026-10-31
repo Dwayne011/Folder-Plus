@@ -48,10 +48,10 @@ object AgendaPrefs {
 
 /** Reads upcoming calendar instances and groups them by local day. */
 object CalendarAgenda {
-    /** Days always shown, even when empty. */
-    const val MIN_DAYS = 7
+    /** Days always shown, even when empty: the widget and the "Next 30 days" sheet hold the same days. */
+    const val MIN_DAYS = 30
     /** Horizon for days that have events. */
-    const val MAX_DAYS = 14
+    const val MAX_DAYS = 30
 
     fun hasPermission(context: Context): Boolean =
         ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
