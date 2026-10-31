@@ -56,7 +56,7 @@ class AgendaWidgetProvider : AppWidgetProvider() {
         private const val ROW_DP = 54f
         private const val ROW_GAP_DP = 6f
         private const val GROUP_PADDING_DP = 12f
-        private const val CHIP_DP = 24f
+        private const val CHIP_DP = 32f // 18dp chip + 6dp gap + clearance above the clipped edge
 
         /** Event rows that fit in a card [frameHeightDp] tall, keeping room for the "+N more" chip. */
         private fun slotsFor(frameHeightDp: Float): Int {

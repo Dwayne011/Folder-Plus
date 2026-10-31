@@ -17,12 +17,13 @@
         android:id="@+id/day_date"
         android:layout_width="104dp"
         android:layout_height="match_parent">
-        <ImageView android:id="@+id/day_date_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
-        <ImageView android:id="@+id/day_today_ring" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_today_ring" android:visibility="gone" />
+        <!-- Ring = accent plate behind a card inset by 2dp (stroke-only shapes fill when tinted via RemoteViews). -->
+        <ImageView android:id="@+id/day_today_ring" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
+        <ImageView android:id="@+id/day_date_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_margin="2dp" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card_inner" />
         <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:orientation="vertical">
-            <TextView android:id="@+id/day_dow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:letterSpacing="0.05" android:textAllCaps="true" android:textSize="16sp" android:textStyle="bold" />
+            <TextView android:id="@+id/day_dow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-medium" android:letterSpacing="0.05" android:textAllCaps="true" android:textSize="16sp" />
             <TextView android:id="@+id/day_num" android:layout_width="wrap_content" android:layout_height="wrap_content" android:includeFontPadding="false" android:letterSpacing="-0.02" android:textSize="56sp" android:textStyle="bold" />
-            <TextView android:id="@+id/day_mon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:letterSpacing="0.05" android:textAllCaps="true" android:textSize="16sp" android:textStyle="bold" />
+            <TextView android:id="@+id/day_mon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-medium" android:letterSpacing="0.05" android:textAllCaps="true" android:textSize="16sp" />
         </LinearLayout>
     </FrameLayout>
 
@@ -47,7 +48,7 @@
                         <ImageView android:id="@+id/ev1_icon" android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:contentDescription="@null" />
                     </FrameLayout>
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:id="@+id/ev1_when" android:layout_width="match_parent" android:layout_height="wrap_content" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/ev1_when" android:layout_width="match_parent" android:layout_height="wrap_content" android:includeFontPadding="false" android:fontFamily="sans-serif-medium" android:maxLines="1" android:textSize="10sp" />
                         <TextView android:id="@+id/ev1_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="12.5sp" android:textStyle="bold" />
                         <TextView android:id="@+id/ev1_loc" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:visibility="gone" />
                     </LinearLayout>
@@ -66,7 +67,7 @@
                         <ImageView android:id="@+id/ev2_icon" android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:contentDescription="@null" />
                     </FrameLayout>
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:id="@+id/ev2_when" android:layout_width="match_parent" android:layout_height="wrap_content" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/ev2_when" android:layout_width="match_parent" android:layout_height="wrap_content" android:includeFontPadding="false" android:fontFamily="sans-serif-medium" android:maxLines="1" android:textSize="10sp" />
                         <TextView android:id="@+id/ev2_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="12.5sp" android:textStyle="bold" />
                         <TextView android:id="@+id/ev2_loc" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:visibility="gone" />
                     </LinearLayout>
@@ -85,7 +86,7 @@
                         <ImageView android:id="@+id/ev3_icon" android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:contentDescription="@null" />
                     </FrameLayout>
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:id="@+id/ev3_when" android:layout_width="match_parent" android:layout_height="wrap_content" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/ev3_when" android:layout_width="match_parent" android:layout_height="wrap_content" android:includeFontPadding="false" android:fontFamily="sans-serif-medium" android:maxLines="1" android:textSize="10sp" />
                         <TextView android:id="@+id/ev3_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="12.5sp" android:textStyle="bold" />
                         <TextView android:id="@+id/ev3_loc" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:visibility="gone" />
                     </LinearLayout>
@@ -104,7 +105,7 @@
                         <ImageView android:id="@+id/ev4_icon" android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:contentDescription="@null" />
                     </FrameLayout>
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:id="@+id/ev4_when" android:layout_width="match_parent" android:layout_height="wrap_content" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/ev4_when" android:layout_width="match_parent" android:layout_height="wrap_content" android:includeFontPadding="false" android:fontFamily="sans-serif-medium" android:maxLines="1" android:textSize="10sp" />
                         <TextView android:id="@+id/ev4_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="12.5sp" android:textStyle="bold" />
                         <TextView android:id="@+id/ev4_loc" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:visibility="gone" />
                     </LinearLayout>
@@ -123,7 +124,7 @@
                         <ImageView android:id="@+id/ev5_icon" android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:contentDescription="@null" />
                     </FrameLayout>
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:id="@+id/ev5_when" android:layout_width="match_parent" android:layout_height="wrap_content" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/ev5_when" android:layout_width="match_parent" android:layout_height="wrap_content" android:includeFontPadding="false" android:fontFamily="sans-serif-medium" android:maxLines="1" android:textSize="10sp" />
                         <TextView android:id="@+id/ev5_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="12.5sp" android:textStyle="bold" />
                         <TextView android:id="@+id/ev5_loc" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:visibility="gone" />
                     </LinearLayout>
@@ -131,7 +132,7 @@
             </FrameLayout>
             <FrameLayout android:id="@+id/day_more_wrap" android:layout_width="wrap_content" android:layout_height="18dp" android:layout_marginStart="2dp" android:layout_marginTop="6dp">
                 <ImageView android:id="@+id/day_more_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_chip" />
-                <TextView android:id="@+id/day_more" android:layout_width="wrap_content" android:layout_height="match_parent" android:gravity="center" android:includeFontPadding="false" android:paddingStart="10dp" android:paddingEnd="10dp" android:textSize="10.5sp" android:textStyle="bold" android:visibility="gone" />
+                <TextView android:id="@+id/day_more" android:layout_width="wrap_content" android:layout_height="match_parent" android:gravity="center" android:includeFontPadding="false" android:fontFamily="sans-serif-medium" android:paddingStart="10dp" android:paddingEnd="10dp" android:textSize="10.5sp" android:visibility="gone" />
             </FrameLayout>
 
             <FrameLayout android:id="@+id/day_free" android:layout_width="match_parent" android:layout_height="54dp" android:visibility="gone">
