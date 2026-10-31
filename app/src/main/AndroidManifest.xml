@@ -25,16 +25,13 @@
         android:theme="@style/Theme.FolderPlus"
         tools:targetApi="34">
 
+        <!-- No launcher icon: everything is set up by dropping a widget and long-pressing it
+             for its settings. This screen is the folder editor those settings open. -->
         <activity
             android:name=".ui.MainActivity"
-            android:exported="true"
+            android:exported="false"
             android:launchMode="singleTop"
-            android:windowSoftInputMode="adjustResize">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:windowSoftInputMode="adjustResize" />
 
         <!-- The folder popup shown over the home screen when a widget is tapped. -->
         <activity
@@ -134,14 +131,33 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_agenda" />
         </receiver>
+        <service
+            android:name=".agenda.AgendaWidgetService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
         <activity
-            android:name=".agenda.AgendaPopupActivity"
+            android:name=".agenda.AgendaTapActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity="com.folderplus.popup"
+            android:theme="@style/Theme.FolderPlus.Invisible" />
+        <activity
+            android:name=".agenda.AgendaDayActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleTask"
             android:noHistory="true"
             android:taskAffinity="com.folderplus.popup"
             android:theme="@style/Theme.FolderPlus.Popup" />
+        <activity
+            android:name=".agenda.AgendaConfigActivity"
+            android:exported="true"
+            android:label="@string/agenda_calendars">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".agenda.AgendaSetupActivity"
             android:exported="false"

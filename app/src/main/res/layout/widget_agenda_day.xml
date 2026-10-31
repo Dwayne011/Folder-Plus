@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One stack card = one day: date card on the left, that day's events on the right.
+     All surfaces are opaque; the next day's card sits directly behind this one. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/day_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:baselineAligned="false"
+    android:orientation="horizontal">
+
+    <FrameLayout
+        android:id="@+id/day_date"
+        android:layout_width="104dp"
+        android:layout_height="match_parent">
+        <ImageView android:id="@+id/day_date_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
+        <ImageView android:id="@+id/day_today_ring" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_today_ring" android:visibility="gone" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:orientation="vertical">
+            <TextView android:id="@+id/day_dow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:letterSpacing="0.05" android:textAllCaps="true" android:textSize="16sp" android:textStyle="bold" />
+            <TextView android:id="@+id/day_num" android:layout_width="wrap_content" android:layout_height="wrap_content" android:includeFontPadding="false" android:letterSpacing="-0.02" android:textSize="56sp" android:textStyle="bold" />
+            <TextView android:id="@+id/day_mon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:letterSpacing="0.05" android:textAllCaps="true" android:textSize="16sp" android:textStyle="bold" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1">
+        <ImageView android:id="@+id/day_group_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_group" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="6dp">
+
+            <FrameLayout
+                android:id="@+id/ev1"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="0dp"
+                android:visibility="gone">
+                <ImageView android:id="@+id/ev1_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
+                    <FrameLayout android:layout_width="32dp" android:layout_height="32dp">
+                        <ImageView android:id="@+id/ev1_badge" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_badge" />
+                        <ImageView android:id="@+id/ev1_icon" android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:contentDescription="@null" />
+                    </FrameLayout>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:id="@+id/ev1_when" android:layout_width="match_parent" android:layout_height="wrap_content" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/ev1_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="12.5sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/ev1_loc" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:visibility="gone" />
+                    </LinearLayout>
+                </LinearLayout>
+            </FrameLayout>
+            <FrameLayout
+                android:id="@+id/ev2"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="6dp"
+                android:visibility="gone">
+                <ImageView android:id="@+id/ev2_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
+                    <FrameLayout android:layout_width="32dp" android:layout_height="32dp">
+                        <ImageView android:id="@+id/ev2_badge" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_badge" />
+                        <ImageView android:id="@+id/ev2_icon" android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:contentDescription="@null" />
+                    </FrameLayout>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:id="@+id/ev2_when" android:layout_width="match_parent" android:layout_height="wrap_content" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/ev2_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="12.5sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/ev2_loc" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:visibility="gone" />
+                    </LinearLayout>
+                </LinearLayout>
+            </FrameLayout>
+            <FrameLayout
+                android:id="@+id/ev3"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="6dp"
+                android:visibility="gone">
+                <ImageView android:id="@+id/ev3_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
+                    <FrameLayout android:layout_width="32dp" android:layout_height="32dp">
+                        <ImageView android:id="@+id/ev3_badge" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_badge" />
+                        <ImageView android:id="@+id/ev3_icon" android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:contentDescription="@null" />
+                    </FrameLayout>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:id="@+id/ev3_when" android:layout_width="match_parent" android:layout_height="wrap_content" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/ev3_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="12.5sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/ev3_loc" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:visibility="gone" />
+                    </LinearLayout>
+                </LinearLayout>
+            </FrameLayout>
+            <FrameLayout
+                android:id="@+id/ev4"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="6dp"
+                android:visibility="gone">
+                <ImageView android:id="@+id/ev4_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
+                    <FrameLayout android:layout_width="32dp" android:layout_height="32dp">
+                        <ImageView android:id="@+id/ev4_badge" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_badge" />
+                        <ImageView android:id="@+id/ev4_icon" android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:contentDescription="@null" />
+                    </FrameLayout>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:id="@+id/ev4_when" android:layout_width="match_parent" android:layout_height="wrap_content" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/ev4_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="12.5sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/ev4_loc" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:visibility="gone" />
+                    </LinearLayout>
+                </LinearLayout>
+            </FrameLayout>
+            <FrameLayout
+                android:id="@+id/ev5"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="6dp"
+                android:visibility="gone">
+                <ImageView android:id="@+id/ev5_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
+                    <FrameLayout android:layout_width="32dp" android:layout_height="32dp">
+                        <ImageView android:id="@+id/ev5_badge" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_badge" />
+                        <ImageView android:id="@+id/ev5_icon" android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:contentDescription="@null" />
+                    </FrameLayout>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:id="@+id/ev5_when" android:layout_width="match_parent" android:layout_height="wrap_content" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/ev5_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="12.5sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/ev5_loc" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:visibility="gone" />
+                    </LinearLayout>
+                </LinearLayout>
+            </FrameLayout>
+            <FrameLayout android:id="@+id/day_more_wrap" android:layout_width="wrap_content" android:layout_height="18dp" android:layout_marginStart="2dp" android:layout_marginTop="6dp">
+                <ImageView android:id="@+id/day_more_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_chip" />
+                <TextView android:id="@+id/day_more" android:layout_width="wrap_content" android:layout_height="match_parent" android:gravity="center" android:includeFontPadding="false" android:paddingStart="10dp" android:paddingEnd="10dp" android:textSize="10.5sp" android:textStyle="bold" android:visibility="gone" />
+            </FrameLayout>
+
+            <FrameLayout android:id="@+id/day_free" android:layout_width="match_parent" android:layout_height="44dp" android:visibility="gone">
+                <ImageView android:id="@+id/day_free_outline" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_free_outline" />
+                <TextView android:id="@+id/day_free_text" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="@string/agenda_nothing_planned" android:textSize="11sp" android:textStyle="bold" />
+            </FrameLayout>
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

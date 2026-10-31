@@ -51,7 +51,8 @@ import kotlinx.coroutines.launch
 
 /**
  * Shown by the launcher after a widget is dropped: picks which folder it shows,
- * or creates a new folder and links it to this widget on the spot.
+ * or creates a new folder and links it to this widget on the spot. Also the target
+ * of the launcher's long-press "settings" button, which opens the bound folder.
  */
 class FolderWidgetConfigActivity : ComponentActivity() {
 
@@ -67,6 +68,21 @@ class FolderWidgetConfigActivity : ComponentActivity() {
             finish()
             return
         }
+        // Long-press > settings on a widget that already shows a folder: go straight to
+        // that folder's settings instead of asking which folder to show again.
+        lifecycleScope.launch {
+            val bound = graph.repository.folderIdForWidget(appWidgetId)?.takeIf { graph.repository.getFolder(it) != null }
+            if (bound != null) {
+                setResult(Activity.RESULT_OK, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId))
+                startActivity(MainActivity.editorIntent(this@FolderWidgetConfigActivity, bound))
+                finish()
+            } else {
+                showPicker()
+            }
+        }
+    }
+
+    private fun showPicker() {
         setContent {
             FolderPlusTheme {
                 val folders by remember { graph.repository.observeFolders() }.collectAsStateWithLifecycle(initialValue = emptyList())

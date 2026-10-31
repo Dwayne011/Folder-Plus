@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Folder Plus</string>
+    <string name="app_name">Widgets Plus</string>
 
-    <string name="widget_label_1x1">Folder Plus (1×1)</string>
-    <string name="widget_label_2x2">Folder Plus (2×2)</string>
-    <string name="widget_label_4x1">Folder Plus (4×1)</string>
-    <string name="widget_description">A smart folder: tap to launch an app, double-tap or use the corner badge to open the folder.</string>
+    <string name="widget_label_1x1">Folder (1×1)</string>
+    <string name="widget_label_2x2">Folder (2×2)</string>
+    <string name="widget_label_4x1">Folder (4×1)</string>
+    <string name="widget_description">A smart folder: tap to launch an app, double-tap or use the corner badge to open the folder. Long-press the widget for its settings.</string>
     <string name="widget_not_configured">Tap to choose a folder</string>
     <string name="widget_open_folder">Open folder</string>
 
@@ -57,7 +57,7 @@
     <string name="show_folder">Show folder</string>
     <string name="show_widget">Show widget</string>
     <string name="hosted_widget_unavailable">This widget’s app is no longer installed. Choose another in the folder settings.</string>
-    <string name="widget_bind_denied">Folder Plus needs permission to show widgets. Try again and allow it.</string>
+    <string name="widget_bind_denied">Widgets Plus needs permission to show widgets. Try again and allow it.</string>
     <string name="widget_size_label">%1$d × %2$d dp</string>
     <string name="double_tap_hint">Single taps wait briefly for a second tap when a double-tap action is set.</string>
 
@@ -122,11 +122,11 @@
     <string name="selected_count">%1$d selected</string>
     <string name="clear_selection">Clear selection</string>
     <string name="remove_selected_confirm">Remove %1$d apps from this folder?</string>
-    <string name="open_app">Open Folder Plus</string>
+    <string name="open_app">Open Widgets Plus</string>
     <string name="settings">Settings</string>
 
     <string name="agenda_widget_label">Agenda</string>
-    <string name="agenda_widget_description">Your agenda for the next two weeks. Tap to scroll through it; the date follows the events.</string>
+    <string name="agenda_widget_description">Your next two weeks, one card per day. Swipe to move between days; tap an event to open it.</string>
     <string name="agenda_untitled">(No title)</string>
     <string name="agenda_nothing_planned">Nothing planned</string>
     <string name="agenda_all_day">All day</string>
@@ -139,11 +139,26 @@
     <string name="agenda_granted">Calendar access granted</string>
     <string name="agenda_permission_hint">Reads events from the calendars on this phone</string>
     <string name="agenda_add_widget">Add Agenda to home screen</string>
-    <string name="agenda_add_widget_hint">4 × 3 by default; resize it up to 4 × 4</string>
+    <string name="agenda_add_widget_hint">Full width, 3 rows tall by default; resize it to 4 rows for more events</string>
     <string name="agenda_menu">Agenda widget…</string>
     <string name="agenda_no_calendar_app">No calendar app can open this</string>
-    <string name="agenda_preview">Open agenda</string>
-    <string name="agenda_preview_hint">The full agenda, as the widget opens it</string>
+    <string name="agenda_calendars">Calendars</string>
+    <string name="agenda_calendars_hint">Choose which calendars the Agenda widget shows</string>
+    <string name="agenda_join_link">Join meeting</string>
+
+    <!-- Static text shown in the launcher widget picker previews -->
+    <string name="preview_folder_name" translatable="false">Work</string>
+    <string name="preview_dow" translatable="false">Fri</string>
+    <string name="preview_day" translatable="false">30</string>
+    <string name="preview_mon" translatable="false">Oct</string>
+    <string name="preview_when_1" translatable="false">09:00 AM</string>
+    <string name="preview_title_1" translatable="false">Team stand-up</string>
+    <string name="preview_loc_1" translatable="false">Meeting room 2</string>
+    <string name="preview_when_2" translatable="false">12:30 PM</string>
+    <string name="preview_title_2" translatable="false">Lunch with Sam</string>
+    <string name="preview_when_3" translatable="false">05:00 PM</string>
+    <string name="preview_title_3" translatable="false">Gym</string>
+    <string name="preview_more" translatable="false">+1 more</string>
     <string name="section_folder">Folder</string>
     <string name="apps_and_categories">Apps &amp; categories</string>
     <string name="apps_categories_summary">%1$d apps · %2$d categories</string>
@@ -169,6 +184,10 @@
     <string name="backup_import_confirm">Replace all your folders with the ones in this backup? Home-screen widgets will ask to be linked to a folder again, and the PIN is not part of backups.</string>
     <string name="backup_import_action">Replace</string>
     <string name="backup_imported">Restored %1$d folders</string>
-    <string name="backup_import_failed">That file is not a Folder Plus backup</string>
+    <string name="backup_import_failed">That file is not a Widgets Plus backup</string>
     <string name="backup_hint">Backups are plain files you can keep in Google Drive. Android also backs the app up automatically with your Google account.</string>
+    <plurals name="agenda_event_count">
+        <item quantity="one">%1$d event</item>
+        <item quantity="other">%1$d events</item>
+    </plurals>
 </resources>

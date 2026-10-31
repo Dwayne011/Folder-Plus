@@ -20,11 +20,14 @@ import org.json.JSONObject
  */
 object BackupCodec {
     const val FORMAT_VERSION = 1
+    /** Written into new backups; files from the app's earlier name are still accepted. */
+    const val APP_TAG = "widgets-plus"
+    private val ACCEPTED_TAGS = setOf(APP_TAG, "folder-plus")
     const val MIME_TYPE = "application/json"
 
     fun encode(data: List<FolderExport>): String {
         val root = JSONObject()
-            .put("app", "folder-plus")
+            .put("app", APP_TAG)
             .put("version", FORMAT_VERSION)
             .put("exportedAt", System.currentTimeMillis())
         val folders = JSONArray()
@@ -68,14 +71,14 @@ object BackupCodec {
         return root.put("folders", folders).toString(2)
     }
 
-    /** @throws IllegalArgumentException when the text is not a Folder Plus backup. */
+    /** @throws IllegalArgumentException when the text is not a Widgets Plus backup. */
     fun decode(text: String): List<FolderExport> {
         val root = try {
             JSONObject(text)
         } catch (e: JSONException) {
             throw IllegalArgumentException("Not valid JSON", e)
         }
-        require(root.optString("app") == "folder-plus") { "Not a Folder Plus backup" }
+        require(root.optString("app") in ACCEPTED_TAGS) { "Not a Widgets Plus backup" }
         require(root.optInt("version", 0) in 1..FORMAT_VERSION) { "Unsupported backup version" }
         val folders = root.optJSONArray("folders") ?: JSONArray()
         return (0 until folders.length()).map { index -> decodeFolder(folders.getJSONObject(index), index) }

@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "FolderPlus"
+rootProject.name = "WidgetsPlus"
 
 // :core is pure Kotlin/JVM and builds anywhere (used for unit-testable logic).
 include(":core")

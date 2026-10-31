@@ -24,7 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddToHomeScreen
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -63,7 +63,7 @@ class AgendaSetupActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        AgendaWidgetProvider.updateAllAsync(this)
+        AgendaWidgetProvider.updateAll(this)
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -72,7 +72,7 @@ class AgendaSetupActivity : ComponentActivity() {
         var granted by remember { mutableStateOf(CalendarAgenda.hasPermission(this)) }
         val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
             granted = ok
-            if (ok) AgendaWidgetProvider.updateAllAsync(this)
+            if (ok) AgendaWidgetProvider.updateAll(this)
         }
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
         Scaffold(
@@ -114,11 +114,11 @@ class AgendaSetupActivity : ComponentActivity() {
                     },
                     {
                         SettingRow(
-                            title = stringResource(R.string.agenda_preview),
-                            subtitle = stringResource(R.string.agenda_preview_hint),
-                            leading = { RowIcon(Icons.Default.OpenInNew) },
+                            title = stringResource(R.string.agenda_calendars),
+                            subtitle = stringResource(R.string.agenda_calendars_hint),
+                            leading = { RowIcon(Icons.Default.EventAvailable) },
                             enabled = granted,
-                            onClick = { startActivity(Intent(this@AgendaSetupActivity, AgendaPopupActivity::class.java)) },
+                            onClick = { startActivity(Intent(this@AgendaSetupActivity, AgendaConfigActivity::class.java)) },
                         )
                     },
                 ))

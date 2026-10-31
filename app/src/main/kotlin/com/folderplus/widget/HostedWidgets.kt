@@ -11,7 +11,7 @@ import android.os.Bundle
 import android.util.SizeF
 
 /**
- * Lets Folder Plus display other apps' widgets inside its popup, the way a
+ * Lets Widgets Plus display other apps' widgets inside its popup, the way a
  * launcher does. Wraps the single [AppWidgetHost] for the process and keeps a
  * listener refcount so several activities can show widgets at once.
  */

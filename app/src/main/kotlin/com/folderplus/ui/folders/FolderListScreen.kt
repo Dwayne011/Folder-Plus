@@ -164,7 +164,7 @@ fun FolderListScreen(onOpenFolder: (Long) -> Unit) {
                             onClick = {
                                 menuOpen = false
                                 val stamp = SimpleDateFormat("yyyy-MM-dd-HHmm", Locale.US).format(Date())
-                                exportLauncher.launch("folder-plus-backup-$stamp.json")
+                                exportLauncher.launch("widgets-plus-backup-$stamp.json")
                             },
                         )
                         DropdownMenuItem(

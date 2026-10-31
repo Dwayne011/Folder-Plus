@@ -14,41 +14,46 @@ import androidx.compose.runtime.setValue
 import com.folderplus.ui.theme.FolderPlusTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 
-/**
- * The interactive agenda, opened from the widget: a frosted card over the home
- * screen with a pinned date card and a scrolling feed, where the date flips a
- * beat after the feed settles on a new day. This is the mockup, as designed.
- */
-class AgendaPopupActivity : ComponentActivity() {
+/** The "+N more" sheet: one day's events as a scrollable list, swipe down to close. */
+class AgendaDayActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         applyBlur()
+        val date = LocalDate.ofEpochDay(intent.getLongExtra(EXTRA_EPOCH_DAY, LocalDate.now().toEpochDay()))
+        val anchorTopPx = intent.getIntExtra(EXTRA_ANCHOR_TOP_PX, -1)
         setContent {
             FolderPlusTheme {
-                var days by remember { mutableStateOf<List<AgendaDay>?>(null) }
-                LaunchedEffect(Unit) {
-                    days = withContext(Dispatchers.IO) { CalendarAgenda.load(this@AgendaPopupActivity) }
+                var day by remember { mutableStateOf<AgendaDay?>(null) }
+                LaunchedEffect(date) {
+                    day = withContext(Dispatchers.IO) { CalendarAgenda.loadDay(this@AgendaDayActivity, date) }
                 }
-                AgendaPopup(
-                    days = days,
+                AgendaDaySheet(
+                    date = date,
+                    day = day,
                     palette = remember { AgendaPalette(this) },
+                    anchorTopPx = anchorTopPx,
                     onOpenEvent = { AgendaFormat.open(this, AgendaFormat.eventIntent(it)); finish() },
-                    onOpenDay = { AgendaFormat.open(this, AgendaFormat.dayIntent(it)); finish() },
+                    onOpenLocation = { loc -> AgendaFormat.locationIntent(loc)?.let { AgendaFormat.open(this, it) }; finish() },
                     onDismiss = ::finish,
                 )
             }
         }
     }
 
-    /** 22dp blur behind the window on Android 12+, matching the mockup's frosted glass. */
     private fun applyBlur() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
         window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
         val params = window.attributes
-        params.blurBehindRadius = (22 * resources.displayMetrics.density).toInt()
+        params.blurBehindRadius = (18 * resources.displayMetrics.density).toInt()
         window.attributes = params
+    }
+
+    companion object {
+        const val EXTRA_EPOCH_DAY = "epoch_day"
+        const val EXTRA_ANCHOR_TOP_PX = "anchor_top_px"
     }
 }
