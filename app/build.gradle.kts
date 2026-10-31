@@ -15,12 +15,28 @@ android {
         applicationId = "com.widgetsplus"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        // CI builds count up with the workflow run number, so each APK is a newer version.
+        val build = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+        versionCode = build
+        versionName = "0.1.$build"
         vectorDrawables.useSupportLibrary = true
     }
 
+    signingConfigs {
+        // One fixed debug key for every build (local and CI). Without it each CI run signs with
+        // a freshly generated key, and Android refuses to install a build over the previous one.
+        getByName("debug") {
+            storeFile = file("signing/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("debug")
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

@@ -17,5 +17,7 @@ captures/
 # Keystores
 *.jks
 *.keystore
+# The shared debug key, so every debug build installs over the last one (debug only, not a release key).
+!app/signing/debug.keystore
 dist/
 .kotlin/
