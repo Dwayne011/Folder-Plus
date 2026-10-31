@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import com.widgetsplus.R
+import java.time.DayOfWeek
 
 /** Supplies the day cards for the agenda widget's stack. */
 class AgendaWidgetService : RemoteViewsService() {
@@ -47,9 +48,10 @@ class AgendaRemoteViewsFactory(private val context: Context, private val slotCou
         val views = RemoteViews(context.packageName, R.layout.widget_agenda_day)
         val visibleSlots = slotCount.coerceIn(1, slots.size)
 
-        // Date card: accent-blue face (as the author prefers) inside a pale ring; today's ring is
-        // brighter. Opaque, because cards in a stack must not show the next day through.
-        AgendaPalette.tint(views, R.id.day_date_bg, palette.badge, 255)
+        // Date card: pale face on weekdays, accent-blue face at the weekend, inside a pale ring
+        // (brighter on today). Opaque, because cards in a stack must not show the next day through.
+        val weekend = day.date.dayOfWeek == DayOfWeek.SATURDAY || day.date.dayOfWeek == DayOfWeek.SUNDAY
+        AgendaPalette.tint(views, R.id.day_date_bg, if (weekend) palette.badge else palette.card, 255)
         AgendaPalette.tint(views, R.id.day_today_ring, if (day.isToday) palette.onPlate else palette.card, 255)
         views.setTextViewText(R.id.day_dow, AgendaFormat.dow(day.date))
         views.setTextViewText(R.id.day_num, day.date.dayOfMonth.toString())
