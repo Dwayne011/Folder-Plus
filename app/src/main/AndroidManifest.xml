@@ -11,6 +11,8 @@
     </queries>
 
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <!-- Agenda widget reads upcoming calendar events. -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
 
     <application
         android:name=".FolderPlusApp"
@@ -115,5 +117,30 @@
         <receiver
             android:name=".widget.WidgetPinReceiver"
             android:exported="false" />
+
+        <!-- Calendar & Agenda widget -->
+        <receiver
+            android:name=".agenda.AgendaWidgetProvider"
+            android:exported="true"
+            android:label="@string/agenda_widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.PROVIDER_CHANGED" />
+                <data android:scheme="content" android:host="com.android.calendar" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_agenda" />
+        </receiver>
+        <service
+            android:name=".agenda.AgendaWidgetService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+        <activity
+            android:name=".agenda.AgendaSetupActivity"
+            android:exported="false"
+            android:label="@string/agenda_setup_title" />
     </application>
 </manifest>

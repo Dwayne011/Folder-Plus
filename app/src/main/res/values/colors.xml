@@ -6,4 +6,14 @@
     <color name="widget_badge_background">#3F51B5</color>
     <color name="widget_glyph">#3F51B5</color>
     <color name="widget_folder_disc">#2E3133</color>
+    <!-- Agenda widget: fixed palette (Material You overrides on API 31+) -->
+    <color name="agenda_plate">#3A312C</color>
+    <color name="agenda_card">#FDF2EC</color>
+    <color name="agenda_badge">#F5B895</color>
+    <color name="agenda_group">#F2C4A7</color>
+    <color name="agenda_on_card">#2B1B12</color>
+    <color name="agenda_on_card_var">#65534A</color>
+    <color name="agenda_on_plate">#F5EDE8</color>
+    <color name="agenda_on_plate_var">#C7B8B0</color>
+    <color name="agenda_accent">#F5B895</color>
 </resources>

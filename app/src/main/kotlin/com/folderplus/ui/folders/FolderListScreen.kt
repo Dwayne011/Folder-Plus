@@ -1,6 +1,7 @@
 package com.folderplus.ui.folders
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -52,6 +53,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewModelScope
 import com.folderplus.Graph
 import com.folderplus.R
+import com.folderplus.agenda.AgendaSetupActivity
 import com.folderplus.core.model.Folder
 import com.folderplus.data.backup.BackupCodec
 import com.folderplus.graph
@@ -150,6 +152,13 @@ fun FolderListScreen(onOpenFolder: (Long) -> Unit) {
                 actions = {
                     IconButton(onClick = { menuOpen = true }) { Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.more)) }
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.agenda_menu)) },
+                            onClick = {
+                                menuOpen = false
+                                context.startActivity(Intent(context, AgendaSetupActivity::class.java))
+                            },
+                        )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.backup_export)) },
                             onClick = {
