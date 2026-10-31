@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Connected devices widget: phone drawing, second tone (white; tinted when the layers are combined). Generated from the approved mockup. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="36dp" android:height="48dp"
+    android:viewportWidth="36" android:viewportHeight="48">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M12.75,6h10.5a4.25,4.25 0 0,1 4.25,4.25v0a4.25,4.25 0 0,1 -4.25,4.25h-10.5a4.25,4.25 0 0,1 -4.25,-4.25v0a4.25,4.25 0 0,1 4.25,-4.25z" />
+</vector>

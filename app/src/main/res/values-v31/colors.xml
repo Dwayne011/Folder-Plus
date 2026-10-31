@@ -20,11 +20,4 @@
     <color name="agenda_on_plate">@android:color/system_neutral1_100</color>
     <color name="agenda_on_plate_var">@android:color/system_neutral2_200</color>
     <color name="agenda_accent">@android:color/system_accent1_200</color>
-    <!-- Connected devices widget: tonal palette tones from the wallpaper seed -->
-    <color name="dev_frame">@android:color/system_accent1_200</color>
-    <color name="dev_well">@android:color/system_neutral2_800</color>
-    <color name="dev_track">@android:color/system_accent2_700</color>
-    <color name="dev_tone2">@android:color/system_accent2_500</color>
-    <color name="dev_on_well">@android:color/system_neutral1_50</color>
-    <color name="dev_on_well_var">@android:color/system_neutral2_200</color>
 </resources>

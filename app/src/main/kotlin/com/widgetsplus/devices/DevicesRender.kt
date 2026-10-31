@@ -7,34 +7,86 @@ import android.graphics.Paint
 import android.graphics.RectF
 import androidx.core.content.ContextCompat
 import com.widgetsplus.R
+import com.widgetsplus.agenda.AgendaPalette
+import kotlin.math.roundToInt
 
-/** Colours of the devices widget (Material You on Android 12+, spec palette before). */
+/**
+ * Colours of the devices widget: the agenda widget's palette (Agenda style, approved mockup),
+ * so both widgets follow the wallpaper the same way.
+ */
 class DevicesPalette(context: Context) {
-    val frame = ContextCompat.getColor(context, R.color.dev_frame)
-    val well = ContextCompat.getColor(context, R.color.dev_well)
-    val track = ContextCompat.getColor(context, R.color.dev_track)
-    val tone2 = ContextCompat.getColor(context, R.color.dev_tone2)
-    val onWell = ContextCompat.getColor(context, R.color.dev_on_well)
-    val onWellVar = ContextCompat.getColor(context, R.color.dev_on_well_var)
-    val error = ContextCompat.getColor(context, R.color.dev_error)
+    private val agenda = AgendaPalette(context)
+    val plate = agenda.plate
+    val panel = agenda.group
+    val onPlate = agenda.onPlate
+    val onCard = agenda.onCard
+    val onCardVar = agenda.onCardVar
+    /** Ring and bar track, and the main tone of the drawings. */
+    val card = agenda.card
+    /** Second tone of the drawings. */
+    val badge = agenda.badge
+    val low = ContextCompat.getColor(context, R.color.dev_low)
 
-    /** Anything at 15% or less shows in the error colour. */
-    fun fillFor(level: Int) = if (level in 0..LOW) error else frame
-    fun textFor(level: Int, normal: Int) = if (level in 0..LOW) error else normal
+    /** Anything at 15% or less shows in the low-battery colour. */
+    fun fillFor(level: Int) = if (level in 0..LOW) low else onCard
+    fun textFor(level: Int, normal: Int) = if (level in 0..LOW) low else normal
 
     companion object {
         const val LOW = 15
-        const val FRAME_ALPHA = 87      // 34%
-        const val WELL_ALPHA = 158      // 62%
-        const val HAIRLINE_ALPHA = 46   // 18%
-        const val WELL_LINE_ALPHA = 20  // 8%
-        const val CARD_ALPHA = 26       // 10%
-        const val PILL_ALPHA = 31       // 12%
+        const val PLATE_ALPHA = AgendaPalette.PLATE_ALPHA
+        const val HAIRLINE_ALPHA = AgendaPalette.HAIRLINE_ALPHA
     }
 }
 
-/** Ring gauges and bars, drawn as bitmaps because widgets can't draw arcs themselves. */
+/**
+ * The flat two-tone drawings from the mockup. Each is a stack of white vector layers, 48dp tall:
+ * the main tone, the second tone, and (for a few) details in the main tone drawn on top of the
+ * second tone. [DevicesDraw.drawing] tints and combines them into one bitmap.
+ */
+enum class DeviceDrawing(val widthDp: Float, val main: Int, val detail: Int, val top: Int = 0) {
+    PHONE(36f, R.drawable.dev_draw_phone_main, R.drawable.dev_draw_phone_detail, R.drawable.dev_draw_phone_top),
+    EARBUDS(112f, R.drawable.dev_draw_earbuds_main, R.drawable.dev_draw_earbuds_detail),
+    HEADPHONES(60f, R.drawable.dev_draw_headphones_main, R.drawable.dev_draw_headphones_detail),
+    WATCH(46f, R.drawable.dev_draw_watch_main, R.drawable.dev_draw_watch_detail, R.drawable.dev_draw_watch_top),
+    KEYBOARD(96f, R.drawable.dev_draw_keyboard_main, R.drawable.dev_draw_keyboard_detail),
+    MOUSE(32f, R.drawable.dev_draw_mouse_main, R.drawable.dev_draw_mouse_detail),
+    GAMEPAD(80f, R.drawable.dev_draw_gamepad_main, R.drawable.dev_draw_gamepad_detail),
+    SPEAKER(84f, R.drawable.dev_draw_speaker_main, R.drawable.dev_draw_speaker_detail),
+}
+
+/** Drawings, ring gauges and bars, drawn as bitmaps because widgets can't draw these themselves. */
 object DevicesDraw {
+    private const val DRAWING_HEIGHT_DP = 48f
+
+    /** The drawing for a kind of device, or null for kinds that show a ring instead. */
+    fun drawingFor(kind: DeviceKind): DeviceDrawing? = when (kind) {
+        DeviceKind.EARBUDS -> DeviceDrawing.EARBUDS
+        DeviceKind.HEADPHONES -> DeviceDrawing.HEADPHONES
+        DeviceKind.WATCH -> DeviceDrawing.WATCH
+        DeviceKind.KEYBOARD -> DeviceDrawing.KEYBOARD
+        DeviceKind.MOUSE -> DeviceDrawing.MOUSE
+        DeviceKind.GAMEPAD -> DeviceDrawing.GAMEPAD
+        DeviceKind.SPEAKER -> DeviceDrawing.SPEAKER
+        DeviceKind.CAR, DeviceKind.OTHER -> null
+    }
+
+    fun drawing(context: Context, drawing: DeviceDrawing, main: Int, detail: Int): Bitmap {
+        val d = context.resources.displayMetrics.density
+        val h = (DRAWING_HEIGHT_DP * d).roundToInt().coerceAtLeast(1)
+        val w = (drawing.widthDp * d).roundToInt().coerceAtLeast(1)
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val c = Canvas(bmp)
+        listOf(drawing.main to main, drawing.detail to detail, drawing.top to main).forEach { (res, color) ->
+            if (res == 0) return@forEach
+            ContextCompat.getDrawable(context, res)?.mutate()?.apply {
+                setTint(color or -0x1000000)
+                setBounds(0, 0, w, h)
+                draw(c)
+            }
+        }
+        return bmp
+    }
+
     fun ring(context: Context, sizeDp: Float, strokeDp: Float, level: Int, track: Int, fill: Int): Bitmap {
         val d = context.resources.displayMetrics.density
         val size = (sizeDp * d).toInt().coerceAtLeast(1)
@@ -70,25 +122,16 @@ object DevicesDraw {
         return bmp
     }
 
+    /** Icon shown inside the ring, for device types without a drawing. */
     fun iconFor(kind: DeviceKind): Int = when (kind) {
         DeviceKind.EARBUDS -> R.drawable.ic_dev_earbuds
         DeviceKind.HEADPHONES -> R.drawable.ic_dev_headphones
         DeviceKind.WATCH -> R.drawable.ic_dev_watch
         DeviceKind.KEYBOARD -> R.drawable.ic_dev_keyboard
         DeviceKind.MOUSE -> R.drawable.ic_dev_mouse
+        DeviceKind.GAMEPAD -> R.drawable.ic_dev_gamepad
         DeviceKind.SPEAKER -> R.drawable.ic_dev_speaker
         DeviceKind.CAR -> R.drawable.ic_dev_car
         DeviceKind.OTHER -> R.drawable.ic_dev_bluetooth
-    }
-
-    fun labelFor(kind: DeviceKind): Int = when (kind) {
-        DeviceKind.EARBUDS -> R.string.devices_kind_buds
-        DeviceKind.HEADPHONES -> R.string.devices_kind_headphones
-        DeviceKind.WATCH -> R.string.devices_kind_watch
-        DeviceKind.KEYBOARD -> R.string.devices_kind_keyboard
-        DeviceKind.MOUSE -> R.string.devices_kind_mouse
-        DeviceKind.SPEAKER -> R.string.devices_kind_speaker
-        DeviceKind.CAR -> R.string.devices_kind_car
-        DeviceKind.OTHER -> R.string.devices_kind_other
     }
 }

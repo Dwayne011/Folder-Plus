@@ -11,7 +11,7 @@
      grown by 5dp per side (agenda_stack_overhang): 4dp cancels that padding and 1dp lets the
      front card overflow the frame, so rounding can never expose an edge of the card behind.
      The overhang is set per side on purpose: Android ignores a negative all-sides margin.
-     The card's own 2dp backing padding puts its content exactly 16dp inside the plate. -->
+     The card's own 2dp backing padding puts its content exactly 8dp inside the plate. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/agenda_root"
@@ -27,7 +27,7 @@
         android:layout_height="match_parent"
         android:clipChildren="true"
         android:clipToPadding="true"
-        android:padding="15dp">
+        android:padding="7dp">
 
         <LinearLayout
             android:id="@+id/agenda_stack_column"

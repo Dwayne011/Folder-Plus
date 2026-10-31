@@ -11,18 +11,13 @@ import android.content.pm.PackageManager
 import android.os.BatteryManager
 import android.os.Build
 import androidx.core.content.ContextCompat
-import org.json.JSONArray
-import org.json.JSONObject
 import java.util.Locale
 
 /** What a device is, for its icon and label. Order is the order devices appear in the widget. */
-enum class DeviceKind { EARBUDS, HEADPHONES, WATCH, KEYBOARD, MOUSE, SPEAKER, CAR, OTHER }
+enum class DeviceKind { EARBUDS, HEADPHONES, WATCH, KEYBOARD, MOUSE, GAMEPAD, SPEAKER, CAR, OTHER }
 
 /** A connected Bluetooth device and the battery level it reports (0..100, or -1 if unknown). */
 data class ConnectedDevice(val address: String, val name: String, val kind: DeviceKind, val battery: Int)
-
-/** A device seen recently with a battery level, offered as a shortcut when nothing is connected. */
-data class RecentDevice(val address: String, val name: String, val kind: DeviceKind, val lastSeen: Long)
 
 /**
  * Reads connected Bluetooth devices and their battery levels.
@@ -64,7 +59,6 @@ object BluetoothDevices {
         val devices = bonded.filter { isConnected(it) }.map { d ->
             ConnectedDevice(d.address, displayName(d), kindOf(d), batteryLevel(context, d))
         }.filter { it.battery in 0..100 }
-        devices.forEach { DevicePrefs.remember(context, it) }
         return devices.sortedWith(compareBy<ConnectedDevice> { it.kind.ordinal }.thenBy { it.name.lowercase(Locale.ROOT) })
     }
 
@@ -95,6 +89,8 @@ object BluetoothDevices {
         val byName = when {
             Regex("""\b(buds?|pods?|earbuds?|earphones?)\b""").containsMatchIn(name) -> DeviceKind.EARBUDS
             "watch" in name -> DeviceKind.WATCH
+            Regex("""\b(controller|gamepad|joy-?con|dualsense|dualshock)\b""").containsMatchIn(name) ||
+                "xbox" in name || "8bitdo" in name -> DeviceKind.GAMEPAD
             "keyboard" in name || Regex("""\bkeys\b""").containsMatchIn(name) -> DeviceKind.KEYBOARD
             "mouse" in name || "mx master" in name || "trackpad" in name -> DeviceKind.MOUSE
             else -> null
@@ -111,6 +107,8 @@ object BluetoothDevices {
             BluetoothClass.Device.Major.PERIPHERAL -> when {
                 deviceClass and 0x40 != 0 -> DeviceKind.KEYBOARD
                 deviceClass and 0x80 != 0 -> DeviceKind.MOUSE
+                // peripheral subtype bits 5..2: 0001 joystick, 0010 gamepad
+                (deviceClass and 0x3C).let { it == 0x04 || it == 0x08 } -> DeviceKind.GAMEPAD
                 else -> DeviceKind.OTHER
             }
             BluetoothClass.Device.Major.WEARABLE -> DeviceKind.WATCH
@@ -125,10 +123,9 @@ object BluetoothDevices {
             ?.takeIf { it in 0..100 } ?: 0
 }
 
-/** Battery levels from broadcasts, and devices seen recently with a battery. */
+/** Battery levels from broadcasts, kept as a fallback for devices that don't answer directly. */
 object DevicePrefs {
     private const val FILE = "widgetsplus_devices"
-    private const val KEY_RECENT = "recent"
     private const val LEVEL = "level_"
 
     private fun prefs(context: Context) = context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -139,26 +136,5 @@ object DevicePrefs {
         val edit = prefs(context).edit()
         if (level in 0..100) edit.putInt(LEVEL + address, level) else edit.remove(LEVEL + address)
         edit.apply()
-    }
-
-    fun recent(context: Context): List<RecentDevice> {
-        val json = prefs(context).getString(KEY_RECENT, null) ?: return emptyList()
-        return try {
-            val arr = JSONArray(json)
-            (0 until arr.length()).map { i ->
-                val o = arr.getJSONObject(i)
-                RecentDevice(o.getString("a"), o.getString("n"), DeviceKind.valueOf(o.getString("k")), o.getLong("t"))
-            }.sortedByDescending { it.lastSeen }
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
-    fun remember(context: Context, device: ConnectedDevice) {
-        val list = recent(context).filter { it.address != device.address }.toMutableList()
-        list.add(0, RecentDevice(device.address, device.name, device.kind, System.currentTimeMillis()))
-        val arr = JSONArray()
-        list.take(5).forEach { arr.put(JSONObject().put("a", it.address).put("n", it.name).put("k", it.kind.name).put("t", it.lastSeen)) }
-        prefs(context).edit().putString(KEY_RECENT, arr.toString()).apply()
     }
 }

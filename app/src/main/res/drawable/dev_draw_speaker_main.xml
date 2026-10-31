@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Connected devices widget: speaker drawing, main tone (white; tinted when the layers are combined). Generated from the approved mockup. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="84dp" android:height="48dp"
+    android:viewportWidth="84" android:viewportHeight="48">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M15,9h54a13,13 0 0,1 13,13v4a13,13 0 0,1 -13,13h-54a13,13 0 0,1 -13,-13v-4a13,13 0 0,1 13,-13z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M32.2,38h19.6a2.2,2.2 0 0,1 2.2,2.2v0.1a2.2,2.2 0 0,1 -2.2,2.2h-19.6a2.2,2.2 0 0,1 -2.2,-2.2v-0.1a2.2,2.2 0 0,1 2.2,-2.2z" />
+</vector>

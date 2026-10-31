@@ -55,7 +55,7 @@ class AgendaWidgetProvider : AppWidgetProvider() {
         }
 
         /** Padding of the clipping frame around the stack, in dp (see widget_agenda.xml). */
-        private const val FRAME_PADDING_DP = 32f
+        private const val FRAME_PADDING_DP = 16f
         private const val ROW_DP = 44f
         private const val ROW_GAP_DP = 6f
         private const val GROUP_PADDING_DP = 12f
@@ -120,7 +120,7 @@ class AgendaWidgetProvider : AppWidgetProvider() {
 
         private fun build(context: Context, appWidgetId: Int, size: SizeF, showIndex: Int?): RemoteViews {
             val palette = AgendaPalette(context)
-            // The frame is the plate minus its 16dp padding; each card is exactly that tall.
+            // The frame is the plate minus its 8dp border; each card is exactly that tall.
             val frameH = size.height - FRAME_PADDING_DP
             val parked = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && frameH > 0f
             val views = RemoteViews(context.packageName, if (parked) R.layout.widget_agenda_stack else R.layout.widget_agenda_stack_compat)

@@ -6,30 +6,33 @@
     <!-- plate -->
     <path android:fillColor="@color/agenda_plate" android:fillAlpha="0.58"
         android:pathData="M28,0 h320 a28,28 0 0 1 28,28 v124 a28,28 0 0 1 -28,28 h-320 a28,28 0 0 1 -28,-28 v-124 a28,28 0 0 1 28,-28 z" />
-    <!-- date card -->
-    <path android:fillColor="@color/agenda_card"
-        android:pathData="M32,16 h88 a16,16 0 0 1 16,16 v116 a16,16 0 0 1 -16,16 h-88 a16,16 0 0 1 -16,-16 v-116 a16,16 0 0 1 16,-16 z" />
-    <path android:fillColor="@color/agenda_on_card_var" android:pathData="M60,44 h32 a3,3 0 0 1 0,6 h-32 a3,3 0 0 1 0,-6 z" />
-    <path android:fillColor="@color/agenda_on_card"
-        android:pathData="M64,62 h10 v56 h-10 z M80,62 h20 a10,10 0 0 1 10,10 v36 a10,10 0 0 1 -10,10 h-20 a10,10 0 0 1 -10,-10 v-36 a10,10 0 0 1 10,-10 z M80,72 v36 h20 v-36 z" />
-    <path android:fillColor="@color/agenda_on_card_var" android:pathData="M60,130 h32 a3,3 0 0 1 0,6 h-32 a3,3 0 0 1 0,-6 z" />
-    <!-- event group -->
-    <path android:fillColor="@color/agenda_group"
-        android:pathData="M172,16 h166 a22,22 0 0 1 22,22 v104 a22,22 0 0 1 -22,22 h-166 a22,22 0 0 1 -22,-22 v-104 a22,22 0 0 1 22,-22 z" />
-    <!-- rows -->
-    <path android:fillColor="@color/agenda_card" android:pathData="M172,22 h160 a16,16 0 0 1 16,16 v12 a16,16 0 0 1 -16,16 h-160 a16,16 0 0 1 -16,-16 v-12 a16,16 0 0 1 16,-16 z" />
-    <path android:fillColor="@color/agenda_badge" android:pathData="M172,28 h20 a12,12 0 0 1 12,12 v8 a12,12 0 0 1 -12,12 h-20 a12,12 0 0 1 -12,-12 v-8 a12,12 0 0 1 12,-12 z" />
-    <path android:fillColor="@color/agenda_on_card_var" android:pathData="M212,32 h40 a2,2 0 0 1 0,4 h-40 a2,2 0 0 1 0,-4 z" />
-    <path android:fillColor="@color/agenda_on_card" android:pathData="M212,42 h96 a3,3 0 0 1 0,6 h-96 a3,3 0 0 1 0,-6 z" />
-    <path android:fillColor="@color/agenda_on_card_var" android:pathData="M212,54 h60 a2,2 0 0 1 0,4 h-60 a2,2 0 0 1 0,-4 z" />
+    <!-- content laid out for a 16dp border, stretched to the 8dp border -->
+    <group android:pivotX="16" android:pivotY="16" android:scaleX="1.04651" android:scaleY="1.10811" android:translateX="-8" android:translateY="-8">
+        <!-- date card -->
+        <path android:fillColor="@color/agenda_card"
+            android:pathData="M32,16 h88 a16,16 0 0 1 16,16 v116 a16,16 0 0 1 -16,16 h-88 a16,16 0 0 1 -16,-16 v-116 a16,16 0 0 1 16,-16 z" />
+        <path android:fillColor="@color/agenda_on_card_var" android:pathData="M60,44 h32 a3,3 0 0 1 0,6 h-32 a3,3 0 0 1 0,-6 z" />
+        <path android:fillColor="@color/agenda_on_card"
+            android:pathData="M64,62 h10 v56 h-10 z M80,62 h20 a10,10 0 0 1 10,10 v36 a10,10 0 0 1 -10,10 h-20 a10,10 0 0 1 -10,-10 v-36 a10,10 0 0 1 10,-10 z M80,72 v36 h20 v-36 z" />
+        <path android:fillColor="@color/agenda_on_card_var" android:pathData="M60,130 h32 a3,3 0 0 1 0,6 h-32 a3,3 0 0 1 0,-6 z" />
+        <!-- event group -->
+        <path android:fillColor="@color/agenda_group"
+            android:pathData="M172,16 h166 a22,22 0 0 1 22,22 v104 a22,22 0 0 1 -22,22 h-166 a22,22 0 0 1 -22,-22 v-104 a22,22 0 0 1 22,-22 z" />
+        <!-- rows -->
+        <path android:fillColor="@color/agenda_card" android:pathData="M172,22 h160 a16,16 0 0 1 16,16 v12 a16,16 0 0 1 -16,16 h-160 a16,16 0 0 1 -16,-16 v-12 a16,16 0 0 1 16,-16 z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M172,28 h20 a12,12 0 0 1 12,12 v8 a12,12 0 0 1 -12,12 h-20 a12,12 0 0 1 -12,-12 v-8 a12,12 0 0 1 12,-12 z" />
+        <path android:fillColor="@color/agenda_on_card_var" android:pathData="M212,32 h40 a2,2 0 0 1 0,4 h-40 a2,2 0 0 1 0,-4 z" />
+        <path android:fillColor="@color/agenda_on_card" android:pathData="M212,42 h96 a3,3 0 0 1 0,6 h-96 a3,3 0 0 1 0,-6 z" />
+        <path android:fillColor="@color/agenda_on_card_var" android:pathData="M212,54 h60 a2,2 0 0 1 0,4 h-60 a2,2 0 0 1 0,-4 z" />
 
-    <path android:fillColor="@color/agenda_card" android:pathData="M172,72 h160 a16,16 0 0 1 16,16 v12 a16,16 0 0 1 -16,16 h-160 a16,16 0 0 1 -16,-16 v-12 a16,16 0 0 1 16,-16 z" />
-    <path android:fillColor="@color/agenda_badge" android:pathData="M172,78 h20 a12,12 0 0 1 12,12 v8 a12,12 0 0 1 -12,12 h-20 a12,12 0 0 1 -12,-12 v-8 a12,12 0 0 1 12,-12 z" />
-    <path android:fillColor="@color/agenda_on_card_var" android:pathData="M212,82 h40 a2,2 0 0 1 0,4 h-40 a2,2 0 0 1 0,-4 z" />
-    <path android:fillColor="@color/agenda_on_card" android:pathData="M212,92 h80 a3,3 0 0 1 0,6 h-80 a3,3 0 0 1 0,-6 z" />
+        <path android:fillColor="@color/agenda_card" android:pathData="M172,72 h160 a16,16 0 0 1 16,16 v12 a16,16 0 0 1 -16,16 h-160 a16,16 0 0 1 -16,-16 v-12 a16,16 0 0 1 16,-16 z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M172,78 h20 a12,12 0 0 1 12,12 v8 a12,12 0 0 1 -12,12 h-20 a12,12 0 0 1 -12,-12 v-8 a12,12 0 0 1 12,-12 z" />
+        <path android:fillColor="@color/agenda_on_card_var" android:pathData="M212,82 h40 a2,2 0 0 1 0,4 h-40 a2,2 0 0 1 0,-4 z" />
+        <path android:fillColor="@color/agenda_on_card" android:pathData="M212,92 h80 a3,3 0 0 1 0,6 h-80 a3,3 0 0 1 0,-6 z" />
 
-    <path android:fillColor="@color/agenda_card" android:pathData="M172,122 h160 a16,16 0 0 1 16,16 v12 a16,16 0 0 1 -16,16 h-160 a16,16 0 0 1 -16,-16 v-12 a16,16 0 0 1 16,-16 z" />
-    <path android:fillColor="@color/agenda_badge" android:pathData="M172,128 h20 a12,12 0 0 1 12,12 v8 a12,12 0 0 1 -12,12 h-20 a12,12 0 0 1 -12,-12 v-8 a12,12 0 0 1 12,-12 z" />
-    <path android:fillColor="@color/agenda_on_card_var" android:pathData="M212,132 h40 a2,2 0 0 1 0,4 h-40 a2,2 0 0 1 0,-4 z" />
-    <path android:fillColor="@color/agenda_on_card" android:pathData="M212,142 h56 a3,3 0 0 1 0,6 h-56 a3,3 0 0 1 0,-6 z" />
+        <path android:fillColor="@color/agenda_card" android:pathData="M172,122 h160 a16,16 0 0 1 16,16 v12 a16,16 0 0 1 -16,16 h-160 a16,16 0 0 1 -16,-16 v-12 a16,16 0 0 1 16,-16 z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M172,128 h20 a12,12 0 0 1 12,12 v8 a12,12 0 0 1 -12,12 h-20 a12,12 0 0 1 -12,-12 v-8 a12,12 0 0 1 12,-12 z" />
+        <path android:fillColor="@color/agenda_on_card_var" android:pathData="M212,132 h40 a2,2 0 0 1 0,4 h-40 a2,2 0 0 1 0,-4 z" />
+        <path android:fillColor="@color/agenda_on_card" android:pathData="M212,142 h56 a3,3 0 0 1 0,6 h-56 a3,3 0 0 1 0,-6 z" />
+    </group>
 </vector>

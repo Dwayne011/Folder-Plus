@@ -16,8 +16,8 @@
 
      Swipe area: the stack reaches far above the frame and past its right edge already, so
      swipes on the top and right plate border count. On the left it starts at the plate's edge
-     (-16dp) with 12dp of padding, which StackView subtracts from the card's width and adds to
-     its position, so the card still lands exactly on the frame. Only the bottom border strip
+     (-8dp, the plate's border) with 4dp of padding, which StackView subtracts from the card's
+     width and adds to its position, so the card still lands exactly on the frame. Only the bottom border strip
      is outside the stack. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -35,14 +35,14 @@
         android:layout_height="match_parent"
         android:clipChildren="true"
         android:clipToPadding="true"
-        android:padding="16dp">
+        android:padding="8dp">
 
         <LinearLayout
             android:id="@+id/agenda_stack_column"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="bottom"
-            android:layout_marginStart="-16dp"
+            android:layout_marginStart="-8dp"
             android:layout_marginEnd="-4dp"
             android:layout_marginBottom="-4dp"
             android:layoutDirection="ltr"
@@ -55,7 +55,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="10"
                 android:loopViews="false"
-                android:paddingStart="12dp" />
+                android:paddingStart="4dp" />
         </LinearLayout>
 
         <TextView
