@@ -76,10 +76,13 @@ class AgendaWidgetProvider : AppWidgetProvider() {
                 @Suppress("DEPRECATION")
                 views.setRemoteAdapter(R.id.agenda_stack, adapter)
                 views.setEmptyView(R.id.agenda_stack, R.id.agenda_empty)
-                // Items fill in the event or day to open; the template must be mutable for that.
+                // Items fill in the event or day to open. The template must be mutable for
+                // that, and (Android 14) a mutable PendingIntent must name its component, so
+                // it targets our trampoline, which forwards to the Calendar app.
                 var flags = PendingIntent.FLAG_UPDATE_CURRENT
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) flags = flags or PendingIntent.FLAG_MUTABLE
-                val template = PendingIntent.getActivity(context, appWidgetId, Intent(Intent.ACTION_VIEW), flags)
+                val trampoline = Intent(context, AgendaOpenActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                val template = PendingIntent.getActivity(context, appWidgetId, trampoline, flags)
                 views.setPendingIntentTemplate(R.id.agenda_stack, template)
             }
             manager.updateAppWidget(appWidgetId, views)

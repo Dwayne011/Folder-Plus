@@ -141,6 +141,7 @@
     <string name="agenda_add_widget">Add Agenda to home screen</string>
     <string name="agenda_add_widget_hint">4 × 3 by default; resize it up to 4 × 4</string>
     <string name="agenda_menu">Agenda widget…</string>
+    <string name="agenda_no_calendar_app">No calendar app can open this</string>
     <string name="section_folder">Folder</string>
     <string name="apps_and_categories">Apps &amp; categories</string>
     <string name="apps_categories_summary">%1$d apps · %2$d categories</string>
