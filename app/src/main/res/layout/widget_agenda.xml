@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Frosted plate holding a card stack of days. StackView lays the front card out in the
-     bottom-left 90% of its bounds and fans the back cards up and to the right. The stack is
-     therefore made 1/9 larger than the clipping frame on the top and end sides so that only
-     the front card is visible. These margins are the pre-Android-12 approximation; on 12+ the
-     provider sets them from the widget's actual size. -->
+<!-- Frosted plate holding a card stack of days.
+     StackView lays the front card out in the bottom-left 90% of its own bounds and fans the
+     back cards up and to the right. To show exactly the front card, the stack is made 10/9 of
+     the clipping frame and aligned to its bottom-left: two LinearLayouts with weightSum 9 give
+     a weight-10 child 10/9 of the parent, and gravity=bottom pushes the overflow above the
+     frame. Everything outside the frame's padding is clipped. This is proportional, so it holds
+     whatever size the launcher really gives the widget. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/agenda_root"
     android:layout_width="match_parent"
@@ -20,13 +22,30 @@
         android:clipToPadding="true"
         android:padding="16dp">
 
-        <StackView
-            android:id="@+id/agenda_stack"
+        <LinearLayout
+            android:id="@+id/agenda_stack_column"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="-22dp"
-            android:layout_marginEnd="-36dp"
-            android:loopViews="false" />
+            android:gravity="bottom"
+            android:orientation="vertical"
+            android:weightSum="9">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="10"
+                android:layoutDirection="ltr"
+                android:orientation="horizontal"
+                android:weightSum="9">
+
+                <StackView
+                    android:id="@+id/agenda_stack"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="10"
+                    android:loopViews="false" />
+            </LinearLayout>
+        </LinearLayout>
 
         <TextView
             android:id="@+id/agenda_empty"

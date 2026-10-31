@@ -11,7 +11,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.SizeF
-import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import com.widgetsplus.R
@@ -85,7 +84,7 @@ class AgendaWidgetProvider : AppWidgetProvider() {
         fun render(context: Context, manager: AppWidgetManager, appWidgetId: Int) {
             val options = manager.getAppWidgetOptions(appWidgetId)
             val views = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                // One layout per size the launcher may use, so the stack geometry is exact.
+                // One layout per size the launcher may use, so the row count fits each.
                 val sizes = sizes(options)?.takeIf { it.isNotEmpty() } ?: listOf(portraitSize(context, options))
                 if (sizes.size == 1) build(context, appWidgetId, sizes[0])
                 else RemoteViews(sizes.associateWith { build(context, appWidgetId, it) })
@@ -103,24 +102,18 @@ class AgendaWidgetProvider : AppWidgetProvider() {
             views.setInt(R.id.agenda_hairline, "setImageAlpha", AgendaPalette.HAIRLINE_ALPHA)
             views.setTextColor(R.id.agenda_empty, palette.onPlate)
             val immutable = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            val frameW = size.width - FRAME_PADDING_DP
+            // The stack geometry is handled proportionally in the layout; only the number
+            // of event rows per card depends on the size the launcher reports.
             val frameH = size.height - FRAME_PADDING_DP
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && frameW > 0f && frameH > 0f) {
-                // StackView shows the front card in the bottom-left 90% of its bounds, so the
-                // stack must overhang the frame by 1/9 of the frame on the top and end sides.
-                views.setViewLayoutMargin(R.id.agenda_stack, RemoteViews.MARGIN_TOP, -frameH / 9f, TypedValue.COMPLEX_UNIT_DIP)
-                views.setViewLayoutMargin(R.id.agenda_stack, RemoteViews.MARGIN_END, -frameW / 9f, TypedValue.COMPLEX_UNIT_DIP)
-            }
-
             if (!CalendarAgenda.hasPermission(context)) {
-                views.setViewVisibility(R.id.agenda_stack, View.GONE)
+                views.setViewVisibility(R.id.agenda_stack_column, View.GONE)
                 views.setViewVisibility(R.id.agenda_empty, View.VISIBLE)
                 views.setTextViewText(R.id.agenda_empty, context.getString(R.string.agenda_need_permission))
                 val setup = Intent(context, AgendaSetupActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 views.setOnClickPendingIntent(R.id.agenda_root, PendingIntent.getActivity(context, appWidgetId, setup, immutable))
             } else {
-                views.setViewVisibility(R.id.agenda_stack, View.VISIBLE)
+                views.setViewVisibility(R.id.agenda_stack_column, View.VISIBLE)
                 views.setTextViewText(R.id.agenda_empty, context.getString(R.string.agenda_empty))
                 val adapter = Intent(context, AgendaWidgetService::class.java)
                     .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
