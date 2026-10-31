@@ -30,8 +30,8 @@ jobs:
         run: |
           SHORT_SHA="${GITHUB_SHA::7}"
           TAG="apk-build-${GITHUB_RUN_NUMBER}"
-          cp app/build/outputs/apk/debug/app-debug.apk "folder-plus-debug-${SHORT_SHA}.apk"
-          gh release create "$TAG" "folder-plus-debug-${SHORT_SHA}.apk" \
+          cp app/build/outputs/apk/debug/app-debug.apk "widgets-plus-debug-${SHORT_SHA}.apk"
+          gh release create "$TAG" "widgets-plus-debug-${SHORT_SHA}.apk" \
             --prerelease \
             --target "$GITHUB_SHA" \
             --title "Debug APK build ${GITHUB_RUN_NUMBER} (${SHORT_SHA})" \
