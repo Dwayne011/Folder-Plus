@@ -5,7 +5,9 @@
      the clipping frame and aligned to its bottom-left: two LinearLayouts with weightSum 9 give
      a weight-10 child 10/9 of the parent, and gravity=bottom pushes the overflow above the
      frame. Everything outside the frame's padding is clipped. This is proportional, so it holds
-     whatever size the launcher really gives the widget. -->
+     whatever size the launcher really gives the widget.
+     StackView also wraps each card in a frame with 4dp padding, so the box the stack is sized
+     from is the clipping frame grown by 4dp on every side (the -4dp margin below). -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/agenda_root"
     android:layout_width="match_parent"
@@ -26,6 +28,7 @@
             android:id="@+id/agenda_stack_column"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_margin="-4dp"
             android:gravity="bottom"
             android:orientation="vertical"
             android:weightSum="9">
