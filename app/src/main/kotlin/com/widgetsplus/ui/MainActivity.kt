@@ -22,7 +22,7 @@ import com.widgetsplus.ui.editor.FolderEditorScreen
 import com.widgetsplus.ui.editor.GesturesScreen
 import com.widgetsplus.ui.folders.FolderListScreen
 import com.widgetsplus.ui.picker.AppPickerScreen
-import com.widgetsplus.ui.theme.FolderPlusTheme
+import com.widgetsplus.ui.theme.WidgetsPlusTheme
 import com.widgetsplus.widget.WidgetUpdater
 import kotlinx.coroutines.launch
 
@@ -41,8 +41,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         requestedFolderId = intent?.getLongExtra(EXTRA_FOLDER_ID, -1L) ?: -1L
         setContent {
-            FolderPlusTheme {
-                FolderPlusNavHost(requestedFolderId = requestedFolderId, requestSerial = requestSerial)
+            WidgetsPlusTheme {
+                WidgetsPlusNavHost(requestedFolderId = requestedFolderId, requestSerial = requestSerial)
             }
         }
     }
@@ -95,7 +95,7 @@ data class Screen(val kind: Int, val folderId: Long = -1L, val categoryId: Long 
 }
 
 @Composable
-fun FolderPlusNavHost(requestedFolderId: Long, requestSerial: Int) {
+fun WidgetsPlusNavHost(requestedFolderId: Long, requestSerial: Int) {
     var screen by rememberSaveable(stateSaver = Screen.Saver) {
         mutableStateOf(if (requestedFolderId > 0) Screen(Screen.EDITOR, requestedFolderId) else Screen(Screen.FOLDERS))
     }

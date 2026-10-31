@@ -11,7 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.widgetsplus.ui.theme.FolderPlusTheme
+import com.widgetsplus.ui.theme.WidgetsPlusTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -26,7 +26,7 @@ class AgendaDayActivity : ComponentActivity() {
         val date = LocalDate.ofEpochDay(intent.getLongExtra(EXTRA_EPOCH_DAY, LocalDate.now().toEpochDay()))
         val anchorTopPx = intent.getIntExtra(EXTRA_ANCHOR_TOP_PX, -1)
         setContent {
-            FolderPlusTheme {
+            WidgetsPlusTheme {
                 var day by remember { mutableStateOf<AgendaDay?>(null) }
                 LaunchedEffect(date) {
                     day = withContext(Dispatchers.IO) { CalendarAgenda.loadDay(this@AgendaDayActivity, date) }

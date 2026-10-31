@@ -2,7 +2,7 @@
 <!-- 2x2 and bigger: large icon + name on top, quick-launch strip underneath. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
-    style="@style/Widget.FolderPlus.Container"
+    style="@style/Widget.WidgetsPlus.Container"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 

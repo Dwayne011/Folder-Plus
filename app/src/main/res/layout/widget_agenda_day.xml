@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- One stack card = one day: date card on the left, that day's events on the right.
-     All surfaces are opaque; the next day's card sits directly behind this one. -->
+     All surfaces are opaque; the next day's card sits directly behind this one.
+     StackView measures its cards with AT_MOST specs, under which a LinearLayout shrinks to
+     its content and ignores weights. The oversized minWidth/minHeight make it resolve to the
+     full space StackView offers instead (LinearLayout clamps the minimum to the spec). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/day_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:baselineAligned="false"
+    android:minWidth="4000dp"
+    android:minHeight="4000dp"
     android:orientation="horizontal">
 
     <FrameLayout

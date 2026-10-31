@@ -46,7 +46,7 @@ import com.widgetsplus.ui.MainActivity
 import com.widgetsplus.ui.common.FolderIconImage
 import com.widgetsplus.ui.common.TextInputDialog
 import com.widgetsplus.ui.common.displayName
-import com.widgetsplus.ui.theme.FolderPlusTheme
+import com.widgetsplus.ui.theme.WidgetsPlusTheme
 import kotlinx.coroutines.launch
 
 /**
@@ -84,7 +84,7 @@ class FolderWidgetConfigActivity : ComponentActivity() {
 
     private fun showPicker() {
         setContent {
-            FolderPlusTheme {
+            WidgetsPlusTheme {
                 val folders by remember { graph.repository.observeFolders() }.collectAsStateWithLifecycle(initialValue = emptyList())
                 ConfigScreen(
                     folders = folders,

@@ -15,14 +15,14 @@
     <uses-permission android:name="android.permission.READ_CALENDAR" />
 
     <application
-        android:name=".FolderPlusApp"
+        android:name=".WidgetsPlusApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.FolderPlus"
+        android:theme="@style/Theme.WidgetsPlus"
         tools:targetApi="34">
 
         <!-- No launcher icon: everything is set up by dropping a widget and long-pressing it
@@ -41,7 +41,7 @@
             android:launchMode="singleTask"
             android:noHistory="true"
             android:taskAffinity="com.widgetsplus.popup"
-            android:theme="@style/Theme.FolderPlus.Popup" />
+            android:theme="@style/Theme.WidgetsPlus.Popup" />
 
         <!-- Invisible activity that tells a single tap from a double tap on a widget. -->
         <activity
@@ -51,7 +51,7 @@
             android:launchMode="singleTask"
             android:noHistory="true"
             android:taskAffinity="com.widgetsplus.popup"
-            android:theme="@style/Theme.FolderPlus.Invisible" />
+            android:theme="@style/Theme.WidgetsPlus.Invisible" />
 
         <!-- Invisible trampoline used by widget quick-launch icons so usage is recorded. -->
         <activity
@@ -60,7 +60,7 @@
             android:exported="false"
             android:noHistory="true"
             android:taskAffinity="com.widgetsplus.popup"
-            android:theme="@style/Theme.FolderPlus.Invisible" />
+            android:theme="@style/Theme.WidgetsPlus.Invisible" />
 
         <activity
             android:name=".widget.HostedWidgetPickerActivity"
@@ -141,7 +141,7 @@
             android:exported="false"
             android:noHistory="true"
             android:taskAffinity="com.widgetsplus.popup"
-            android:theme="@style/Theme.FolderPlus.Invisible" />
+            android:theme="@style/Theme.WidgetsPlus.Invisible" />
         <activity
             android:name=".agenda.AgendaDayActivity"
             android:excludeFromRecents="true"
@@ -149,7 +149,7 @@
             android:launchMode="singleTask"
             android:noHistory="true"
             android:taskAffinity="com.widgetsplus.popup"
-            android:theme="@style/Theme.FolderPlus.Popup" />
+            android:theme="@style/Theme.WidgetsPlus.Popup" />
         <activity
             android:name=".agenda.AgendaConfigActivity"
             android:exported="true"

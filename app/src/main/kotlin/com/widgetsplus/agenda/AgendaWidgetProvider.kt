@@ -6,9 +6,12 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.SizeF
+import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import com.widgetsplus.R
@@ -49,19 +52,66 @@ class AgendaWidgetProvider : AppWidgetProvider() {
             if (ids.isNotEmpty()) AppWidgetManager.getInstance(context).notifyAppWidgetViewDataChanged(ids, R.id.agenda_stack)
         }
 
-        /** Event rows per card: three on a 3-row widget, five when it is taller. */
-        private fun slotsFor(options: Bundle): Int {
-            val maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT)
-            return if (maxHeight >= 250) 5 else 3
+        /** Padding of the clipping frame around the stack, in dp (see widget_agenda.xml). */
+        private const val FRAME_PADDING_DP = 32f
+        private const val ROW_DP = 44f
+        private const val ROW_GAP_DP = 6f
+        private const val GROUP_PADDING_DP = 12f
+        private const val CHIP_DP = 24f
+
+        /** Event rows that fit in a card [frameHeightDp] tall, keeping room for the "+N more" chip. */
+        private fun slotsFor(frameHeightDp: Float): Int {
+            if (frameHeightDp <= 0f) return 3
+            val usable = frameHeightDp - GROUP_PADDING_DP - CHIP_DP + ROW_GAP_DP
+            return (usable / (ROW_DP + ROW_GAP_DP)).toInt().coerceIn(1, 5)
         }
 
+        /** Widget size in dp for the current orientation when the launcher gives no explicit list. */
+        private fun portraitSize(context: Context, options: Bundle): SizeF {
+            val landscape = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+            val w = options.getInt(if (landscape) AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH else AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
+            val h = options.getInt(if (landscape) AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT else AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT)
+            return SizeF(w.toFloat(), h.toFloat())
+        }
+
+        @Suppress("DEPRECATION")
+        private fun sizes(options: Bundle): List<SizeF>? =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                options.getParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES, SizeF::class.java)
+            } else {
+                options.getParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES)
+            }
+
         fun render(context: Context, manager: AppWidgetManager, appWidgetId: Int) {
+            val options = manager.getAppWidgetOptions(appWidgetId)
+            val views = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                // One layout per size the launcher may use, so the stack geometry is exact.
+                val sizes = sizes(options)?.takeIf { it.isNotEmpty() } ?: listOf(portraitSize(context, options))
+                if (sizes.size == 1) build(context, appWidgetId, sizes[0])
+                else RemoteViews(sizes.associateWith { build(context, appWidgetId, it) })
+            } else {
+                build(context, appWidgetId, portraitSize(context, options))
+            }
+            manager.updateAppWidget(appWidgetId, views)
+            manager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.agenda_stack)
+        }
+
+        private fun build(context: Context, appWidgetId: Int, size: SizeF): RemoteViews {
             val palette = AgendaPalette(context)
             val views = RemoteViews(context.packageName, R.layout.widget_agenda)
             AgendaPalette.tint(views, R.id.agenda_plate, palette.plate, AgendaPalette.PLATE_ALPHA)
             views.setInt(R.id.agenda_hairline, "setImageAlpha", AgendaPalette.HAIRLINE_ALPHA)
             views.setTextColor(R.id.agenda_empty, palette.onPlate)
             val immutable = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            val frameW = size.width - FRAME_PADDING_DP
+            val frameH = size.height - FRAME_PADDING_DP
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && frameW > 0f && frameH > 0f) {
+                // StackView shows the front card in the bottom-left 90% of its bounds, so the
+                // stack must overhang the frame by 1/9 of the frame on the top and end sides.
+                views.setViewLayoutMargin(R.id.agenda_stack, RemoteViews.MARGIN_TOP, -frameH / 9f, TypedValue.COMPLEX_UNIT_DIP)
+                views.setViewLayoutMargin(R.id.agenda_stack, RemoteViews.MARGIN_END, -frameW / 9f, TypedValue.COMPLEX_UNIT_DIP)
+            }
 
             if (!CalendarAgenda.hasPermission(context)) {
                 views.setViewVisibility(R.id.agenda_stack, View.GONE)
@@ -74,7 +124,7 @@ class AgendaWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(R.id.agenda_empty, context.getString(R.string.agenda_empty))
                 val adapter = Intent(context, AgendaWidgetService::class.java)
                     .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-                    .putExtra(EXTRA_SLOTS, slotsFor(manager.getAppWidgetOptions(appWidgetId)))
+                    .putExtra(EXTRA_SLOTS, slotsFor(frameH))
                 adapter.data = Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME))
                 @Suppress("DEPRECATION")
                 views.setRemoteAdapter(R.id.agenda_stack, adapter)
@@ -86,8 +136,7 @@ class AgendaWidgetProvider : AppWidgetProvider() {
                 val trampoline = Intent(context, AgendaTapActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 views.setPendingIntentTemplate(R.id.agenda_stack, PendingIntent.getActivity(context, appWidgetId, trampoline, flags))
             }
-            manager.updateAppWidget(appWidgetId, views)
-            manager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.agenda_stack)
+            return views
         }
     }
 }

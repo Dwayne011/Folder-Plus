@@ -24,7 +24,7 @@ import com.widgetsplus.core.model.FolderItem
 import com.widgetsplus.graph
 import com.widgetsplus.launch.AppLauncher
 import com.widgetsplus.ui.MainActivity
-import com.widgetsplus.ui.theme.FolderPlusTheme
+import com.widgetsplus.ui.theme.WidgetsPlusTheme
 import com.widgetsplus.widget.WidgetUpdater
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +53,7 @@ class FolderOpenActivity : FragmentActivity() {
 
         val startOnWidget = intent.getBooleanExtra(EXTRA_SHOW_WIDGET, false)
         setContent {
-            FolderPlusTheme {
+            WidgetsPlusTheme {
                 val state by remember(folderId) {
                     combine(repo.observeFolder(folderId), repo.observeCategories(folderId), repo.observeItems(folderId)) { f, c, i ->
                         PopupState(loaded = true, folder = f, categories = c, items = i)
@@ -67,7 +67,7 @@ class FolderOpenActivity : FragmentActivity() {
                 LaunchedEffect(state.loaded, folder) {
                     if (state.loaded && folder == null) finish()
                 }
-                if (folder == null) return@FolderPlusTheme
+                if (folder == null) return@WidgetsPlusTheme
 
                 LaunchedEffect(Unit) { appGraph.installedApps.ensureLoaded() }
                 LaunchedEffect(folder.frosting) { applyFrosting(folder.frosting) }

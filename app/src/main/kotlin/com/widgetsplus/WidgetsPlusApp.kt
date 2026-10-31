@@ -4,7 +4,7 @@ import android.app.Application
 import android.content.Context
 import com.widgetsplus.apps.InstalledApps
 import com.widgetsplus.data.FolderRepository
-import com.widgetsplus.data.db.FolderPlusDatabase
+import com.widgetsplus.data.db.WidgetsPlusDatabase
 import com.widgetsplus.security.LockManager
 import com.widgetsplus.widget.HostedWidgets
 import kotlinx.coroutines.CoroutineScope
@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
  * Tiny service locator. The app is small enough that a DI framework would be
  * more ceremony than value; everything is reachable via [Context.graph].
  */
-class FolderPlusApp : Application() {
+class WidgetsPlusApp : Application() {
     lateinit var graph: Graph
         private set
 
@@ -33,7 +33,7 @@ class FolderPlusApp : Application() {
 
 class Graph(context: Context) {
     val appContext: Context = context.applicationContext
-    val database: FolderPlusDatabase = FolderPlusDatabase.build(context)
+    val database: WidgetsPlusDatabase = WidgetsPlusDatabase.build(context)
     val repository: FolderRepository = FolderRepository(database)
     val installedApps: InstalledApps = InstalledApps(context)
     val lockManager: LockManager = LockManager(context)
@@ -41,4 +41,4 @@ class Graph(context: Context) {
 }
 
 val Context.graph: Graph
-    get() = (applicationContext as FolderPlusApp).graph
+    get() = (applicationContext as WidgetsPlusApp).graph

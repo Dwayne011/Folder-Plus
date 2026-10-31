@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.widgetsplus.R
 import com.widgetsplus.graph
-import com.widgetsplus.ui.theme.FolderPlusTheme
+import com.widgetsplus.ui.theme.WidgetsPlusTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -64,7 +64,7 @@ class HostedWidgetPickerActivity : ComponentActivity() {
         enableEdgeToEdge()
         setResult(Activity.RESULT_CANCELED)
         setContent {
-            FolderPlusTheme {
+            WidgetsPlusTheme {
                 PickerScreen(onPick = ::pick, onBack = ::finish)
             }
         }

@@ -12,7 +12,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     version = 4,
     exportSchema = false,
 )
-abstract class FolderPlusDatabase : RoomDatabase() {
+abstract class WidgetsPlusDatabase : RoomDatabase() {
     abstract fun folders(): FolderDao
     abstract fun categories(): CategoryDao
     abstract fun items(): FolderItemDao
@@ -41,8 +41,8 @@ abstract class FolderPlusDatabase : RoomDatabase() {
             }
         }
 
-        fun build(context: Context): FolderPlusDatabase =
-            Room.databaseBuilder(context.applicationContext, FolderPlusDatabase::class.java, "widgetsplus.db")
+        fun build(context: Context): WidgetsPlusDatabase =
+            Room.databaseBuilder(context.applicationContext, WidgetsPlusDatabase::class.java, "widgetsplus.db")
                 .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .fallbackToDestructiveMigration()
                 .build()

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.FolderPlus" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.WidgetsPlus" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowLightStatusBar">true</item>
     </style>
 
     <!-- Translucent full-screen window: the Compose content draws the scrim and card. -->
-    <style name="Theme.FolderPlus.Popup" parent="Theme.FolderPlus">
+    <style name="Theme.WidgetsPlus.Popup" parent="Theme.WidgetsPlus">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowNoTitle">true</item>
@@ -14,12 +14,12 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
-    <style name="Theme.FolderPlus.Invisible" parent="Theme.FolderPlus.Popup">
+    <style name="Theme.WidgetsPlus.Invisible" parent="Theme.WidgetsPlus.Popup">
         <item name="android:windowAnimationStyle">@null</item>
         <item name="android:windowDisablePreview">true</item>
     </style>
 
-    <style name="Widget.FolderPlus.Container" parent="android:Widget">
+    <style name="Widget.WidgetsPlus.Container" parent="android:Widget">
         <item name="android:background">@drawable/widget_background</item>
         <item name="android:padding">6dp</item>
     </style>

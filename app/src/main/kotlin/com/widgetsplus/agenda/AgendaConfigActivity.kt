@@ -45,7 +45,7 @@ import com.widgetsplus.R
 import com.widgetsplus.ui.common.SectionTitle
 import com.widgetsplus.ui.common.SettingsGroup
 import com.widgetsplus.ui.common.SwitchRow
-import com.widgetsplus.ui.theme.FolderPlusTheme
+import com.widgetsplus.ui.theme.WidgetsPlusTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -67,7 +67,7 @@ class AgendaConfigActivity : ComponentActivity() {
         if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
             setResult(Activity.RESULT_OK, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId))
         }
-        setContent { FolderPlusTheme { CalendarChooser(onBack = ::finish) } }
+        setContent { WidgetsPlusTheme { CalendarChooser(onBack = ::finish) } }
     }
 
     override fun onPause() {

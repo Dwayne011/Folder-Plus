@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Widget-picker preview of the 2x2 folder: card, glyph + name, quick-launch strip. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    style="@style/Widget.FolderPlus.Container"
+    style="@style/Widget.WidgetsPlus.Container"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 

@@ -7,7 +7,6 @@ import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import com.widgetsplus.R
-import java.time.ZoneId
 
 /** Supplies the day cards for the agenda widget's stack. */
 class AgendaWidgetService : RemoteViewsService() {
@@ -89,8 +88,9 @@ class AgendaRemoteViewsFactory(private val context: Context, private val slotCou
         }
 
         val extra = day.events.size - visibleSlots
-        views.setViewVisibility(R.id.day_more, if (extra > 0) View.VISIBLE else View.GONE)
+        views.setViewVisibility(R.id.day_more_wrap, if (extra > 0) View.VISIBLE else View.GONE)
         if (extra > 0) {
+            views.setViewVisibility(R.id.day_more, View.VISIBLE)
             views.setTextViewText(R.id.day_more, context.getString(R.string.agenda_more, extra))
             views.setTextColor(R.id.day_more, palette.onCardVar)
             AgendaPalette.tint(views, R.id.day_more_bg, palette.card, 255)
@@ -106,7 +106,4 @@ class AgendaRemoteViewsFactory(private val context: Context, private val slotCou
         }
         return views
     }
-
-    @Suppress("unused")
-    private val zone: ZoneId get() = ZoneId.systemDefault()
 }

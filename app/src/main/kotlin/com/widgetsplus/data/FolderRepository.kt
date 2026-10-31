@@ -6,7 +6,7 @@ import com.widgetsplus.core.model.Category
 import com.widgetsplus.core.model.Folder
 import com.widgetsplus.core.model.FolderItem
 import com.widgetsplus.core.sort.AppSorter
-import com.widgetsplus.data.db.FolderPlusDatabase
+import com.widgetsplus.data.db.WidgetsPlusDatabase
 import com.widgetsplus.data.db.WidgetBindingEntity
 import com.widgetsplus.data.db.toEntity
 import com.widgetsplus.data.db.toModel
@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.map
 data class FolderExport(val folder: Folder, val categories: List<Category>, val items: List<FolderItem>)
 
 /** Single entry point for reading and writing folders, categories, items and widget bindings. */
-class FolderRepository(private val db: FolderPlusDatabase) {
+class FolderRepository(private val db: WidgetsPlusDatabase) {
 
     // ---- folders ----
     fun observeFolders(): Flow<List<Folder>> = db.folders().observeAll().map { list -> list.map { it.toModel() } }

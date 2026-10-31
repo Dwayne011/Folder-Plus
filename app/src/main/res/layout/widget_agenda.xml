@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Frosted plate holding a card stack of days. The stack is drawn larger than its
-     clipping frame and shifted up so the strip where back cards peek out is cut off. -->
+<!-- Frosted plate holding a card stack of days. StackView lays the front card out in the
+     bottom-left 90% of its bounds and fans the back cards up and to the right. The stack is
+     therefore made 1/9 larger than the clipping frame on the top and end sides so that only
+     the front card is visible. These margins are the pre-Android-12 approximation; on 12+ the
+     provider sets them from the widget's actual size. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/agenda_root"
     android:layout_width="match_parent"
@@ -21,9 +24,8 @@
             android:id="@+id/agenda_stack"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="-26dp"
-            android:layout_marginStart="-22dp"
-            android:layout_marginEnd="-22dp"
+            android:layout_marginTop="-22dp"
+            android:layout_marginEnd="-36dp"
             android:loopViews="false" />
 
         <TextView

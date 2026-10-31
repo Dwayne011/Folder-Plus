@@ -49,7 +49,7 @@ import com.widgetsplus.ui.common.RowIcon
 import com.widgetsplus.ui.common.SectionTitle
 import com.widgetsplus.ui.common.SettingRow
 import com.widgetsplus.ui.common.SettingsGroup
-import com.widgetsplus.ui.theme.FolderPlusTheme
+import com.widgetsplus.ui.theme.WidgetsPlusTheme
 
 /** Asks for calendar access and offers to place the agenda widget. */
 class AgendaSetupActivity : ComponentActivity() {
@@ -57,7 +57,7 @@ class AgendaSetupActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            FolderPlusTheme { SetupScreen(onBack = ::finish) }
+            WidgetsPlusTheme { SetupScreen(onBack = ::finish) }
         }
     }
 

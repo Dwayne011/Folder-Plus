@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Same as the base Popup theme plus window blur, which exists from Android 12. -->
-    <style name="Theme.FolderPlus.Popup" parent="Theme.FolderPlus">
+    <style name="Theme.WidgetsPlus.Popup" parent="Theme.WidgetsPlus">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowNoTitle">true</item>
@@ -11,7 +11,7 @@
         <item name="android:windowBlurBehindEnabled">true</item>
     </style>
 
-    <style name="Widget.FolderPlus.Container" parent="android:Widget">
+    <style name="Widget.WidgetsPlus.Container" parent="android:Widget">
         <item name="android:background">@drawable/widget_background</item>
         <item name="android:padding">6dp</item>
         <item name="android:clipToOutline">true</item>

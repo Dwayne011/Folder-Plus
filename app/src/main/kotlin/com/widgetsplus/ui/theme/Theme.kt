@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 @Composable
-fun FolderPlusTheme(content: @Composable () -> Unit) {
+fun WidgetsPlusTheme(content: @Composable () -> Unit) {
     val dark = isSystemInDarkTheme()
     val context = LocalContext.current
     val scheme = when {
