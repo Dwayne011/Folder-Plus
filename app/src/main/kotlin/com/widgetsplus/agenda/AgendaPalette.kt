@@ -8,6 +8,8 @@ import com.widgetsplus.R
 /** Colours and frosted opacities for the agenda widget, resolved from resources (Material You on 12+). */
 class AgendaPalette(context: Context) {
     val plate = ContextCompat.getColor(context, R.color.agenda_plate)
+    /** Opaque plate used by the widget and every stack card's backing (they must match exactly). */
+    val plateSolid = ContextCompat.getColor(context, R.color.agenda_plate_solid)
     val card = ContextCompat.getColor(context, R.color.agenda_card)
     val badge = ContextCompat.getColor(context, R.color.agenda_badge)
     val group = ContextCompat.getColor(context, R.color.agenda_group)

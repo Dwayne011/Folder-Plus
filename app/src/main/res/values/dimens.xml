@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- How far the agenda card stack's box extends beyond the clipping frame on every side.
-         StackView wraps each card in a frame with 4dp padding, so -4dp makes the front card
-         exactly fill the frame. -->
-    <dimen name="agenda_stack_overhang">-4dp</dimen>
+    <!-- How far the agenda card stack's box extends beyond the clipping frame on every side:
+         4dp cancels StackView's own card frame padding, 1dp is a deliberate overflow. -->
+    <dimen name="agenda_stack_overhang">-5dp</dimen>
 </resources>

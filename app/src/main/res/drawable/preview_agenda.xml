@@ -4,7 +4,7 @@
     android:width="376dp" android:height="180dp"
     android:viewportWidth="376" android:viewportHeight="180">
     <!-- plate -->
-    <path android:fillColor="@color/agenda_plate" android:fillAlpha="0.85"
+    <path android:fillColor="@color/agenda_plate_solid"
         android:pathData="M28,0 h320 a28,28 0 0 1 28,28 v124 a28,28 0 0 1 -28,28 h-320 a28,28 0 0 1 -28,-28 v-124 a28,28 0 0 1 28,-28 z" />
     <!-- date card -->
     <path android:fillColor="@color/agenda_card"

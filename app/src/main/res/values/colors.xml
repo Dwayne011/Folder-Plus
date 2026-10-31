@@ -8,6 +8,9 @@
     <color name="widget_folder_disc">#2E3133</color>
     <!-- Agenda widget: fixed palette (Material You overrides on API 31+) -->
     <color name="agenda_plate">#3A312C</color>
+    <!-- Solid plate: the card stack needs opaque surfaces (cards behind would show through),
+         so the plate and every card backing use this one colour. -->
+    <color name="agenda_plate_solid">#221C1A</color>
     <color name="agenda_card">#FDF2EC</color>
     <color name="agenda_badge">#F5B895</color>
     <color name="agenda_group">#F2C4A7</color>

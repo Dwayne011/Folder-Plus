@@ -48,11 +48,21 @@ class AgendaRemoteViewsFactory(private val context: Context, private val slotCou
         val views = RemoteViews(context.packageName, R.layout.widget_agenda_day)
         val visibleSlots = slotCount.coerceIn(1, slots.size)
 
-        // Date card: pale face on weekdays, accent-blue face at the weekend, inside a pale ring
-        // (brighter on today). Opaque, because cards in a stack must not show the next day through.
+        // The whole card is opaque: its backing (day_root's 2dp padding and the gaps) is the
+        // plate colour, so the next day's card behind it can never show through.
+        views.setInt(R.id.day_root, "setBackgroundColor", palette.plateSolid)
+
+        // Date card with a 2dp ring as in the mockup. Weekdays: pale face, accent ring (full
+        // strength on today, softer on other days). Weekends: accent-blue face with a pale ring
+        // (white on today).
         val weekend = day.date.dayOfWeek == DayOfWeek.SATURDAY || day.date.dayOfWeek == DayOfWeek.SUNDAY
-        AgendaPalette.tint(views, R.id.day_date_bg, if (weekend) palette.badge else palette.card, 255)
-        AgendaPalette.tint(views, R.id.day_today_ring, if (day.isToday) palette.onPlate else palette.card, 255)
+        if (weekend) {
+            AgendaPalette.tint(views, R.id.day_date_bg, palette.accent, 255)
+            AgendaPalette.tint(views, R.id.day_today_ring, if (day.isToday) palette.onPlate else palette.card, 255)
+        } else {
+            AgendaPalette.tint(views, R.id.day_date_bg, palette.card, 255)
+            AgendaPalette.tint(views, R.id.day_today_ring, palette.accent, if (day.isToday) 255 else 150)
+        }
         views.setTextViewText(R.id.day_dow, AgendaFormat.dow(day.date))
         views.setTextViewText(R.id.day_num, day.date.dayOfMonth.toString())
         views.setTextViewText(R.id.day_mon, AgendaFormat.mon(day.date))

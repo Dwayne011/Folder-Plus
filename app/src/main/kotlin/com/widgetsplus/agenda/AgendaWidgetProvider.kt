@@ -16,7 +16,7 @@ import android.widget.RemoteViews
 import com.widgetsplus.R
 
 /**
- * Agenda widget: a frosted plate holding a StackView with one opaque card per day.
+ * Agenda widget: a solid plate holding a StackView with one opaque card per day.
  * The launcher animates the swipe between days; this class only draws.
  */
 class AgendaWidgetProvider : AppWidgetProvider() {
@@ -53,16 +53,16 @@ class AgendaWidgetProvider : AppWidgetProvider() {
 
         /** Padding of the clipping frame around the stack, in dp (see widget_agenda.xml). */
         private const val FRAME_PADDING_DP = 32f
-        private const val ROW_DP = 54f
+        private const val ROW_DP = 44f
         private const val ROW_GAP_DP = 6f
         private const val GROUP_PADDING_DP = 12f
-        private const val CHIP_DP = 32f // 18dp chip + 6dp gap + clearance above the clipped edge
+        private const val CHIP_DP = 24f // 18dp chip + 6dp gap
 
         /** Event rows that fit in a card [frameHeightDp] tall, keeping room for the "+N more" chip. */
         private fun slotsFor(frameHeightDp: Float): Int {
             if (frameHeightDp <= 0f) return 3
             val usable = frameHeightDp - GROUP_PADDING_DP - CHIP_DP + ROW_GAP_DP
-            return (usable / (ROW_DP + ROW_GAP_DP)).toInt().coerceIn(1, 5)
+            return ((usable + 0.5f) / (ROW_DP + ROW_GAP_DP)).toInt().coerceIn(1, 5)
         }
 
         /** Widget size in dp for the current orientation when the launcher gives no explicit list. */
@@ -98,7 +98,7 @@ class AgendaWidgetProvider : AppWidgetProvider() {
         private fun build(context: Context, appWidgetId: Int, size: SizeF): RemoteViews {
             val palette = AgendaPalette(context)
             val views = RemoteViews(context.packageName, R.layout.widget_agenda_stack)
-            AgendaPalette.tint(views, R.id.agenda_plate, palette.plate, AgendaPalette.PLATE_ALPHA)
+            AgendaPalette.tint(views, R.id.agenda_plate, palette.plateSolid, 255)
             views.setInt(R.id.agenda_hairline, "setImageAlpha", AgendaPalette.HAIRLINE_ALPHA)
             views.setTextColor(R.id.agenda_empty, palette.onPlate)
             val immutable = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
