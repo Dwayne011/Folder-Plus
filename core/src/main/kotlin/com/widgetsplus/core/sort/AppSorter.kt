@@ -48,6 +48,20 @@ object AppSorter {
         return renumber(mutable)
     }
 
+    /**
+     * The folder's whole order after one tab was rearranged: the tab's apps take the same places
+     * they held in [whole], in their new order [tabOrder]; every other app keeps its place.
+     * Apps in [tabOrder] that aren't in [whole] are ignored. For the "All" tab, [tabOrder] is
+     * simply the new whole order.
+     */
+    fun mergeTabOrder(whole: List<FolderItem>, tabOrder: List<FolderItem>): List<FolderItem> {
+        val wholeIds = whole.map { it.id }.toSet()
+        val moved = tabOrder.filter { it.id in wholeIds }
+        val movedIds = moved.map { it.id }.toSet()
+        val next = moved.iterator()
+        return whole.map { item -> if (item.id in movedIds) next.next() else item }
+    }
+
     fun renumber(items: List<FolderItem>): List<FolderItem> =
         items.mapIndexed { index, item -> if (item.manualOrder == index) item else item.copy(manualOrder = index) }
 }

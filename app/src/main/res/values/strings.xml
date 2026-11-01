@@ -228,6 +228,7 @@
     </plurals>
     <string name="taps_bigger_hint">These are the taps of a 1×1 widget. On bigger widgets, tap an app to open it; tap “+N” or double tap to open the folder.</string>
     <string name="widget_label_1x2">Folder (1×2)</string>
+    <string name="sort_switched_manual">Sort is now Manual, so your order stays</string>
     <plurals name="widget_more_apps">
         <item quantity="one">%d more app, open the folder</item>
         <item quantity="other">%d more apps, open the folder</item>
