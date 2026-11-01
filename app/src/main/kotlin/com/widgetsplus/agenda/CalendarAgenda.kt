@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.provider.CalendarContract
 import androidx.core.content.ContextCompat
 import com.widgetsplus.R
+import com.widgetsplus.core.agenda.EventText
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -80,6 +81,7 @@ object CalendarAgenda {
             CalendarContract.Instances.DESCRIPTION,
             CalendarContract.Instances.CALENDAR_ID,
             CalendarContract.Instances.DISPLAY_COLOR,
+            CalendarContract.Instances.ORGANIZER,
         )
         val selection = "${CalendarContract.Instances.VISIBLE} = 1 AND " +
             "${CalendarContract.Instances.SELF_ATTENDEE_STATUS} != ${CalendarContract.Attendees.ATTENDEE_STATUS_DECLINED}"
@@ -95,6 +97,7 @@ object CalendarAgenda {
                 val iDesc = c.getColumnIndexOrThrow(CalendarContract.Instances.DESCRIPTION)
                 val iCal = c.getColumnIndexOrThrow(CalendarContract.Instances.CALENDAR_ID)
                 val iColor = c.getColumnIndexOrThrow(CalendarContract.Instances.DISPLAY_COLOR)
+                val iOrganizer = c.getColumnIndexOrThrow(CalendarContract.Instances.ORGANIZER)
                 while (c.moveToNext()) {
                     val calendarId = c.getLong(iCal)
                     if (calendarId in excluded) continue
@@ -108,7 +111,8 @@ object CalendarAgenda {
                         AgendaEvent(
                             id = c.getLong(iId), title = title, begin = begin, end = c.getLong(iEnd), allDay = allDay,
                             location = c.getString(iLoc)?.trim().orEmpty(),
-                            description = c.getString(iDesc)?.trim().orEmpty(),
+                            // Google's stand-in text for events it made from Gmail isn't part of the event.
+                            description = EventText.shown(c.getString(iDesc)?.trim().orEmpty(), c.getString(iOrganizer)),
                             calendarId = calendarId,
                             color = if (c.isNull(iColor)) 0 else c.getInt(iColor),
                         ),
