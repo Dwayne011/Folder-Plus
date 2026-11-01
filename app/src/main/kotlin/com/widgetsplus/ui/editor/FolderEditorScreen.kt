@@ -32,12 +32,10 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Gesture
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Pin
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Tab
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.ButtonDefaults
@@ -92,7 +90,6 @@ import com.widgetsplus.ui.common.SectionTitle
 import com.widgetsplus.ui.common.SetPinDialog
 import com.widgetsplus.ui.common.SettingRow
 import com.widgetsplus.ui.common.SettingsGroup
-import com.widgetsplus.ui.common.SwitchRow
 import com.widgetsplus.ui.common.TextInputDialog
 import com.widgetsplus.ui.common.displayName
 import com.widgetsplus.ui.common.label
@@ -124,7 +121,7 @@ private const val DIALOG_CATEGORY_SORT = "category_sort:"
 /** Shared scaffold for the editor and its sub-pages: large collapsing title, back arrow, optional actions. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EditorScaffold(
+internal fun EditorScaffold(
     title: String,
     onBack: () -> Unit,
     actions: @Composable () -> Unit = {},
@@ -343,7 +340,7 @@ fun GesturesScreen(folderId: Long, onBack: () -> Unit) {
         }
         item {
             Text(
-                stringResource(R.string.double_tap_hint),
+                stringResource(R.string.double_tap_hint) + "\n" + stringResource(R.string.taps_bigger_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp),
@@ -450,36 +447,13 @@ fun AppearanceScreen(folderId: Long, onBack: () -> Unit) {
                         onClick = { dialog = DIALOG_ICON },
                     )
                 },
-                {
-                    SwitchRow(
-                        title = stringResource(R.string.show_label),
-                        checked = current.showLabel,
-                        onCheckedChange = vm::setShowLabel,
-                        leading = { RowIcon(Icons.Default.Label) },
-                    )
-                },
             ))
         }
 
         item { SectionTitle(stringResource(R.string.popup_section)) }
         item {
-            val rows = mutableListOf<@Composable () -> Unit>(
-                {
-                    FrostingRow(level = current.frosting, onCommit = vm::setFrosting)
-                },
-            )
-            if (categories.isNotEmpty()) {
-                rows.add {
-                    SwitchRow(
-                        title = stringResource(R.string.show_all_tab),
-                        subtitle = stringResource(R.string.show_all_tab_hint),
-                        checked = current.showAllCategory,
-                        onCheckedChange = vm::setShowAllCategory,
-                        leading = { RowIcon(Icons.Default.Tab) },
-                    )
-                }
-            }
-            SettingsGroup(rows = rows)
+            // The "All" tab's switch lives on the Categories page, beside the tabs it orders.
+            SettingsGroup(rows = listOf({ FrostingRow(level = current.frosting, onCommit = vm::setFrosting) }))
         }
     }
 

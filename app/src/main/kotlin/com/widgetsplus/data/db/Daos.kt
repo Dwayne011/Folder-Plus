@@ -57,6 +57,9 @@ interface CategoryDao {
 
     @Query("DELETE FROM categories WHERE id = :id")
     suspend fun delete(id: Long)
+
+    @Query("UPDATE categories SET position = :position WHERE id = :id")
+    suspend fun setPosition(id: Long, position: Int)
 }
 
 @Dao

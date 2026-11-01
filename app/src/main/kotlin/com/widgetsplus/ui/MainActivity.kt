@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import com.widgetsplus.graph
 import com.widgetsplus.ui.editor.AppearanceScreen
 import com.widgetsplus.ui.editor.AppsScreen
+import com.widgetsplus.ui.editor.CategoriesScreen
 import com.widgetsplus.ui.editor.FolderEditorScreen
 import com.widgetsplus.ui.editor.GesturesScreen
 import com.widgetsplus.ui.folders.FolderListScreen
@@ -77,7 +78,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/** Minimal in-app navigation; a dependency on navigation-compose isn't worth it for four screens. */
+/** Minimal in-app navigation; a dependency on navigation-compose isn't worth it for a handful of screens. */
 data class Screen(val kind: Int, val folderId: Long = -1L, val categoryId: Long = -1L) {
     companion object {
         const val FOLDERS = 0
@@ -86,6 +87,7 @@ data class Screen(val kind: Int, val folderId: Long = -1L, val categoryId: Long 
         const val PICKER = 3
         const val GESTURES = 4
         const val APPEARANCE = 5
+        const val CATEGORIES = 6
 
         val Saver = listSaver<Screen, Long>(
             save = { listOf(it.kind.toLong(), it.folderId, it.categoryId) },
@@ -109,7 +111,7 @@ fun WidgetsPlusNavHost(requestedFolderId: Long, requestSerial: Int) {
         screen = when (screen.kind) {
             Screen.EDITOR -> Screen(Screen.FOLDERS)
             Screen.APPS -> Screen(Screen.EDITOR, folderId)
-            Screen.PICKER -> Screen(Screen.APPS, folderId)
+            Screen.PICKER, Screen.CATEGORIES -> Screen(Screen.APPS, folderId)
             Screen.GESTURES, Screen.APPEARANCE -> Screen(Screen.EDITOR, folderId)
             else -> Screen(Screen.FOLDERS)
         }
@@ -130,7 +132,9 @@ fun WidgetsPlusNavHost(requestedFolderId: Long, requestSerial: Int) {
             folderId = folderId,
             onBack = { screen = Screen(Screen.EDITOR, folderId) },
             onAddApps = { categoryId -> screen = Screen(Screen.PICKER, folderId, categoryId ?: -1L) },
+            onEditCategories = { screen = Screen(Screen.CATEGORIES, folderId) },
         )
+        Screen.CATEGORIES -> CategoriesScreen(folderId = folderId, onBack = { screen = Screen(Screen.APPS, folderId) })
         Screen.PICKER -> AppPickerScreen(
             folderId = folderId,
             categoryId = screen.categoryId.takeIf { it > 0 },

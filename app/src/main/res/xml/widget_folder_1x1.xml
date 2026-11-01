@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:configure="com.widgetsplus.widget.FolderWidgetConfigActivity"
     android:description="@string/widget_description"
-    android:initialLayout="@layout/widget_folder_compact"
+    android:initialLayout="@layout/widget_folder_initial"
     android:minWidth="40dp"
     android:minHeight="40dp"
     android:minResizeWidth="40dp"

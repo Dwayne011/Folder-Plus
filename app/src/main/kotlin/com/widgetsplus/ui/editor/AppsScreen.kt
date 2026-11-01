@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.DriveFileMove
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AssistChip
@@ -75,7 +76,7 @@ import com.widgetsplus.ui.common.label
 /** Lists the apps in one folder: filter by category, assign categories, remove, and drag to reorder. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppsScreen(folderId: Long, onBack: () -> Unit, onAddApps: (categoryId: Long?) -> Unit) {
+fun AppsScreen(folderId: Long, onBack: () -> Unit, onAddApps: (categoryId: Long?) -> Unit, onEditCategories: () -> Unit) {
     val context = LocalContext.current
     val vm: FolderEditorViewModel = viewModel(key = "editor-$folderId") { FolderEditorViewModel(context.graph, folderId) }
     val folder by vm.folder.collectAsStateWithLifecycle()
@@ -178,6 +179,7 @@ fun AppsScreen(folderId: Long, onBack: () -> Unit, onAddApps: (categoryId: Long?
                         modifier = Modifier.padding(end = 8.dp),
                     )
                 }
+                IconButton(onClick = onEditCategories) { Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit_categories)) }
                 if (activeCategory != null) {
                     IconButton(onClick = { categoryMenu = true }) { Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.category_options)) }
                     DropdownMenu(expanded = categoryMenu, onDismissRequest = { categoryMenu = false }) {

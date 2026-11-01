@@ -86,7 +86,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Three providers so the launcher's widget picker offers three default sizes.
+        <!-- Four providers so the launcher's widget picker offers four default sizes.
              Every one of them is freely resizable afterwards. -->
         <receiver
             android:name=".widget.FolderWidgetProvider1x1"
@@ -98,6 +98,17 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_folder_1x1" />
+        </receiver>
+        <receiver
+            android:name=".widget.FolderWidgetProvider1x2"
+            android:exported="true"
+            android:label="@string/widget_label_1x2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_folder_1x2" />
         </receiver>
         <receiver
             android:name=".widget.FolderWidgetProvider2x2"

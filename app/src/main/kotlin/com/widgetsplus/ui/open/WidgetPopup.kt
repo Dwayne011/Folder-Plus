@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -59,6 +60,7 @@ fun WidgetPopup(
         Surface(
             shape = RoundedCornerShape(28.dp),
             color = popupContainerColor(frosting),
+            contentColor = colorResource(R.color.agenda_on_plate),
             modifier = Modifier
                 .padding(24.dp)
                 .widthIn(max = 420.dp)
@@ -81,7 +83,7 @@ fun WidgetPopup(
                     Text(
                         stringResource(R.string.hosted_widget_unavailable),
                         textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = colorResource(R.color.agenda_on_plate_var),
                         modifier = Modifier.fillMaxWidth().padding(24.dp),
                     )
                 } else {

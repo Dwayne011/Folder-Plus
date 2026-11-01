@@ -1,9 +1,12 @@
 package com.widgetsplus.ui.open
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,14 +22,13 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Widgets
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,16 +36,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.widgetsplus.R
 import com.widgetsplus.core.model.AppRef
 import com.widgetsplus.core.model.Category
 import com.widgetsplus.core.model.Folder
 import com.widgetsplus.core.model.FolderItem
+import com.widgetsplus.core.model.FolderTab
+import com.widgetsplus.core.model.FolderTabs
 import com.widgetsplus.core.model.SortMode
 import com.widgetsplus.core.sort.AppSorter
 import com.widgetsplus.ui.common.AppIconImage
@@ -53,7 +62,11 @@ import kotlin.math.ceil
 /** One swipeable page of the popup. */
 private data class Tab(val title: String, val items: List<FolderItem>)
 
-/** Scrim + centred card with category chips and a swipeable app grid per category. */
+/**
+ * Scrim + centred card in the agenda widget's style: its see-through plate (the Frosting setting
+ * sets how see-through) with a hairline, the folder's name top left when it has one, the tabs as
+ * the agenda's pills, and a swipeable app grid per tab on the agenda's pale panel.
+ */
 @Composable
 fun FolderPopup(
     folder: Folder,
@@ -73,12 +86,15 @@ fun FolderPopup(
     }
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val scope = rememberCoroutineScope()
+    val onPlate = colorResource(R.color.agenda_on_plate)
+    val onCard = colorResource(R.color.agenda_on_card)
+    val badge = colorResource(R.color.agenda_badge)
 
-    // Tall enough for the fullest page (assuming ~4 columns), capped so the card stays a popup.
+    // Tall enough for the fullest page (4 columns), capped so the card stays a popup.
     val pagerHeight = remember(tabs) {
         val maxCount = tabs.maxOfOrNull { it.items.size } ?: 0
         val rows = ceil(maxCount / 4f).toInt().coerceAtLeast(1)
-        (rows * 96 + 16).coerceIn(112, 440).dp
+        (rows * 92 + 16).coerceIn(108, 440).dp
     }
 
     Box(
@@ -91,79 +107,103 @@ fun FolderPopup(
         Surface(
             shape = RoundedCornerShape(28.dp),
             color = popupContainerColor(frosting),
+            contentColor = onPlate,
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f)),
             modifier = Modifier
-                .padding(24.dp)
+                .padding(16.dp)
                 .widthIn(max = 420.dp)
                 .fillMaxWidth()
                 // Swallow clicks so they don't reach the scrim.
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = {}),
         ) {
-            Column(Modifier.padding(top = 4.dp, bottom = 8.dp)) {
+            Column(Modifier.padding(8.dp)) {
                 if (folder.name.isNotBlank()) {
                     Text(
                         folder.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp),
+                        color = onPlate,
+                        fontSize = 16.sp,
+                        lineHeight = 20.sp,
+                        fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 8.dp, bottom = 4.dp),
                     )
                 }
-                // One compact row: category chips on the left, actions on the right. No empty header.
-                Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                // One compact row: the tabs as pills on the left, actions on the right.
+                Row(Modifier.fillMaxWidth().padding(start = 4.dp, top = 4.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     if (tabs.size > 1) {
-                        Row(Modifier.weight(1f).horizontalScroll(rememberScrollState())) {
+                        Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             tabs.forEachIndexed { index, tab ->
-                                FilterChip(
-                                    selected = pagerState.currentPage == index,
-                                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                                    label = { Text(tab.title) },
-                                    modifier = Modifier.padding(end = 8.dp),
-                                )
+                                val selected = pagerState.currentPage == index
+                                Box(
+                                    Modifier
+                                        .height(32.dp)
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .then(
+                                            if (selected) Modifier.background(badge)
+                                            else Modifier.border(1.dp, onPlate.copy(alpha = 0.35f), RoundedCornerShape(16.dp)),
+                                        )
+                                        .selectable(selected = selected, role = Role.Tab, onClick = { scope.launch { pagerState.animateScrollToPage(index) } })
+                                        .padding(horizontal = 14.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(tab.title, color = if (selected) onCard else onPlate, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+                                }
                             }
                         }
                     } else {
                         Spacer(Modifier.weight(1f))
                     }
                     if (onShowWidget != null) {
-                        IconButton(onClick = onShowWidget) { Icon(Icons.Default.Widgets, contentDescription = stringResource(R.string.show_widget)) }
+                        IconButton(onClick = onShowWidget) { Icon(Icons.Default.Widgets, contentDescription = stringResource(R.string.show_widget), tint = onPlate) }
                     }
-                    IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings)) }
+                    IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings), tint = onPlate) }
                 }
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.fillMaxWidth().height(pagerHeight),
-                    verticalAlignment = Alignment.Top,
-                ) { page ->
-                    val shown = tabs[page].items
-                    if (shown.isEmpty()) {
-                        Text(
-                            stringResource(R.string.folder_empty),
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.fillMaxWidth().padding(24.dp),
-                        )
-                    } else {
-                        LazyVerticalGrid(
-                            columns = GridCells.Adaptive(minSize = 76.dp),
-                            modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 8.dp),
-                        ) {
-                            items(shown, key = { it.id }) { item ->
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier
-                                        .padding(4.dp)
-                                        .clickable { onLaunch(item) }
-                                        .padding(vertical = 8.dp, horizontal = 2.dp),
-                                ) {
-                                    AppIconImage(app = item.app, size = 48.dp)
-                                    Spacer(Modifier.padding(top = 4.dp))
-                                    Text(
-                                        labelOf(item.app),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis,
-                                        textAlign = TextAlign.Center,
-                                    )
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(colorResource(R.color.agenda_group)),
+                ) {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxWidth().height(pagerHeight),
+                        verticalAlignment = Alignment.Top,
+                    ) { page ->
+                        val shown = tabs[page].items
+                        if (shown.isEmpty()) {
+                            Text(
+                                stringResource(R.string.folder_empty),
+                                textAlign = TextAlign.Center,
+                                color = colorResource(R.color.agenda_on_card_var),
+                                modifier = Modifier.fillMaxWidth().padding(24.dp),
+                            )
+                        } else {
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(4),
+                                modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 8.dp),
+                            ) {
+                                items(shown, key = { it.id }) { item ->
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .clickable { onLaunch(item) }
+                                            .padding(vertical = 8.dp, horizontal = 2.dp),
+                                    ) {
+                                        AppIconImage(app = item.app, size = 48.dp)
+                                        Spacer(Modifier.height(4.dp))
+                                        Text(
+                                            labelOf(item.app),
+                                            color = onCard,
+                                            fontSize = 12.sp,
+                                            lineHeight = 15.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis,
+                                            textAlign = TextAlign.Center,
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -175,9 +215,9 @@ fun FolderPopup(
 }
 
 /**
- * Pages: "All" (unless hidden and categories exist), one per category, and
- * "Other" for uncategorised apps when "All" is hidden. Each page is sorted by
- * the category's override or the folder's sort mode.
+ * Pages in the order set on the Categories page: "All" (unless hidden) wherever it was placed,
+ * one per category, and "Other" for uncategorised apps (last) when "All" is hidden. Each page is
+ * sorted by the category's override or the folder's sort mode.
  */
 private fun buildTabs(
     folder: Folder,
@@ -191,9 +231,14 @@ private fun buildTabs(
     if (categories.isEmpty()) return listOf(Tab(allLabel, sorted(items, folder.sortMode)))
 
     val tabs = mutableListOf<Tab>()
-    if (folder.showAllCategory) tabs += Tab(allLabel, sorted(items, folder.sortMode))
-    categories.forEach { category ->
-        tabs += Tab(category.name, sorted(items.filter { it.categoryId == category.id }, category.sortMode ?: folder.sortMode))
+    FolderTabs.ordered(categories, folder.allTabPosition).forEach { tab ->
+        when (tab) {
+            FolderTab.All -> if (folder.showAllCategory) tabs += Tab(allLabel, sorted(items, folder.sortMode))
+            is FolderTab.OfCategory -> tabs += Tab(
+                tab.category.name,
+                sorted(items.filter { it.categoryId == tab.category.id }, tab.category.sortMode ?: folder.sortMode),
+            )
+        }
     }
     if (!folder.showAllCategory) {
         val knownIds = categories.map { it.id }.toSet()

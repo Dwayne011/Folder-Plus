@@ -46,6 +46,12 @@ class FolderRepository(private val db: WidgetsPlusDatabase) {
     suspend fun updateCategory(category: Category) = db.categories().update(category.toEntity())
     suspend fun deleteCategory(id: Long) = db.categories().delete(id)
 
+    /** Saves the order of a folder's tabs: where "All" sits, and each category's position. */
+    suspend fun saveTabOrder(folderId: Long, allTabPosition: Int, categoryPositions: List<Pair<Long, Int>>) = db.withTransaction {
+        categoryPositions.forEach { (id, position) -> db.categories().setPosition(id, position) }
+        getFolder(folderId)?.let { updateFolder(it.copy(allTabPosition = allTabPosition)) }
+    }
+
     // ---- items ----
     fun observeItems(folderId: Long): Flow<List<FolderItem>> =
         db.items().observeForFolder(folderId).map { list -> list.mapNotNull { it.toModel() } }

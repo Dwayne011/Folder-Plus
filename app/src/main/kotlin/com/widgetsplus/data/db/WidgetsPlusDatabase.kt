@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [FolderEntity::class, CategoryEntity::class, FolderItemEntity::class, WidgetBindingEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class WidgetsPlusDatabase : RoomDatabase() {
@@ -41,9 +41,16 @@ abstract class WidgetsPlusDatabase : RoomDatabase() {
             }
         }
 
+        /** v4 -> v5: the "All" tab can be moved among the categories. */
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE folders ADD COLUMN allTabPosition INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         fun build(context: Context): WidgetsPlusDatabase =
             Room.databaseBuilder(context.applicationContext, WidgetsPlusDatabase::class.java, "widgetsplus.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                 .fallbackToDestructiveMigration()
                 .build()
     }

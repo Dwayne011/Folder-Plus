@@ -10,6 +10,7 @@ import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
 import com.widgetsplus.core.gesture.TapResolver
+import com.widgetsplus.core.model.AppRef
 import com.widgetsplus.core.model.Folder
 import com.widgetsplus.core.model.TapAction
 import com.widgetsplus.graph
@@ -22,7 +23,8 @@ import kotlinx.coroutines.launch
 
 /**
  * Invisible activity behind a widget's main tap area when the folder has a
- * double-tap action.
+ * double-tap action, and behind every app icon on a folder widget bigger than
+ * one cell (a single tap opens that app, a double tap opens the folder).
  *
  * The first tap starts this activity (a direct activity PendingIntent, which
  * launchers always allow). While it is up, a second tap either lands on its
@@ -35,6 +37,9 @@ class WidgetTapActivity : Activity() {
 
     private val handler = Handler(Looper.getMainLooper())
     private var folder: Folder? = null
+    /** Set when an app icon was tapped: the single tap opens this app. */
+    private var targetApp: AppRef? = null
+    private var targetItemId = -1L
     private var decided = false
     private var secondTapSeen = false
     private var createdAt = 0L
@@ -43,6 +48,8 @@ class WidgetTapActivity : Activity() {
         super.onCreate(savedInstanceState)
         createdAt = SystemClock.elapsedRealtime()
         val folderId = intent.getLongExtra(EXTRA_FOLDER_ID, -1L)
+        targetApp = intent.getStringExtra(EXTRA_APP)?.let(AppRef::unflatten)
+        targetItemId = intent.getLongExtra(EXTRA_ITEM_ID, -1L)
         if (folderId <= 0) {
             finish()
             return
@@ -74,6 +81,16 @@ class WidgetTapActivity : Activity() {
             return
         }
         folder = loaded
+        val app = targetApp
+        if (app != null) {
+            if (secondTapSeen) {
+                decide(TapAction.OPEN_FOLDER)
+                return
+            }
+            val remaining = WINDOW_MILLIS - (SystemClock.elapsedRealtime() - createdAt)
+            handler.postDelayed({ launchTarget(app) }, remaining.coerceAtLeast(0L))
+            return
+        }
         if (loaded.effectiveDoubleTapAction == TapAction.NONE) {
             decide(loaded.effectiveTapAction)
             return
@@ -89,7 +106,27 @@ class WidgetTapActivity : Activity() {
     private fun onSecondTap() {
         if (decided) return
         secondTapSeen = true
-        folder?.let { decide(it.effectiveDoubleTapAction) }
+        val loaded = folder ?: return
+        decide(if (targetApp != null) TapAction.OPEN_FOLDER else loaded.effectiveDoubleTapAction)
+    }
+
+    /** Single tap on an app icon: open that app and count the launch. */
+    private fun launchTarget(app: AppRef) {
+        if (decided) return
+        decided = true
+        handler.removeCallbacksAndMessages(null)
+        val current = folder
+        if (AppLauncher.launch(this, app) && current != null) {
+            val appContext = applicationContext
+            val itemId = targetItemId
+            scope.launch {
+                val repo = appContext.graph.repository
+                val id = itemId.takeIf { it > 0 } ?: repo.getItems(current.id).firstOrNull { it.app == app }?.id
+                id?.let { repo.recordLaunch(it) }
+                WidgetUpdater.updateForFolder(appContext, current.id)
+            }
+        }
+        finish()
     }
 
     private fun decide(action: TapAction) {
@@ -127,6 +164,8 @@ class WidgetTapActivity : Activity() {
 
     companion object {
         const val EXTRA_FOLDER_ID = "folder_id"
+        const val EXTRA_APP = "app"
+        const val EXTRA_ITEM_ID = "item_id"
 
         /** Measured from activity creation, which already trails the first tap slightly. */
         private const val WINDOW_MILLIS = TapResolver.DEFAULT_WINDOW_MILLIS + 50
@@ -137,5 +176,11 @@ class WidgetTapActivity : Activity() {
             Intent(context, WidgetTapActivity::class.java)
                 .putExtra(EXTRA_FOLDER_ID, folderId)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        /** An app icon on a folder widget: single tap opens [flatApp], double tap opens the folder. */
+        fun appIntent(context: Context, folderId: Long, flatApp: String, itemId: Long): Intent =
+            intent(context, folderId)
+                .putExtra(EXTRA_APP, flatApp)
+                .putExtra(EXTRA_ITEM_ID, itemId)
     }
 }

@@ -24,9 +24,9 @@
     android:id="@+id/agenda_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:ignore="SpUsage,UnusedAttribute">
+    tools:ignore="SpUsage,UnusedAttribute,UseAppTint">
 
-    <ImageView android:id="@+id/agenda_plate" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_plate" />
+    <ImageView android:id="@+id/agenda_plate" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_plate" android:alpha="0.58" android:tint="@color/agenda_plate" />
     <ImageView android:id="@+id/agenda_hairline" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_hairline" />
 
     <FrameLayout
@@ -68,6 +68,7 @@
             android:textFontWeight="500"
             android:textSize="14dp"
             android:textStyle="bold"
-            android:visibility="gone" />
+            android:visibility="gone"
+            android:textColor="@color/agenda_on_plate"/>
     </FrameLayout>
 </FrameLayout>

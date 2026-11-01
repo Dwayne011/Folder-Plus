@@ -95,13 +95,8 @@ class DevicesWidgetProvider : AppWidgetProvider() {
         }
 
         fun render(context: Context, manager: AppWidgetManager, appWidgetId: Int) {
-            val pal = DevicesPalette(context)
+            // No colours are set here: the layout's colour resources follow the phone's theme.
             val v = RemoteViews(context.packageName, R.layout.widget_devices)
-            tint(v, R.id.dev_frame, pal.plate, DevicesPalette.PLATE_ALPHA)
-            v.setInt(R.id.dev_hairline, "setImageAlpha", DevicesPalette.HAIRLINE_ALPHA)
-            tint(v, R.id.dev_well, pal.panel, 255)
-            v.setTextColor(R.id.dev_head, pal.onPlate)
-            v.setTextColor(R.id.dev_message, pal.onCardVar)
 
             if (!BluetoothDevices.hasPermission(context)) {
                 v.setTextViewText(R.id.dev_head, context.getString(R.string.devices_header_connected))
@@ -140,51 +135,74 @@ class DevicesWidgetProvider : AppWidgetProvider() {
                 devices.forEach { add(Column(it.name, it.battery, DevicesDraw.drawingFor(it.kind), DevicesDraw.iconFor(it.kind))) }
                 if (devices.size <= 1) add(phone)
             }
-            SLOTS.forEachIndexed { i, ids -> fill(context, v, pal, ids, columns.getOrNull(i)) }
+            SLOTS.forEachIndexed { i, ids -> fill(context, v, ids, columns.getOrNull(i)) }
             manager.updateAppWidget(appWidgetId, v)
         }
 
         /** One column of the widget: a drawing with a bar, or a ring with an icon. */
         private class Column(val name: String, val level: Int, val drawing: DeviceDrawing?, val icon: Int)
 
-        private class SlotIds(val root: Int, val draw: Int, val ring: Int, val icon: Int, val name: Int, val sub: Int, val bar: Int)
-
-        private val SLOTS = listOf(
-            SlotIds(R.id.s1, R.id.s1_draw, R.id.s1_ring, R.id.s1_icon, R.id.s1_name, R.id.s1_sub, R.id.s1_bar),
-            SlotIds(R.id.s2, R.id.s2_draw, R.id.s2_ring, R.id.s2_icon, R.id.s2_name, R.id.s2_sub, R.id.s2_bar),
-            SlotIds(R.id.s3, R.id.s3_draw, R.id.s3_ring, R.id.s3_icon, R.id.s3_name, R.id.s3_sub, R.id.s3_bar),
+        private class SlotIds(
+            val root: Int,
+            val drawMain: Int, val drawDetail: Int, val drawTop: Int,
+            val ringTrack: Int, val ringFill: Int, val ringLow: Int, val icon: Int,
+            val name: Int, val sub: Int, val subLow: Int,
+            val bar: Int, val barFill: Int, val barLow: Int,
         )
 
-        private fun fill(context: Context, v: RemoteViews, pal: DevicesPalette, s: SlotIds, c: Column?) {
+        private val SLOTS = listOf(
+            SlotIds(
+                R.id.s1, R.id.s1_draw_main, R.id.s1_draw_detail, R.id.s1_draw_top,
+                R.id.s1_ring_track, R.id.s1_ring_fill, R.id.s1_ring_low, R.id.s1_icon,
+                R.id.s1_name, R.id.s1_sub, R.id.s1_sub_low, R.id.s1_bar, R.id.s1_bar_fill, R.id.s1_bar_low,
+            ),
+            SlotIds(
+                R.id.s2, R.id.s2_draw_main, R.id.s2_draw_detail, R.id.s2_draw_top,
+                R.id.s2_ring_track, R.id.s2_ring_fill, R.id.s2_ring_low, R.id.s2_icon,
+                R.id.s2_name, R.id.s2_sub, R.id.s2_sub_low, R.id.s2_bar, R.id.s2_bar_fill, R.id.s2_bar_low,
+            ),
+            SlotIds(
+                R.id.s3, R.id.s3_draw_main, R.id.s3_draw_detail, R.id.s3_draw_top,
+                R.id.s3_ring_track, R.id.s3_ring_fill, R.id.s3_ring_low, R.id.s3_icon,
+                R.id.s3_name, R.id.s3_sub, R.id.s3_sub_low, R.id.s3_bar, R.id.s3_bar_fill, R.id.s3_bar_low,
+            ),
+        )
+
+        private fun fill(context: Context, v: RemoteViews, s: SlotIds, c: Column?) {
             v.setViewVisibility(s.root, if (c == null) View.GONE else View.VISIBLE)
             if (c == null) return
+            val low = DevicesLevels.isLow(c.level)
             v.setTextViewText(s.name, c.name)
-            v.setTextColor(s.name, pal.onCard)
-            v.setTextViewText(s.sub, "${c.level}%")
-            v.setTextColor(s.sub, pal.textFor(c.level, pal.onCardVar))
+            val level = "${c.level}%"
+            v.setTextViewText(s.sub, level)
+            v.setTextViewText(s.subLow, level)
+            v.setViewVisibility(s.sub, if (low) View.GONE else View.VISIBLE)
+            v.setViewVisibility(s.subLow, if (low) View.VISIBLE else View.GONE)
             val drawing = c.drawing
             if (drawing != null) {
-                v.setViewVisibility(s.draw, View.VISIBLE)
-                v.setImageViewBitmap(s.draw, DevicesDraw.drawing(context, drawing, pal.card, pal.badge))
-                v.setViewVisibility(s.ring, View.GONE)
-                v.setViewVisibility(s.icon, View.GONE)
+                listOf(s.drawMain to drawing.main, s.drawDetail to drawing.detail, s.drawTop to drawing.top).forEach { (id, res) ->
+                    v.setViewVisibility(id, if (res == 0) View.GONE else View.VISIBLE)
+                    if (res != 0) v.setImageViewResource(id, res)
+                }
+                listOf(s.ringTrack, s.ringFill, s.ringLow, s.icon).forEach { v.setViewVisibility(it, View.GONE) }
                 v.setViewVisibility(s.bar, View.VISIBLE)
-                v.setImageViewBitmap(s.bar, DevicesDraw.bar(context, 72f, 5f, c.level, pal.card, pal.fillFor(c.level)))
+                val bar = DevicesDraw.bar(context, 72f, 5f, c.level)
+                v.setImageViewBitmap(if (low) s.barLow else s.barFill, bar)
+                v.setViewVisibility(s.barFill, if (low) View.GONE else View.VISIBLE)
+                v.setViewVisibility(s.barLow, if (low) View.VISIBLE else View.GONE)
             } else {
-                v.setViewVisibility(s.draw, View.GONE)
-                v.setViewVisibility(s.ring, View.VISIBLE)
-                v.setImageViewBitmap(s.ring, DevicesDraw.ring(context, 52f, 5f, c.level, pal.card, pal.fillFor(c.level)))
+                listOf(s.drawMain, s.drawDetail, s.drawTop).forEach { v.setViewVisibility(it, View.GONE) }
+                v.setViewVisibility(s.ringTrack, View.VISIBLE)
+                v.setImageViewBitmap(s.ringTrack, DevicesDraw.ring(context, 52f, 5f, 100))
+                val arc = DevicesDraw.ring(context, 52f, 5f, c.level)
+                v.setImageViewBitmap(if (low) s.ringLow else s.ringFill, arc)
+                v.setViewVisibility(s.ringFill, if (low) View.GONE else View.VISIBLE)
+                v.setViewVisibility(s.ringLow, if (low) View.VISIBLE else View.GONE)
                 v.setViewVisibility(s.icon, View.VISIBLE)
                 v.setImageViewResource(s.icon, c.icon)
-                v.setInt(s.icon, "setColorFilter", pal.onCard or -0x1000000)
                 // keeps the bar's space so this name lines up with its neighbours'
                 v.setViewVisibility(s.bar, View.INVISIBLE)
             }
-        }
-
-        private fun tint(v: RemoteViews, id: Int, color: Int, alpha: Int) {
-            v.setInt(id, "setColorFilter", color or -0x1000000)
-            v.setInt(id, "setImageAlpha", alpha)
         }
     }
 }

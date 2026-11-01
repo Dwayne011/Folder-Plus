@@ -58,6 +58,8 @@ class AgendaRemoteViewsFactory(
     override fun getLoadingView(): RemoteViews? = null
 
     override fun getViewAt(position: Int): RemoteViews {
+        // Fresh every card, so cards drawn after a theme change pick up its colours.
+        palette = AgendaPalette(context)
         val day = days[position]
         val views = RemoteViews(context.packageName, R.layout.widget_agenda_day)
         val visibleSlots = slotCount.coerceIn(1, slots.size)

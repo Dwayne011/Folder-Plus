@@ -80,11 +80,12 @@ data class WidgetSize(val columns: Int, val rows: Int) {
     companion object {
         const val MAX_SPAN = 6
         val ONE_BY_ONE = WidgetSize(1, 1)
+        val ONE_BY_TWO = WidgetSize(1, 2)
         val TWO_BY_ONE = WidgetSize(2, 1)
         val TWO_BY_TWO = WidgetSize(2, 2)
         val FOUR_BY_ONE = WidgetSize(4, 1)
         val FOUR_BY_TWO = WidgetSize(4, 2)
-        val PRESETS = listOf(ONE_BY_ONE, TWO_BY_ONE, TWO_BY_TWO, FOUR_BY_ONE, FOUR_BY_TWO)
+        val PRESETS = listOf(ONE_BY_ONE, ONE_BY_TWO, TWO_BY_ONE, TWO_BY_TWO, FOUR_BY_ONE, FOUR_BY_TWO)
 
         fun parse(value: String): WidgetSize? {
             val parts = value.split('x', '×')
@@ -115,6 +116,8 @@ data class Folder(
     val showAllCategory: Boolean = true,
     /** 0..100: how translucent/blurred the popup card is (0 = opaque). */
     val frosting: Int = DEFAULT_FROSTING,
+    /** Where the "All" tab sits among the category tabs (0 = first). */
+    val allTabPosition: Int = 0,
 ) {
     companion object {
         const val DEFAULT_FROSTING = 40

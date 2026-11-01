@@ -12,7 +12,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 /**
- * Shared behaviour of the three widget providers. Each subclass only differs in
+ * Shared behaviour of the four widget providers. Each subclass only differs in
  * the provider-info XML declared in the manifest (default/target cell size).
  */
 abstract class FolderWidgetProvider : AppWidgetProvider() {
@@ -74,6 +74,7 @@ abstract class FolderWidgetProvider : AppWidgetProvider() {
 
         val ALL: List<Class<out FolderWidgetProvider>> = listOf(
             FolderWidgetProvider1x1::class.java,
+            FolderWidgetProvider1x2::class.java,
             FolderWidgetProvider2x2::class.java,
             FolderWidgetProvider4x1::class.java,
         )
@@ -82,11 +83,13 @@ abstract class FolderWidgetProvider : AppWidgetProvider() {
         fun providerFor(size: WidgetSize): Class<out FolderWidgetProvider> = when {
             size.rows >= 2 && size.columns >= 2 -> FolderWidgetProvider2x2::class.java
             size.columns >= 2 -> FolderWidgetProvider4x1::class.java
+            size.rows >= 2 -> FolderWidgetProvider1x2::class.java
             else -> FolderWidgetProvider1x1::class.java
         }
     }
 }
 
 class FolderWidgetProvider1x1 : FolderWidgetProvider()
+class FolderWidgetProvider1x2 : FolderWidgetProvider()
 class FolderWidgetProvider2x2 : FolderWidgetProvider()
 class FolderWidgetProvider4x1 : FolderWidgetProvider()

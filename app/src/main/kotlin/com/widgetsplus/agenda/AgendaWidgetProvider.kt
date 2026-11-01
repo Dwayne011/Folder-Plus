@@ -119,23 +119,19 @@ class AgendaWidgetProvider : AppWidgetProvider() {
         private const val STACK_FRAME_PADDING_DP = 4f
 
         private fun build(context: Context, appWidgetId: Int, size: SizeF, showIndex: Int?): RemoteViews {
-            val palette = AgendaPalette(context)
             // The frame is the plate minus its 8dp border; each card is exactly that tall.
             val frameH = size.height - FRAME_PADDING_DP
             val parked = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && frameH > 0f
             val views = RemoteViews(context.packageName, if (parked) R.layout.widget_agenda_stack else R.layout.widget_agenda_stack_compat)
+            // The plate's colour and opacity come from the layout, so it follows the phone's theme
+            // (see-through on Android 12+, solid on 8 to 11, where every card is opaque instead).
             if (parked) {
-                // Option 2: see-through plate as in the mockup. The stack is made about four
-                // card-heights tall so the cards behind the front one wait above the frame.
-                AgendaPalette.tint(views, R.id.agenda_plate, palette.plate, AgendaPalette.PLATE_ALPHA)
+                // Option 2: the stack is made about four card-heights tall so the cards behind
+                // the front one wait above the frame.
                 val frame = frameH + 2 * STACK_FRAME_PADDING_DP
                 views.setViewLayoutHeight(R.id.agenda_stack_column, 4 * frame + 16f, TypedValue.COMPLEX_UNIT_DIP)
-            } else {
-                // Android 8 to 11 cannot size views at runtime: every card is opaque instead.
-                AgendaPalette.tint(views, R.id.agenda_plate, palette.plateSolid, 255)
             }
             views.setInt(R.id.agenda_hairline, "setImageAlpha", AgendaPalette.HAIRLINE_ALPHA)
-            views.setTextColor(R.id.agenda_empty, palette.onPlate)
             val immutable = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 
             if (!CalendarAgenda.hasPermission(context)) {

@@ -48,6 +48,7 @@ object BackupCodec {
                     .put("showLabel", f.showLabel)
                     .put("showAllCategory", f.showAllCategory)
                     .put("frosting", f.frosting)
+                    .put("allTabPosition", f.allTabPosition)
                     .put("hostedWidgetProvider", f.hostedWidget?.provider ?: JSONObject.NULL)
                     .put("categories", JSONArray().apply {
                         categories.forEach { c ->
@@ -127,6 +128,7 @@ object BackupCodec {
             showLabel = obj.optBoolean("showLabel", true),
             showAllCategory = obj.optBoolean("showAllCategory", true),
             frosting = obj.optInt("frosting", Folder.DEFAULT_FROSTING).coerceIn(0, Folder.MAX_FROSTING),
+            allTabPosition = obj.optInt("allTabPosition", 0).coerceAtLeast(0),
             position = position,
             hostedWidget = null, // host ids never survive a restore; the provider name is kept only for reference
         )

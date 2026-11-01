@@ -8,6 +8,8 @@ import com.widgetsplus.core.model.Category
 import com.widgetsplus.core.model.Folder
 import com.widgetsplus.core.model.FolderIconMode
 import com.widgetsplus.core.model.FolderItem
+import com.widgetsplus.core.model.FolderTab
+import com.widgetsplus.core.model.FolderTabs
 import com.widgetsplus.core.model.HostedWidget
 import com.widgetsplus.core.model.LockMode
 import com.widgetsplus.core.model.SortMode
@@ -67,7 +69,6 @@ class FolderEditorViewModel(private val graph: Graph, val folderId: Long) : View
     fun setSortMode(mode: SortMode) = update { it.copy(sortMode = mode) }
     fun setLockMode(mode: LockMode) = update { it.copy(lockMode = mode) }
     fun setWidgetSize(size: WidgetSize) = update { it.copy(widgetSize = size) }
-    fun setShowLabel(show: Boolean) = update { it.copy(showLabel = show) }
     fun setShowAllCategory(show: Boolean) = update { it.copy(showAllCategory = show) }
     fun setFrosting(level: Int) = update { it.copy(frosting = level.coerceIn(0, Folder.MAX_FROSTING)) }
 
@@ -96,6 +97,12 @@ class FolderEditorViewModel(private val graph: Graph, val folderId: Long) : View
     fun renameCategory(category: Category, name: String) = afterChange { repo.updateCategory(category.copy(name = name)) }
     fun setCategorySort(category: Category, mode: SortMode?) = afterChange { repo.updateCategory(category.copy(sortMode = mode)) }
     fun deleteCategory(category: Category) = afterChange { repo.deleteCategory(category.id) }
+
+    /** Persists the open folder's tab order ("All" included) after a drag or a move. */
+    fun saveTabOrder(order: List<FolderTab>) = afterChange {
+        val (allPosition, positions) = FolderTabs.positionsOf(order)
+        repo.saveTabOrder(folderId, allPosition, positions)
+    }
 
     // ---- items ----
     fun addApps(refs: Collection<AppRef>, categoryId: Long?) = afterChange { repo.addApps(folderId, refs, categoryId) }

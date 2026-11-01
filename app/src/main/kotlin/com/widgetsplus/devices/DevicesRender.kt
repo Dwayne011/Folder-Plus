@@ -3,45 +3,22 @@ package com.widgetsplus.devices
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
-import androidx.core.content.ContextCompat
 import com.widgetsplus.R
-import com.widgetsplus.agenda.AgendaPalette
-import kotlin.math.roundToInt
 
-/**
- * Colours of the devices widget: the agenda widget's palette (Agenda style, approved mockup),
- * so both widgets follow the wallpaper the same way.
- */
-class DevicesPalette(context: Context) {
-    private val agenda = AgendaPalette(context)
-    val plate = agenda.plate
-    val panel = agenda.group
-    val onPlate = agenda.onPlate
-    val onCard = agenda.onCard
-    val onCardVar = agenda.onCardVar
-    /** Ring and bar track, and the main tone of the drawings. */
-    val card = agenda.card
-    /** Second tone of the drawings. */
-    val badge = agenda.badge
-    val low = ContextCompat.getColor(context, R.color.dev_low)
+/** Levels at or below this show in the low-battery colour. */
+object DevicesLevels {
+    const val LOW = 15
 
-    /** Anything at 15% or less shows in the low-battery colour. */
-    fun fillFor(level: Int) = if (level in 0..LOW) low else onCard
-    fun textFor(level: Int, normal: Int) = if (level in 0..LOW) low else normal
-
-    companion object {
-        const val LOW = 15
-        const val PLATE_ALPHA = AgendaPalette.PLATE_ALPHA
-        const val HAIRLINE_ALPHA = AgendaPalette.HAIRLINE_ALPHA
-    }
+    fun isLow(level: Int) = level in 0..LOW
 }
 
 /**
  * The flat two-tone drawings from the mockup. Each is a stack of white vector layers, 48dp tall:
  * the main tone, the second tone, and (for a few) details in the main tone drawn on top of the
- * second tone. [DevicesDraw.drawing] tints and combines them into one bitmap.
+ * second tone. The widget layout stacks three ImageViews and tints each with a colour resource.
  */
 enum class DeviceDrawing(val widthDp: Float, val main: Int, val detail: Int, val top: Int = 0) {
     PHONE(36f, R.drawable.dev_draw_phone_main, R.drawable.dev_draw_phone_detail, R.drawable.dev_draw_phone_top),
@@ -54,7 +31,10 @@ enum class DeviceDrawing(val widthDp: Float, val main: Int, val detail: Int, val
     SPEAKER(84f, R.drawable.dev_draw_speaker_main, R.drawable.dev_draw_speaker_detail),
 }
 
-/** Drawings, ring gauges and bars, drawn as bitmaps because widgets can't draw these themselves. */
+/**
+ * Ring gauges and bars, drawn as white bitmaps because widgets can't draw arcs themselves; the
+ * layout tints them with colour resources so they follow the phone's theme.
+ */
 object DevicesDraw {
     private const val DRAWING_HEIGHT_DP = 48f
 
@@ -70,24 +50,8 @@ object DevicesDraw {
         DeviceKind.CAR, DeviceKind.OTHER -> null
     }
 
-    fun drawing(context: Context, drawing: DeviceDrawing, main: Int, detail: Int): Bitmap {
-        val d = context.resources.displayMetrics.density
-        val h = (DRAWING_HEIGHT_DP * d).roundToInt().coerceAtLeast(1)
-        val w = (drawing.widthDp * d).roundToInt().coerceAtLeast(1)
-        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-        val c = Canvas(bmp)
-        listOf(drawing.main to main, drawing.detail to detail, drawing.top to main).forEach { (res, color) ->
-            if (res == 0) return@forEach
-            ContextCompat.getDrawable(context, res)?.mutate()?.apply {
-                setTint(color or -0x1000000)
-                setBounds(0, 0, w, h)
-                draw(c)
-            }
-        }
-        return bmp
-    }
-
-    fun ring(context: Context, sizeDp: Float, strokeDp: Float, level: Int, track: Int, fill: Int): Bitmap {
+    /** A full circle ([level] = 100) or the arc for [level], white. */
+    fun ring(context: Context, sizeDp: Float, strokeDp: Float, level: Int): Bitmap {
         val d = context.resources.displayMetrics.density
         val size = (sizeDp * d).toInt().coerceAtLeast(1)
         val stroke = strokeDp * d
@@ -95,16 +59,13 @@ object DevicesDraw {
         val c = Canvas(bmp)
         val p = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = stroke; strokeCap = Paint.Cap.ROUND }
         val r = RectF(stroke / 2, stroke / 2, size - stroke / 2, size - stroke / 2)
-        p.color = track
-        c.drawArc(r, 0f, 360f, false, p)
-        if (level > 0) {
-            p.color = fill
-            c.drawArc(r, -90f, 360f * level.coerceIn(0, 100) / 100f, false, p)
-        }
+        p.color = Color.WHITE
+        if (level > 0) c.drawArc(r, -90f, 360f * level.coerceIn(0, 100) / 100f, false, p)
         return bmp
     }
 
-    fun bar(context: Context, widthDp: Float, heightDp: Float, level: Int, track: Int, fill: Int): Bitmap {
+    /** The filled part of a bar for [level], white (the track is a shape in the layout). */
+    fun bar(context: Context, widthDp: Float, heightDp: Float, level: Int): Bitmap {
         val d = context.resources.displayMetrics.density
         val w = (widthDp * d).toInt().coerceAtLeast(1)
         val h = (heightDp * d).toInt().coerceAtLeast(1)
@@ -112,13 +73,9 @@ object DevicesDraw {
         val c = Canvas(bmp)
         val p = Paint(Paint.ANTI_ALIAS_FLAG)
         val rad = h / 2f
-        p.color = track
-        c.drawRoundRect(RectF(0f, 0f, w.toFloat(), h.toFloat()), rad, rad, p)
+        p.color = Color.WHITE
         val fw = w * level.coerceIn(0, 100) / 100f
-        if (fw > 0f) {
-            p.color = fill
-            c.drawRoundRect(RectF(0f, 0f, fw.coerceAtLeast(h.toFloat()), h.toFloat()), rad, rad, p)
-        }
+        if (fw > 0f) c.drawRoundRect(RectF(0f, 0f, fw.coerceAtLeast(h.toFloat()), h.toFloat()), rad, rad, p)
         return bmp
     }
 

@@ -36,6 +36,8 @@ data class FolderEntity(
     @ColumnInfo(defaultValue = "1") val showAllCategory: Boolean = true,
     // Added in schema v4.
     @ColumnInfo(defaultValue = "40") val frosting: Int = 40,
+    // Added in schema v5: where the "All" tab sits among the category tabs.
+    @ColumnInfo(defaultValue = "0") val allTabPosition: Int = 0,
 )
 
 @Entity(
@@ -98,6 +100,7 @@ fun FolderEntity.toModel() = Folder(
     hostedWidget = hostedWidgetProvider?.takeIf { hostedWidgetId > 0 }?.let { HostedWidget(it, hostedWidgetId) },
     showAllCategory = showAllCategory,
     frosting = frosting.coerceIn(0, Folder.MAX_FROSTING),
+    allTabPosition = allTabPosition.coerceAtLeast(0),
 )
 
 fun Folder.toEntity() = FolderEntity(
@@ -116,6 +119,7 @@ fun Folder.toEntity() = FolderEntity(
     hostedWidgetId = hostedWidget?.appWidgetId ?: 0,
     showAllCategory = showAllCategory,
     frosting = frosting,
+    allTabPosition = allTabPosition,
 )
 
 fun CategoryEntity.toModel() = Category(id, folderId, name, position, sortMode)

@@ -5,7 +5,7 @@
     <string name="widget_label_1x1">Folder (1×1)</string>
     <string name="widget_label_2x2">Folder (2×2)</string>
     <string name="widget_label_4x1">Folder (4×1)</string>
-    <string name="widget_description">A smart folder: tap to launch an app, double-tap or use the corner badge to open the folder. Long-press the widget for its settings.</string>
+    <string name="widget_description">A smart folder of your apps that fits the space you give it: tap an app to open it, tap “+N” or double tap to open the folder. Long-press the widget for its settings.</string>
     <string name="widget_not_configured">Tap to choose a folder</string>
     <string name="widget_open_folder">Open folder</string>
 
@@ -170,7 +170,6 @@
     <string name="agenda_join_link">Join meeting</string>
 
     <!-- Static text shown in the launcher widget picker previews -->
-    <string name="preview_folder_name" translatable="false">Work</string>
     <string name="preview_dow" translatable="false">Fri</string>
     <string name="preview_day" translatable="false">30</string>
     <string name="preview_mon" translatable="false">Oct</string>
@@ -213,4 +212,25 @@
         <item quantity="one">%1$d event</item>
         <item quantity="other">%1$d events</item>
     </plurals>
+    <!-- Categories page -->
+    <string name="categories_title">Categories</string>
+    <string name="categories_intro">The tabs in your open folder, in this order. Drag any of them, All included, to rearrange.</string>
+    <string name="category_all_desc">Every app in the folder</string>
+    <string name="category_all_hidden">Every app in the folder · hidden</string>
+    <string name="category_other_desc">Apps without a category · last, while All is hidden</string>
+    <string name="drag_to_reorder">Drag to reorder</string>
+    <string name="move_up">Move up</string>
+    <string name="move_down">Move down</string>
+    <string name="edit_categories">Edit categories</string>
+    <plurals name="category_app_count">
+        <item quantity="one">%d app</item>
+        <item quantity="other">%d apps</item>
+    </plurals>
+    <string name="taps_bigger_hint">These are the taps of a 1×1 widget. On bigger widgets, tap an app to open it; tap “+N” or double tap to open the folder.</string>
+    <string name="widget_label_1x2">Folder (1×2)</string>
+    <plurals name="widget_more_apps">
+        <item quantity="one">%d more app, open the folder</item>
+        <item quantity="other">%d more apps, open the folder</item>
+    </plurals>
+    <string name="widget_setup_prompt">Tap to choose a folder</string>
 </resources>
