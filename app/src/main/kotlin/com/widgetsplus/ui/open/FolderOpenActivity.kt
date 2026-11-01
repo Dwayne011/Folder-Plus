@@ -12,7 +12,6 @@ import androidx.biometric.BiometricManager.Authenticators
 import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
@@ -78,9 +77,10 @@ class FolderOpenActivity : FragmentActivity() {
                 // The folder's own app names, read before its apps are shown: right after the app's
                 // process starts the full app list isn't loaded yet, and names would fall back to
                 // package names.
-                val labelsReady by produceState(initialValue = false, state.items) {
+                var labelsReady by remember { mutableStateOf(false) }
+                LaunchedEffect(state.items) {
                     appGraph.installedApps.loadLabels(state.items.map { it.app })
-                    value = true
+                    labelsReady = true
                 }
                 LaunchedEffect(folder.frosting) { applyFrosting(folder.frosting) }
 
