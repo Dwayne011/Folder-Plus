@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Link
@@ -188,7 +189,13 @@ private fun EventDetailCard(
             Icon(painterResource(CalendarAgenda.iconFor(event.title)), contentDescription = null, tint = onCard, modifier = Modifier.size(22.dp))
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(AgendaFormat.timeRange(context, event), color = onCardVar, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium)
+            // Calendar colour: a dot before the time, as on the widget's event rows.
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                if (event.color != 0) {
+                    Box(Modifier.size(7.dp).clip(CircleShape).background(Color(event.color).copy(alpha = 1f)))
+                }
+                Text(AgendaFormat.timeRange(context, event), color = onCardVar, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium)
+            }
             Text(event.title, color = onCard, fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
             if (event.location.isNotEmpty()) {
                 val link = AgendaFormat.isLink(event.location)
