@@ -4,7 +4,6 @@
     <color name="widget_background">#F2FFFFFF</color>
     <color name="widget_text">#DE000000</color>
     <color name="widget_glyph">#3F51B5</color>
-    <color name="widget_folder_disc">#2E3133</color>
     <!-- Agenda widget: fixed palette (Material You overrides on API 31+) -->
     <color name="agenda_plate">#3A312C</color>
     <!-- Solid plate: the card stack needs opaque surfaces (cards behind would show through),
