@@ -1,5 +1,6 @@
 package com.widgetsplus.apps
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 
 /** A launchable app as shown in pickers and folders. */
 data class LauncherApp(val ref: AppRef, val label: String)
@@ -32,6 +34,9 @@ class InstalledApps(context: Context) {
     val apps: StateFlow<List<LauncherApp>> = _apps
 
     private var labels: Map<AppRef, String> = emptyMap()
+
+    /** Labels read one app at a time by [loadLabels], for before the full list has loaded. */
+    private val earlyLabels = ConcurrentHashMap<AppRef, String>()
 
     private val iconCache = object : LruCache<String, Bitmap>(64) {}
 
@@ -64,10 +69,36 @@ class InstalledApps(context: Context) {
 
     suspend fun ensureLoaded(): List<LauncherApp> = _apps.value.ifEmpty { refresh() }
 
+    /**
+     * Reads the labels of just [refs], off the main thread, when the full list hasn't loaded yet
+     * (it hasn't when the app's process has just started). Lets the open folder show its apps'
+     * names straight away instead of waiting for every installed app.
+     */
+    suspend fun loadLabels(refs: Collection<AppRef>) = withContext(Dispatchers.IO) {
+        refs.forEach { ref ->
+            if (ref.shortcutId == null && !labels.containsKey(ref) && !earlyLabels.containsKey(ref)) {
+                readLabel(ref)?.let { earlyLabels[ref] = it }
+            }
+        }
+    }
+
+    private fun readLabel(ref: AppRef): String? = try {
+        val component = ComponentName(ref.packageName, ref.activityName)
+        val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pm.getActivityInfo(component, PackageManager.ComponentInfoFlags.of(0L))
+        } else {
+            @Suppress("DEPRECATION")
+            pm.getActivityInfo(component, 0)
+        }
+        info.loadLabel(pm).toString()
+    } catch (e: PackageManager.NameNotFoundException) {
+        null
+    }
+
     /** Label for an app or added shortcut; falls back to the package name when it's gone. */
     fun label(ref: AppRef): String {
         ref.shortcutId?.let { id -> return ShortcutStore.get(appContext, id)?.label ?: ref.packageName }
-        return labels[ref] ?: ref.packageName
+        return labels[ref] ?: earlyLabels[ref] ?: ref.packageName
     }
 
     /** An app is installed while its launcher activity exists; a shortcut while it's stored and its app is installed. */
