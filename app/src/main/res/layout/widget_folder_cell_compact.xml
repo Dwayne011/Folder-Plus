@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One app in a single-cell widget's 2x2 mini mosaic: the icon fills its quarter (2dp gap). -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:padding="2dp">
+    <ImageView android:id="@+id/cell_icon" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitCenter" />
+</FrameLayout>

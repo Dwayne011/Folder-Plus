@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Connected devices widget: gamepad drawing, second tone (white; tinted when the layers are combined). Generated from the approved mockup. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="80dp" android:height="48dp"
+    android:viewportWidth="80" android:viewportHeight="48">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M14.7,16.3h9.6a1.2,1.2 0 0,1 1.2,1.2v1.6a1.2,1.2 0 0,1 -1.2,1.2h-9.6a1.2,1.2 0 0,1 -1.2,-1.2v-1.6a1.2,1.2 0 0,1 1.2,-1.2z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M18.7,12.3h1.6a1.2,1.2 0 0,1 1.2,1.2v9.6a1.2,1.2 0 0,1 -1.2,1.2h-1.6a1.2,1.2 0 0,1 -1.2,-1.2v-9.6a1.2,1.2 0 0,1 1.2,-1.2z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M57.7,13.6a2.3,2.3 0 1,0 4.6,0a2.3,2.3 0 1,0 -4.6,0z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M57.7,22.4a2.3,2.3 0 1,0 4.6,0a2.3,2.3 0 1,0 -4.6,0z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M53.3,18a2.3,2.3 0 1,0 4.6,0a2.3,2.3 0 1,0 -4.6,0z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M62.1,18a2.3,2.3 0 1,0 4.6,0a2.3,2.3 0 1,0 -4.6,0z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M26.8,26a4.2,4.2 0 1,0 8.4,0a4.2,4.2 0 1,0 -8.4,0z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M44.8,26a4.2,4.2 0 1,0 8.4,0a4.2,4.2 0 1,0 -8.4,0z" />
+</vector>

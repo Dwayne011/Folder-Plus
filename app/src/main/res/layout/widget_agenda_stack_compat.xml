@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 8 to 11 fallback (layout sizes cannot be set at runtime there), used instead of
+     widget_agenda_stack. Agenda widget: a solid plate holding a card stack of days.
+     StackView keeps the next days' cards directly behind the front one, offset up and to the
+     right, so every card is fully opaque (each has a backing in the plate colour) and only the
+     front card can ever be seen.
+     StackView lays the front card out in the bottom-left 90% of its own bounds. The stack is
+     therefore made 10/9 of its box (LinearLayouts with weightSum 9 and a weight-10 child,
+     bottom-aligned) so the front card fills the box exactly at any widget size.
+     StackView also wraps each card in a frame with 4dp padding. The box is the clipping frame
+     grown by 5dp per side (agenda_stack_overhang): 4dp cancels that padding and 1dp lets the
+     front card overflow the frame, so rounding can never expose an edge of the card behind.
+     The overhang is set per side on purpose: Android ignores a negative all-sides margin.
+     The card's own 2dp backing padding puts its content exactly 8dp inside the plate. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/agenda_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView android:id="@+id/agenda_plate" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_plate" android:tint="@color/agenda_plate_solid" tools:ignore="UseAppTint" />
+    <ImageView android:id="@+id/agenda_hairline" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_hairline" />
+
+    <FrameLayout
+        android:id="@+id/agenda_clip"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="true"
+        android:clipToPadding="true"
+        android:padding="7dp">
+
+        <LinearLayout
+            android:id="@+id/agenda_stack_column"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/agenda_stack_overhang"
+            android:layout_marginTop="@dimen/agenda_stack_overhang"
+            android:layout_marginEnd="@dimen/agenda_stack_overhang"
+            android:layout_marginBottom="@dimen/agenda_stack_overhang"
+            android:gravity="bottom"
+            android:orientation="vertical"
+            android:weightSum="9">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="10"
+                android:layoutDirection="ltr"
+                android:orientation="horizontal"
+                android:weightSum="9">
+
+                <StackView
+                    android:id="@+id/agenda_stack"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="10"
+                    android:loopViews="false" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/agenda_empty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fontFamily="google-sans-text"
+            android:gravity="center"
+            android:padding="12dp"
+            android:textFontWeight="500"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:ignore="UnusedAttribute"
+            android:textColor="@color/agenda_on_plate"/>
+    </FrameLayout>
+</FrameLayout>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Placeholder the launcher shows until the provider's first update: just the plate.
+     Deliberately a different layout from the real one so the host always inflates the real
+     layout afresh instead of recycling this view tree. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="UseAppTint">
+    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:alpha="0.58" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_plate" android:tint="@color/agenda_plate" />
+</FrameLayout>

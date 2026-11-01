@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Connected devices widget: earbuds drawing, second tone (white; tinted when the layers are combined). Generated from the approved mockup. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="112dp" android:height="48dp"
+    android:viewportWidth="112" android:viewportHeight="48">
+    <group android:pivotX="14" android:pivotY="12.5" android:rotation="-22">
+        <path android:fillColor="#FFFFFFFF" android:pathData="M11.4,12.5a2.6,2.2 0 1,0 5.2,0a2.6,2.2 0 1,0 -5.2,0z" />
+    </group>
+    <group android:pivotX="41" android:pivotY="25.5" android:rotation="-22">
+        <path android:fillColor="#FFFFFFFF" android:pathData="M38.4,25.5a2.6,2.2 0 1,0 5.2,0a2.6,2.2 0 1,0 -5.2,0z" />
+    </group>
+    <path android:fillColor="#FFFFFFFF" android:pathData="M83,33a3,3 0 1,0 6,0a3,3 0 1,0 -6,0z" />
+    <path android:strokeColor="#FFFFFFFF" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M70,17Q86,21 102,17" />
+</vector>

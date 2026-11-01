@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Placeholder until the first update: the plate and panel only. A different layout from the real
+     one so the launcher inflates the real layout afresh. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="UseAppTint">
+    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:alpha="0.58" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_plate" android:tint="@color/agenda_plate" />
+    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:layout_margin="8dp" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_group" android:tint="@color/agenda_group" />
+</FrameLayout>

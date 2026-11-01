@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Connected devices widget: headphones drawing, main tone (white; tinted when the layers are combined). Generated from the approved mockup. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="60dp" android:height="48dp"
+    android:viewportWidth="60" android:viewportHeight="48">
+    <path android:strokeColor="#FFFFFFFF" android:strokeWidth="5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M10.5,30V24a19.5,19.5 0 0,1 39,0v6" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M10,23h1a7,7 0 0,1 7,7v10a7,7 0 0,1 -7,7h-1a7,7 0 0,1 -7,-7v-10a7,7 0 0,1 7,-7z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M49,23h1a7,7 0 0,1 7,7v10a7,7 0 0,1 -7,7h-1a7,7 0 0,1 -7,-7v-10a7,7 0 0,1 7,-7z" />
+</vector>

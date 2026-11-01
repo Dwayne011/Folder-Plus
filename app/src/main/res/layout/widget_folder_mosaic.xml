@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Folder widget, Agenda style (approved mockup): the agenda's see-through plate with a hairline,
+     and its pale panel 8dp inside. The panel holds the mosaic, built row by row at runtime
+     (widget_folder_row + widget_folder_cell*): a 2x2 mini mosaic on a single cell, or as many
+     34dp app icons as fit on anything bigger, with a "+N" tile when there are more apps.
+     Every colour is a resource here, not set from code, so the launcher re-resolves it when the
+     phone's theme or wallpaper colours change. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/folder_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="UseAppTint,ContentDescription,SpUsage,UnusedAttribute">
+
+    <ImageView android:id="@+id/folder_plate" android:layout_width="match_parent" android:layout_height="match_parent" android:alpha="0.58" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_plate" android:tint="@color/agenda_plate" />
+    <ImageView android:id="@+id/folder_hairline" android:layout_width="match_parent" android:layout_height="match_parent" android:alpha="0.16" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_hairline" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp">
+
+        <ImageView android:id="@+id/folder_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_group" android:tint="@color/agenda_group" />
+
+        <LinearLayout
+            android:id="@+id/folder_grid"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:padding="6dp" />
+
+        <ImageView android:id="@+id/folder_single" android:layout_width="match_parent" android:layout_height="match_parent" android:padding="10dp" android:scaleType="fitCenter" android:visibility="gone" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/folder_badge"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="2dp"
+        android:contentDescription="@string/widget_open_folder"
+        android:visibility="gone">
+        <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/folder_circle" android:tint="@color/agenda_badge" />
+        <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:padding="3dp" android:src="@drawable/ic_expand" android:tint="@color/agenda_on_card" />
+    </FrameLayout>
+</FrameLayout>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget-picker preview of the 1×1 folder widget, Agenda style: plate, pale panel and a mosaic of
+     placeholder circles where your apps' icons go. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="UseAppTint,ContentDescription">
+    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:alpha="0.58" android:scaleType="fitXY" android:src="@drawable/folder_plate_small" android:tint="@color/agenda_plate" />
+    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent" android:layout_margin="8dp">
+        <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/folder_panel_small" android:tint="@color/agenda_group" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="6dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:baselineAligned="false" android:orientation="horizontal">
+            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:padding="2dp">
+                <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:src="@drawable/folder_circle" android:tint="@color/agenda_card" />
+            </FrameLayout>
+            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:padding="2dp">
+                <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:src="@drawable/folder_circle" android:tint="@color/agenda_badge" />
+            </FrameLayout>
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:baselineAligned="false" android:orientation="horizontal">
+            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:padding="2dp">
+                <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:src="@drawable/folder_circle" android:tint="@color/agenda_card" />
+            </FrameLayout>
+            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:padding="2dp">
+                <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:src="@drawable/folder_circle" android:tint="@color/agenda_badge" />
+            </FrameLayout>
+        </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+</FrameLayout>
