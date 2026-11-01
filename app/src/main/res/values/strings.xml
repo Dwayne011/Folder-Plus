@@ -104,7 +104,7 @@
     <string name="move_to_category">Move to category</string>
     <string name="remove_from_folder">Remove from folder</string>
     <string name="set_as_default">Set as default app</string>
-    <string name="manual_sort_hint">Long-press and drag to reorder</string>
+    <string name="manual_sort_hint">Drag by the handle or name, or press and hold, to reorder</string>
     <string name="manual_sort_filtered_hint">Switch to “All” to reorder manually</string>
     <string name="add_apps">Add apps</string>
     <string name="search_apps">Search apps</string>

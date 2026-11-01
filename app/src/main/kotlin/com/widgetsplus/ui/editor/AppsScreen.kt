@@ -1,7 +1,12 @@
 package com.widgetsplus.ui.editor
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
+import androidx.compose.foundation.gestures.awaitVerticalTouchSlopOrCancellation
+import androidx.compose.foundation.gestures.drag
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -44,18 +48,30 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.LocalPinnableContainer
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -74,6 +90,9 @@ import com.widgetsplus.ui.common.Option
 import com.widgetsplus.ui.common.OptionPickerDialog
 import com.widgetsplus.ui.common.TextInputDialog
 import com.widgetsplus.ui.common.label
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 
 /** Lists the apps in one folder: filter by category, assign categories, remove, and drag to reorder. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -321,9 +340,27 @@ fun AppsScreen(
     }
 }
 
+/** How near the list's top or bottom edge the finger must be, while dragging, for the list to scroll. */
+private val AutoScrollEdge = 64.dp
+
+/** How fast the list scrolls while dragging, per second, with the finger at (or past) the very edge. */
+private val AutoScrollMaxSpeed = 1200.dp
+
+/** What a row does when it's dragged; null when the list can't be reordered. */
+private class RowReorder(
+    /** The row was picked up, with the finger this far down it; false if another row already is. */
+    val onPickUp: (y: Float) -> Boolean,
+    val onDragBy: (dy: Float) -> Unit,
+    /** The finger lifted (true) or the gesture was taken over (false). */
+    val onDrop: (completed: Boolean) -> Unit,
+)
+
 /**
- * A LazyColumn whose rows can be long-pressed and dragged when [dragEnabled].
- * The order is kept locally while dragging and committed once on release.
+ * A LazyColumn whose rows can be dragged to a new place when [dragEnabled]: straight away by the
+ * handle, icon or name, or after a press and hold anywhere on the row. A haptic buzz when a row is
+ * picked up and a tick each time it passes another; near the list's top or bottom edge the list
+ * scrolls, faster nearer the edge. The order is kept locally while dragging and committed once on
+ * release.
  */
 @Composable
 private fun ReorderableAppList(
@@ -341,66 +378,147 @@ private fun ReorderableAppList(
     onChangeCategory: (FolderItem) -> Unit,
 ) {
     val listState = rememberLazyListState()
-    var working by remember(items) { mutableStateOf(items) }
-    var draggingIndex by remember { mutableIntStateOf(-1) }
-    var dragOffset by remember { mutableFloatStateOf(0f) }
+    val haptics = LocalHapticFeedback.current
+    val density = LocalDensity.current
+    val edgePx = with(density) { AutoScrollEdge.toPx() }
+    val maxSpeedPx = with(density) { AutoScrollMaxSpeed.toPx() }
+    val latestItems by rememberUpdatedState(items)
+    val commit by rememberUpdatedState(onOrderCommitted)
 
-    val dragModifier = if (dragEnabled) {
-        Modifier.pointerInput(items) {
-            detectDragGesturesAfterLongPress(
-                onDragStart = { offset ->
-                    draggingIndex = listState.indexAt(offset.y) ?: -1
-                    dragOffset = 0f
-                },
-                onDrag = { change, amount ->
-                    change.consume()
-                    val from = draggingIndex
-                    if (from < 0) return@detectDragGesturesAfterLongPress
-                    dragOffset += amount.y
-                    val info = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == from } ?: return@detectDragGesturesAfterLongPress
-                    val centre = info.offset + info.size / 2f + dragOffset
-                    val target = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index != from && centre >= it.offset && centre < it.offset + it.size }
-                    if (target != null) {
-                        working = AppSorter.move(working, from, target.index)
-                        dragOffset += info.offset - target.offset
-                        draggingIndex = target.index
-                    }
-                },
-                onDragEnd = {
-                    if (draggingIndex >= 0 && working != items) onOrderCommitted(working)
-                    draggingIndex = -1
-                    dragOffset = 0f
-                },
-                onDragCancel = {
-                    draggingIndex = -1
-                    dragOffset = 0f
-                    working = items
-                },
-            )
-        }
-    } else {
-        Modifier
+    var working by remember(items) { mutableStateOf(items) }
+    var draggingId by remember { mutableStateOf<Long?>(null) }
+    // The dragged row's top in the list when it was picked up, where the finger was on it, and
+    // how far the finger has moved since.
+    var startTop by remember { mutableFloatStateOf(0f) }
+    var grabY by remember { mutableFloatStateOf(0f) }
+    var moved by remember { mutableFloatStateOf(0f) }
+
+    fun rowInfo(id: Long) = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.key == id }
+
+    /** The dragged row's top: under the finger, kept within the list. */
+    fun draggedTop(size: Int): Float {
+        val layout = listState.layoutInfo
+        val min = layout.viewportStartOffset.toFloat()
+        val max = maxOf(min, (layout.viewportEndOffset - size).toFloat())
+        return (startTop + moved).coerceIn(min, max)
     }
 
-    LazyColumn(state = listState, modifier = Modifier.fillMaxSize().then(dragModifier)) {
-        itemsIndexed(working, key = { _, item -> item.id }) { index, item ->
-            val dragging = index == draggingIndex
+    fun pickUp(id: Long, y: Float): Boolean {
+        if (draggingId != null) return false
+        val info = rowInfo(id) ?: return false
+        draggingId = id
+        startTop = info.offset.toFloat()
+        grabY = y
+        moved = 0f
+        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+        return true
+    }
+
+    fun putDown(completed: Boolean) {
+        if (draggingId == null) return
+        draggingId = null
+        moved = 0f
+        if (!completed) {
+            working = latestItems
+        } else if (working != latestItems) {
+            commit(working)
+        }
+    }
+
+    /** Moves the dragged app one place towards the finger once its middle passes the next row's. */
+    fun followFinger(id: Long) {
+        val current = rowInfo(id) ?: return
+        val from = working.indexOfFirst { it.id == id }
+        if (from < 0 || current.index != from) return // the list hasn't laid out the last move yet
+        val middle = draggedTop(current.size) + current.size / 2f
+        val visible = listState.layoutInfo.visibleItemsInfo
+        val below = visible.firstOrNull { it.index == from + 1 }
+        val above = visible.firstOrNull { it.index == from - 1 }
+        val to = when {
+            below != null && middle > below.offset + below.size / 2f -> from + 1
+            above != null && middle < above.offset + above.size / 2f -> from - 1
+            else -> return
+        }
+        val first = listState.firstVisibleItemIndex
+        val firstOffset = listState.firstVisibleItemScrollOffset
+        working = AppSorter.move(working, from, to)
+        // Keep the list still: it would otherwise follow the first visible row when that one moves.
+        if (from == first || to == first) listState.requestScrollToItem(first, firstOffset)
+        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+    }
+
+    // While a row is held: each frame, scroll when the finger is near an edge, then let the row
+    // follow it. An edge only scrolls once the finger has been away from it, or moves towards it,
+    // so picking up a row near the top or bottom doesn't set the list off.
+    LaunchedEffect(draggingId) {
+        val id = draggingId ?: return@LaunchedEffect
+        var armedTop = false
+        var armedBottom = false
+        var last = withFrameNanos { it }
+        while (isActive) {
+            val now = withFrameNanos { it }
+            val seconds = (now - last) / 1_000_000_000f
+            last = now
+            val layout = listState.layoutInfo
+            val finger = startTop + grabY + moved
+            val topZone = layout.viewportStartOffset + edgePx
+            val bottomZone = layout.viewportEndOffset - edgePx
+            if (finger >= topZone) armedTop = true
+            if (finger <= bottomZone) armedBottom = true
+            val speed = when {
+                finger < topZone && (armedTop || moved < -edgePx / 4) ->
+                    -maxSpeedPx * ((topZone - finger) / edgePx).coerceAtMost(1f)
+                finger > bottomZone && (armedBottom || moved > edgePx / 4) ->
+                    maxSpeedPx * ((finger - bottomZone) / edgePx).coerceAtMost(1f)
+                else -> 0f
+            }
+            if (speed != 0f) {
+                try {
+                    listState.scrollBy(speed * seconds)
+                } catch (e: CancellationException) {
+                    ensureActive() // only a scroll that replaced ours; keep going
+                }
+            }
+            followFinger(id)
+        }
+    }
+
+    LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+        itemsIndexed(working, key = { _, item -> item.id }) { _, item ->
+            val dragging = item.id == draggingId
+            if (dragging) {
+                // Keep the held row, and its gesture, alive even if the list scrolls it out of view.
+                val pinnable = LocalPinnableContainer.current
+                DisposableEffect(pinnable) {
+                    val handle = pinnable?.pin()
+                    onDispose { handle?.release() }
+                }
+            }
             AppRow(
                 item = item,
                 label = labelOf(item.app),
                 categoryName = categories.firstOrNull { it.id == item.categoryId }?.name,
                 isDefault = isDefault(item),
-                showHandle = dragEnabled,
                 selecting = selecting,
                 selected = item.id in selectedIds,
                 onToggleSelected = { onToggleSelected(item) },
                 onSetDefault = { onSetDefault(item) },
                 onRemove = { onRemove(item) },
                 onChangeCategory = { onChangeCategory(item) },
+                reorder = if (dragEnabled) {
+                    RowReorder(
+                        onPickUp = { y -> pickUp(item.id, y) },
+                        onDragBy = { dy -> moved += dy },
+                        onDrop = { completed -> putDown(completed) },
+                    )
+                } else {
+                    null
+                },
                 modifier = Modifier
                     .zIndex(if (dragging) 1f else 0f)
                     .graphicsLayer {
-                        translationY = if (dragging) dragOffset else 0f
+                        val info = if (dragging) rowInfo(item.id) else null
+                        translationY = if (info != null) draggedTop(info.size) - info.offset else 0f
                         shadowElevation = if (dragging) 8.dp.toPx() else 0f
                     },
             )
@@ -408,8 +526,55 @@ private fun ReorderableAppList(
     }
 }
 
-private fun LazyListState.indexAt(y: Float): Int? =
-    layoutInfo.visibleItemsInfo.firstOrNull { y >= it.offset && y < it.offset + it.size }?.index
+/** Where a row's drag handle area ends: the start of its star and menu column. */
+private class HandleArea {
+    var row: LayoutCoordinates? = null
+    var trailing: LayoutCoordinates? = null
+
+    /** In the row's coordinates; the whole row until both have been laid out. */
+    fun end(): Float {
+        val r = row
+        val t = trailing
+        if (r == null || t == null || !r.isAttached || !t.isAttached) return Float.MAX_VALUE
+        return r.localPositionOf(t, Offset.Zero).x
+    }
+}
+
+/**
+ * Picks a row up straight away when a press left of [handleEnd] (the handle, icon and name) moves
+ * up or down, or holds still as long as a long press; anywhere else on the row, after a long press.
+ * Then reports the finger's movement until it lifts or the gesture is taken over.
+ */
+private fun Modifier.reorderGesture(key: Any, handleEnd: () -> Float, reorder: () -> RowReorder?): Modifier =
+    pointerInput(key) {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false)
+            var picked: PointerInputChange? = null
+            var overSlop = 0f
+            if (down.position.x <= handleEnd()) {
+                var held = true
+                withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
+                    picked = awaitVerticalTouchSlopOrCancellation(down.id) { change, over ->
+                        change.consume()
+                        overSlop = over
+                    }
+                    held = false
+                }
+                if (held) picked = down
+            } else {
+                picked = awaitLongPressOrCancellation(down.id)
+            }
+            val pointer = picked?.id ?: return@awaitEachGesture
+            val callbacks = reorder() ?: return@awaitEachGesture
+            if (!callbacks.onPickUp(down.position.y)) return@awaitEachGesture
+            if (overSlop != 0f) callbacks.onDragBy(overSlop)
+            val completed = drag(pointer) { change ->
+                callbacks.onDragBy(change.positionChange().y)
+                change.consume()
+            }
+            callbacks.onDrop(completed)
+        }
+    }
 
 @Composable
 private fun AppRow(
@@ -417,16 +582,26 @@ private fun AppRow(
     label: String,
     categoryName: String?,
     isDefault: Boolean,
-    showHandle: Boolean,
     selecting: Boolean,
     selected: Boolean,
     onToggleSelected: () -> Unit,
     onSetDefault: () -> Unit,
     onRemove: () -> Unit,
     onChangeCategory: () -> Unit,
+    reorder: RowReorder?,
     modifier: Modifier = Modifier,
 ) {
     var menu by remember { mutableStateOf(false) }
+    val area = remember { HandleArea() }
+    // The gesture outlives recompositions; it always reaches the latest callbacks.
+    val latestReorder by rememberUpdatedState(reorder)
+    val gesture = if (reorder != null) {
+        Modifier
+            .reorderGesture(item.id, handleEnd = area::end, reorder = { latestReorder })
+            .onGloballyPositioned { area.row = it }
+    } else {
+        Modifier
+    }
     ListItem(
         headlineContent = { Text(label) },
         // Shortcuts say so, beside their category.
@@ -440,7 +615,7 @@ private fun AppRow(
                     Checkbox(checked = selected, onCheckedChange = { onToggleSelected() })
                     Spacer(Modifier.width(4.dp))
                 }
-                if (showHandle) {
+                if (reorder != null) {
                     Icon(Icons.Default.DragHandle, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.width(8.dp))
                 }
@@ -448,7 +623,7 @@ private fun AppRow(
             }
         },
         trailingContent = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.onGloballyPositioned { area.trailing = it }) {
                 if (isDefault) Icon(Icons.Default.Star, contentDescription = stringResource(R.string.default_app), tint = MaterialTheme.colorScheme.primary)
                 if (!selecting) {
                     IconButton(onClick = { menu = true }) { Icon(Icons.Default.MoreVert, contentDescription = null) }
@@ -460,6 +635,10 @@ private fun AppRow(
                 }
             }
         },
-        modifier = if (selecting) modifier.fillMaxWidth().clickable(onClick = onToggleSelected) else modifier.fillMaxWidth(),
+        modifier = if (selecting) {
+            modifier.then(gesture).fillMaxWidth().clickable(onClick = onToggleSelected)
+        } else {
+            modifier.then(gesture).fillMaxWidth()
+        },
     )
 }
