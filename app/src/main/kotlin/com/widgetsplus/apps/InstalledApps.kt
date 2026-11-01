@@ -64,17 +64,42 @@ class InstalledApps(context: Context) {
 
     suspend fun ensureLoaded(): List<LauncherApp> = _apps.value.ifEmpty { refresh() }
 
-    /** Label for an app; falls back to the package name when it's uninstalled. */
-    fun label(ref: AppRef): String = labels[ref] ?: ref.packageName
+    /** Label for an app or added shortcut; falls back to the package name when it's gone. */
+    fun label(ref: AppRef): String {
+        ref.shortcutId?.let { id -> return ShortcutStore.get(appContext, id)?.label ?: ref.packageName }
+        return labels[ref] ?: ref.packageName
+    }
 
-    fun isInstalled(ref: AppRef): Boolean = labels.containsKey(ref)
+    /** An app is installed while its launcher activity exists; a shortcut while it's stored and its app is installed. */
+    fun isInstalled(ref: AppRef): Boolean {
+        val id = ref.shortcutId ?: return labels.containsKey(ref)
+        return ShortcutStore.get(appContext, id) != null && isPackageInstalled(ref.packageName)
+    }
 
-    /** Loads (and caches) the app icon as a square bitmap. Null if the app is gone. */
+    fun isPackageInstalled(packageName: String): Boolean = try {
+        pm.getApplicationInfo(packageName, 0)
+        true
+    } catch (e: PackageManager.NameNotFoundException) {
+        false
+    }
+
+    /** Loads (and caches) the app's or shortcut's icon as a square bitmap. Null if it's gone. */
     fun icon(ref: AppRef, sizePx: Int = iconSizePx): Bitmap? {
         val key = "${ref.flatten()}@$sizePx"
         iconCache.get(key)?.let { return it }
         val drawable: Drawable = try {
-            pm.getActivityIcon(android.content.ComponentName(ref.packageName, ref.activityName))
+            val id = ref.shortcutId
+            if (id != null) {
+                // The shortcut's own icon, or its app's icon when it came without one.
+                ShortcutStore.icon(appContext, id)?.let { stored ->
+                    val bitmap = Bitmap.createScaledBitmap(stored, sizePx, sizePx, true)
+                    iconCache.put(key, bitmap)
+                    return bitmap
+                }
+                pm.getApplicationIcon(ref.packageName)
+            } else {
+                pm.getActivityIcon(android.content.ComponentName(ref.packageName, ref.activityName))
+            }
         } catch (e: PackageManager.NameNotFoundException) {
             return null
         }

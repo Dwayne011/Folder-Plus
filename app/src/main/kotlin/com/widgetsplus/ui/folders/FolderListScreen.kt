@@ -56,6 +56,7 @@ import com.widgetsplus.R
 import com.widgetsplus.agenda.AgendaSetupActivity
 import com.widgetsplus.devices.DevicesSetupActivity
 import com.widgetsplus.core.model.Folder
+import com.widgetsplus.apps.ShortcutStore
 import com.widgetsplus.data.backup.BackupCodec
 import com.widgetsplus.graph
 import com.widgetsplus.ui.common.ConfirmDialog
@@ -92,7 +93,8 @@ class FolderListViewModel(private val graph: Graph) : ViewModel() {
         viewModelScope.launch {
             val ok = withContext(Dispatchers.IO) {
                 runCatching {
-                    val json = BackupCodec.encode(graph.repository.exportAll())
+                    val used = graph.repository.usedShortcutIds()
+                    val json = BackupCodec.encode(graph.repository.exportAll(), ShortcutStore.all(appContext).filter { it.id in used })
                     appContext.contentResolver.openOutputStream(uri, "wt")?.use { it.write(json.toByteArray()) }
                         ?: error("No output stream")
                 }.isSuccess
@@ -110,6 +112,7 @@ class FolderListViewModel(private val graph: Graph) : ViewModel() {
                     val text = appContext.contentResolver.openInputStream(uri)?.use { it.readBytes().toString(Charsets.UTF_8) }
                         ?: error("No input stream")
                     val data = BackupCodec.decode(text)
+                    ShortcutStore.putAll(appContext, BackupCodec.decodeShortcuts(text))
                     graph.repository.replaceAll(data)
                     data.size
                 }.getOrNull()

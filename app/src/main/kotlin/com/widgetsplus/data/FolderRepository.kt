@@ -88,13 +88,13 @@ class FolderRepository(private val db: WidgetsPlusDatabase) {
      * Removes items whose apps were uninstalled and clears default apps that
      * point at them. Returns how many items were removed.
      */
-    suspend fun pruneMissingApps(installed: Set<AppRef>): Int = db.withTransaction {
+    suspend fun pruneMissingApps(isPresent: (AppRef) -> Boolean): Int = db.withTransaction {
         val all = db.items().getAll()
-        val missing = all.filter { entity -> AppRef.unflatten(entity.app)?.let { it !in installed } ?: true }
+        val missing = all.filter { entity -> AppRef.unflatten(entity.app)?.let { !isPresent(it) } ?: true }
         if (missing.isNotEmpty()) db.items().deleteEntities(missing)
         db.folders().getAll().forEach { entity ->
             val default = entity.defaultApp?.let(AppRef::unflatten)
-            if (entity.defaultApp != null && (default == null || default !in installed)) {
+            if (entity.defaultApp != null && (default == null || !isPresent(default))) {
                 db.folders().update(entity.copy(defaultApp = null))
             }
         }
@@ -102,6 +102,10 @@ class FolderRepository(private val db: WidgetsPlusDatabase) {
     }
 
     // ---- backup / restore ----
+    /** Ids of the shortcuts some folder still holds. */
+    suspend fun usedShortcutIds(): Set<String> =
+        db.items().getAll().mapNotNull { AppRef.unflatten(it.app)?.shortcutId }.toSet()
+
     suspend fun exportAll(): List<FolderExport> = db.withTransaction {
         getFolders().map { folder -> FolderExport(folder, getCategories(folder.id), getItems(folder.id)) }
     }

@@ -8,6 +8,7 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import com.widgetsplus.R
+import com.widgetsplus.apps.ShortcutStore
 import com.widgetsplus.core.model.AppRef
 
 object AppLauncher {
@@ -18,21 +19,33 @@ object AppLauncher {
 
     /** Starts the app. Returns false (and shows a toast) when it is no longer installed. */
     fun launch(context: Context, app: AppRef): Boolean = try {
-        context.startActivity(intentFor(app))
-        true
+        val id = app.shortcutId
+        if (id != null) {
+            val intent = ShortcutStore.launchIntent(context, id)
+            if (intent == null) {
+                notFound(context, R.string.shortcut_failed)
+                false
+            } else {
+                context.startActivity(intent)
+                true
+            }
+        } else {
+            context.startActivity(intentFor(app))
+            true
+        }
     } catch (e: ActivityNotFoundException) {
-        notFound(context)
+        notFound(context, if (app.isShortcut) R.string.shortcut_failed else R.string.app_not_found)
         false
     } catch (e: SecurityException) {
-        notFound(context)
+        notFound(context, if (app.isShortcut) R.string.shortcut_failed else R.string.app_not_found)
         false
     }
 
     /** Callers may be on a background thread (widget tap receiver); toasts need the main looper. */
-    private fun notFound(context: Context) {
+    private fun notFound(context: Context, message: Int) {
         val appContext = context.applicationContext
         Handler(Looper.getMainLooper()).post {
-            Toast.makeText(appContext, R.string.app_not_found, Toast.LENGTH_SHORT).show()
+            Toast.makeText(appContext, message, Toast.LENGTH_SHORT).show()
         }
     }
 }

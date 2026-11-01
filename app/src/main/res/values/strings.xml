@@ -229,6 +229,19 @@
     <string name="taps_bigger_hint">These are the taps of a 1×1 widget. On bigger widgets, tap an app to open it; tap “+N” or double tap to open the folder.</string>
     <string name="widget_label_1x2">Folder (1×2)</string>
     <string name="sort_switched_manual">Sort is now Manual, so your order stays</string>
+    <!-- Shortcuts -->
+    <string name="add_shortcut">Add shortcut</string>
+    <string name="search_shortcuts">Search shortcuts or apps</string>
+    <string name="shortcuts_intro">Shortcuts that apps offer. Pick one and the app asks what it should open; it then sits in the folder like an app.</string>
+    <string name="no_shortcuts">None of your apps offer shortcuts.</string>
+    <string name="no_matches">Nothing matches.</string>
+    <string name="shortcut_added">Added “%1$s”</string>
+    <string name="shortcut_tag">Shortcut</string>
+    <string name="shortcut_failed">This shortcut couldn’t be opened</string>
+    <string name="shortcut_unavailable">%1$s couldn’t open its shortcut screen.</string>
+    <string name="shortcut_nothing_returned">%1$s didn’t hand back a shortcut.</string>
+    <string name="shortcut_launcher_only">%1$s only gives this shortcut to your home-screen app, so it can’t go in a folder.</string>
+    <string name="shortcut_cannot_open">This shortcut from %1$s can’t be opened from a folder.</string>
     <plurals name="widget_more_apps">
         <item quantity="one">%d more app, open the folder</item>
         <item quantity="other">%d more apps, open the folder</item>

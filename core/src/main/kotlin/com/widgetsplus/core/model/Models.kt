@@ -1,11 +1,24 @@
 package com.widgetsplus.core.model
 
-/** A launchable activity of an installed app. */
+/**
+ * A launchable activity of an installed app, or an app's shortcut added to a folder. A shortcut
+ * keeps the providing app's package and a "shortcut:<id>" activity name; its name, icon and the
+ * intent it opens are stored separately under that id.
+ */
 data class AppRef(val packageName: String, val activityName: String) {
     /** Stable string form stored in the database and widget extras. */
     fun flatten(): String = "$packageName/$activityName"
 
+    val isShortcut: Boolean get() = activityName.startsWith(SHORTCUT_PREFIX)
+
+    /** The stored shortcut's id, or null for an app. */
+    val shortcutId: String? get() = if (isShortcut) activityName.removePrefix(SHORTCUT_PREFIX) else null
+
     companion object {
+        const val SHORTCUT_PREFIX = "shortcut:"
+
+        fun shortcut(packageName: String, id: String) = AppRef(packageName, SHORTCUT_PREFIX + id)
+
         fun unflatten(value: String): AppRef? {
             val idx = value.indexOf('/')
             if (idx <= 0 || idx == value.lastIndex) return null

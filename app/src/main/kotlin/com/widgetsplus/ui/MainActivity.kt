@@ -15,6 +15,7 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
+import com.widgetsplus.apps.ShortcutStore
 import com.widgetsplus.graph
 import com.widgetsplus.ui.editor.AppearanceScreen
 import com.widgetsplus.ui.editor.AppsScreen
@@ -23,6 +24,7 @@ import com.widgetsplus.ui.editor.FolderEditorScreen
 import com.widgetsplus.ui.editor.GesturesScreen
 import com.widgetsplus.ui.folders.FolderListScreen
 import com.widgetsplus.ui.picker.AppPickerScreen
+import com.widgetsplus.ui.picker.ShortcutPickerScreen
 import com.widgetsplus.ui.theme.WidgetsPlusTheme
 import com.widgetsplus.widget.WidgetUpdater
 import kotlinx.coroutines.launch
@@ -62,8 +64,11 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         // Pick up installs/uninstalls and drop items for apps that are gone.
         lifecycleScope.launch {
-            val apps = graph.installedApps.refresh()
-            val removed = graph.repository.pruneMissingApps(apps.map { it.ref }.toSet())
+            val installed = graph.installedApps
+            val apps = installed.refresh().map { it.ref }.toSet()
+            // Shortcuts stay while they're stored and their app is installed.
+            val removed = graph.repository.pruneMissingApps { ref -> if (ref.isShortcut) installed.isInstalled(ref) else ref in apps }
+            ShortcutStore.retainOnly(this@MainActivity, graph.repository.usedShortcutIds())
             if (removed > 0) WidgetUpdater.updateAllAsync(this@MainActivity)
         }
     }
@@ -88,6 +93,7 @@ data class Screen(val kind: Int, val folderId: Long = -1L, val categoryId: Long 
         const val GESTURES = 4
         const val APPEARANCE = 5
         const val CATEGORIES = 6
+        const val SHORTCUTS = 7
 
         val Saver = listSaver<Screen, Long>(
             save = { listOf(it.kind.toLong(), it.folderId, it.categoryId) },
@@ -111,7 +117,7 @@ fun WidgetsPlusNavHost(requestedFolderId: Long, requestSerial: Int) {
         screen = when (screen.kind) {
             Screen.EDITOR -> Screen(Screen.FOLDERS)
             Screen.APPS -> Screen(Screen.EDITOR, folderId)
-            Screen.PICKER, Screen.CATEGORIES -> Screen(Screen.APPS, folderId)
+            Screen.PICKER, Screen.CATEGORIES, Screen.SHORTCUTS -> Screen(Screen.APPS, folderId)
             Screen.GESTURES, Screen.APPEARANCE -> Screen(Screen.EDITOR, folderId)
             else -> Screen(Screen.FOLDERS)
         }
@@ -133,6 +139,12 @@ fun WidgetsPlusNavHost(requestedFolderId: Long, requestSerial: Int) {
             onBack = { screen = Screen(Screen.EDITOR, folderId) },
             onAddApps = { categoryId -> screen = Screen(Screen.PICKER, folderId, categoryId ?: -1L) },
             onEditCategories = { screen = Screen(Screen.CATEGORIES, folderId) },
+            onAddShortcut = { categoryId -> screen = Screen(Screen.SHORTCUTS, folderId, categoryId ?: -1L) },
+        )
+        Screen.SHORTCUTS -> ShortcutPickerScreen(
+            folderId = folderId,
+            categoryId = screen.categoryId.takeIf { it > 0 },
+            onDone = { screen = Screen(Screen.APPS, folderId) },
         )
         Screen.CATEGORIES -> CategoriesScreen(folderId = folderId, onBack = { screen = Screen(Screen.APPS, folderId) })
         Screen.PICKER -> AppPickerScreen(

@@ -29,3 +29,15 @@ class TabReorderTest {
         assertEquals(listOf(3L, 2L, 1L, 4L, 5L), AppSorter.mergeTabOrder(whole, tab).map { it.id })
     }
 }
+
+class ShortcutRefTest {
+    @Test fun aShortcutRoundTripsThroughItsStoredForm() {
+        val ref = AppRef.shortcut("com.samsung.android.oneconnect", "4f1c-9a")
+        val back = AppRef.unflatten(ref.flatten())!!
+        assertEquals(ref, back)
+        assertEquals(true, back.isShortcut)
+        assertEquals("4f1c-9a", back.shortcutId)
+        assertEquals(false, AppRef("com.google.android.calendar", "com.android.calendar.AllInOneActivity").isShortcut)
+        assertEquals(null, AppRef("pkg", "Main").shortcutId)
+    }
+}

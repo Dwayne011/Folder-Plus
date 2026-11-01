@@ -2,11 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Needed on Android 11+ to list other launchable apps without QUERY_ALL_PACKAGES. -->
+    <!-- Needed on Android 11+ to list other launchable apps, and the shortcuts apps offer
+         (Add shortcut), without QUERY_ALL_PACKAGES. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.CREATE_SHORTCUT" />
         </intent>
     </queries>
 

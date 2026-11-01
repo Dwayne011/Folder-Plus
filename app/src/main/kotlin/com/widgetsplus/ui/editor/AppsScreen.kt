@@ -3,6 +3,7 @@ package com.widgetsplus.ui.editor
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.DriveFileMove
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Shortcut
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Checkbox
@@ -76,7 +78,13 @@ import com.widgetsplus.ui.common.label
 /** Lists the apps in one folder: filter by category, assign categories, remove, and drag to reorder. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppsScreen(folderId: Long, onBack: () -> Unit, onAddApps: (categoryId: Long?) -> Unit, onEditCategories: () -> Unit) {
+fun AppsScreen(
+    folderId: Long,
+    onBack: () -> Unit,
+    onAddApps: (categoryId: Long?) -> Unit,
+    onEditCategories: () -> Unit,
+    onAddShortcut: (categoryId: Long?) -> Unit,
+) {
     val context = LocalContext.current
     val vm: FolderEditorViewModel = viewModel(key = "editor-$folderId") { FolderEditorViewModel(context.graph, folderId) }
     val folder by vm.folder.collectAsStateWithLifecycle()
@@ -140,16 +148,26 @@ fun AppsScreen(folderId: Long, onBack: () -> Unit, onAddApps: (categoryId: Long?
         },
         floatingActionButton = {
             if (!selecting) {
-                ExtendedFloatingActionButton(
-                    onClick = { onAddApps(selectedCategory.takeIf { it > 0 }) },
-                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                    text = {
-                        Text(
-                            if (activeCategory != null) stringResource(R.string.add_to_category, activeCategory.name)
-                            else stringResource(R.string.add_apps),
-                        )
-                    },
-                )
+                // Shortcuts have their own list (there can be many), so their own button.
+                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    ExtendedFloatingActionButton(
+                        onClick = { onAddShortcut(selectedCategory.takeIf { it > 0 }) },
+                        icon = { Icon(Icons.Default.Shortcut, contentDescription = null) },
+                        text = { Text(stringResource(R.string.add_shortcut)) },
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    )
+                    ExtendedFloatingActionButton(
+                        onClick = { onAddApps(selectedCategory.takeIf { it > 0 }) },
+                        icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                        text = {
+                            Text(
+                                if (activeCategory != null) stringResource(R.string.add_to_category, activeCategory.name)
+                                else stringResource(R.string.add_apps),
+                            )
+                        },
+                    )
+                }
             }
         },
     ) { padding ->
@@ -411,7 +429,11 @@ private fun AppRow(
     var menu by remember { mutableStateOf(false) }
     ListItem(
         headlineContent = { Text(label) },
-        supportingContent = categoryName?.let { { Text(it) } },
+        // Shortcuts say so, beside their category.
+        supportingContent = listOfNotNull(
+            if (item.app.isShortcut) stringResource(R.string.shortcut_tag) else null,
+            categoryName,
+        ).takeIf { it.isNotEmpty() }?.let { parts -> { Text(parts.joinToString(" · ")) } },
         leadingContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (selecting) {

@@ -10,6 +10,8 @@ import com.widgetsplus.core.model.SortMode
 import com.widgetsplus.core.model.TapAction
 import com.widgetsplus.core.model.WidgetSize
 import com.widgetsplus.data.FolderExport
+import com.widgetsplus.apps.SavedShortcut
+import com.widgetsplus.apps.ShortcutStore
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -25,7 +27,8 @@ object BackupCodec {
     private val ACCEPTED_TAGS = setOf(APP_TAG, "folder-plus")
     const val MIME_TYPE = "application/json"
 
-    fun encode(data: List<FolderExport>): String {
+    /** [shortcuts]: the added shortcuts the folders' items refer to (name, icon, what they open). */
+    fun encode(data: List<FolderExport>, shortcuts: List<SavedShortcut> = emptyList()): String {
         val root = JSONObject()
             .put("app", APP_TAG)
             .put("version", FORMAT_VERSION)
@@ -69,7 +72,18 @@ object BackupCodec {
                     }),
             )
         }
+        root.put("shortcuts", JSONArray().apply { shortcuts.forEach { put(ShortcutStore.toJson(it)) } })
         return root.put("folders", folders).toString(2)
+    }
+
+    /** The shortcuts saved with a backup (none in backups made before shortcuts existed). */
+    fun decodeShortcuts(text: String): List<SavedShortcut> {
+        val list = try {
+            JSONObject(text).optJSONArray("shortcuts")
+        } catch (e: JSONException) {
+            null
+        } ?: return emptyList()
+        return (0 until list.length()).mapNotNull { i -> list.optJSONObject(i)?.let(ShortcutStore::fromJson) }
     }
 
     /** @throws IllegalArgumentException when the text is not a Widgets Plus backup. */
