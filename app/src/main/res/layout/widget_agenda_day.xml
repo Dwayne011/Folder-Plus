@@ -35,10 +35,14 @@
             <ImageView android:id="@+id/day_month_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_chip" />
             <TextView android:id="@+id/day_month_text" android:layout_width="wrap_content" android:layout_height="match_parent" android:fontFamily="google-sans-text" android:textFontWeight="500" android:gravity="center" android:paddingStart="10dp" android:paddingEnd="10dp" android:textAllCaps="true" android:textSize="10.5dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
         </FrameLayout>
-        <!-- Today pill (bottom, every day but today): shows today's card again -->
-        <FrameLayout android:id="@+id/day_today_pill" android:layout_width="wrap_content" android:layout_height="18dp" android:layout_gravity="bottom|center_horizontal" android:layout_marginBottom="10dp" android:visibility="gone">
-            <ImageView android:id="@+id/day_today_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_chip" />
-            <TextView android:id="@+id/day_today_text" android:layout_width="wrap_content" android:layout_height="match_parent" android:fontFamily="google-sans-text" android:textFontWeight="500" android:gravity="center" android:paddingStart="10dp" android:paddingEnd="10dp" android:text="@string/agenda_today" android:textSize="10.5dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+        <!-- Today pill (bottom, every day but today): shows today's card again. The pill is 18dp
+             tall; the tap target around it is the date card's full width and 48dp from its bottom
+             edge, so it's easy to hit. The pill sits exactly where it did. -->
+        <FrameLayout android:id="@+id/day_today_tap" android:layout_width="match_parent" android:layout_height="48dp" android:layout_gravity="bottom" android:visibility="gone">
+            <FrameLayout android:id="@+id/day_today_pill" android:layout_width="wrap_content" android:layout_height="18dp" android:layout_gravity="bottom|center_horizontal" android:layout_marginBottom="10dp">
+                <ImageView android:id="@+id/day_today_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_chip" />
+                <TextView android:id="@+id/day_today_text" android:layout_width="wrap_content" android:layout_height="match_parent" android:fontFamily="google-sans-text" android:textFontWeight="500" android:gravity="center" android:paddingStart="10dp" android:paddingEnd="10dp" android:text="@string/agenda_today" android:textSize="10.5dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+            </FrameLayout>
         </FrameLayout>
     </FrameLayout>
 

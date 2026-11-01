@@ -98,11 +98,12 @@ class AgendaRemoteViewsFactory(
         views.setTextColor(R.id.day_month_text, palette.onCard)
         AgendaPalette.tint(views, R.id.day_month_bg, pill, 255)
         views.setOnClickFillInIntent(R.id.day_month_pill, Intent().setData(AgendaFormat.monthUri(day.date)))
-        views.setViewVisibility(R.id.day_today_pill, if (day.isToday) View.GONE else View.VISIBLE)
+        views.setViewVisibility(R.id.day_today_tap, if (day.isToday) View.GONE else View.VISIBLE)
         if (!day.isToday) {
             views.setTextColor(R.id.day_today_text, palette.onCard)
             AgendaPalette.tint(views, R.id.day_today_bg, pill, 255)
-            views.setOnClickFillInIntent(R.id.day_today_pill, Intent().setData(AgendaFormat.todayUri()))
+            // The whole 48dp strip around the pill, not just the pill.
+            views.setOnClickFillInIntent(R.id.day_today_tap, Intent().setData(AgendaFormat.todayUri()))
         }
         views.setOnClickFillInIntent(R.id.day_date, Intent().setData(AgendaFormat.dayIntent(day.date).data))
 
