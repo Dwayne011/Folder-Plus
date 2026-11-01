@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import com.widgetsplus.R
+import com.widgetsplus.core.devices.DeviceKind
 
 /** Levels at or below this show in the low-battery colour. */
 object DevicesLevels {

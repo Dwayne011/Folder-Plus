@@ -11,10 +11,9 @@ import android.content.pm.PackageManager
 import android.os.BatteryManager
 import android.os.Build
 import androidx.core.content.ContextCompat
+import com.widgetsplus.core.devices.DeviceKind
+import com.widgetsplus.core.devices.DeviceNames
 import java.util.Locale
-
-/** What a device is, for its icon and label. Order is the order devices appear in the widget. */
-enum class DeviceKind { EARBUDS, HEADPHONES, WATCH, KEYBOARD, MOUSE, GAMEPAD, SPEAKER, CAR, OTHER }
 
 /** A connected Bluetooth device and the battery level it reports (0..100, or -1 if unknown). */
 data class ConnectedDevice(val address: String, val name: String, val kind: DeviceKind, val battery: Int)
@@ -57,7 +56,7 @@ object BluetoothDevices {
             return emptyList()
         }
         val devices = bonded.filter { isConnected(it) }.map { d ->
-            ConnectedDevice(d.address, displayName(d), kindOf(d), batteryLevel(context, d))
+            ConnectedDevice(d.address, displayName(d), kindOf(context, d), batteryLevel(context, d))
         }.filter { it.battery in 0..100 }
         return devices.sortedWith(compareBy<ConnectedDevice> { it.kind.ordinal }.thenBy { it.name.lowercase(Locale.ROOT) })
     }
@@ -83,18 +82,18 @@ object BluetoothDevices {
         return alias?.takeIf { it.isNotBlank() } ?: device.name?.takeIf { it.isNotBlank() } ?: "Bluetooth device"
     }
 
-    @SuppressLint("MissingPermission")
-    private fun kindOf(device: BluetoothDevice): DeviceKind {
-        val name = displayName(device).lowercase(Locale.ROOT)
-        val byName = when {
-            Regex("""\b(buds?|pods?|earbuds?|earphones?)\b""").containsMatchIn(name) -> DeviceKind.EARBUDS
-            "watch" in name -> DeviceKind.WATCH
-            Regex("""\b(controller|gamepad|joy-?con|dualsense|dualshock)\b""").containsMatchIn(name) ||
-                "xbox" in name || "8bitdo" in name -> DeviceKind.GAMEPAD
-            "keyboard" in name || Regex("""\bkeys\b""").containsMatchIn(name) -> DeviceKind.KEYBOARD
-            "mouse" in name || "mx master" in name || "trackpad" in name -> DeviceKind.MOUSE
-            else -> null
-        }
+    /**
+     * What a device is: your own choice (set in the widget's settings) first, then its name
+     * (common speakers, Sony's WH/WF ranges and so on), then the type it announces over Bluetooth.
+     */
+    @SuppressLint("MissingPermission") // only called after hasPermission()
+    fun kindOf(context: Context, device: BluetoothDevice): DeviceKind =
+        DevicePrefs.kindChoice(context, device.address) ?: guessedKind(device)
+
+    /** The kind the widget works out on its own, shown as "Automatic" in the settings. */
+    @SuppressLint("MissingPermission") // only called after hasPermission(); a refusal is caught
+    fun guessedKind(device: BluetoothDevice): DeviceKind {
+        val byName = DeviceNames.kindOf(displayName(device))
         val cls: BluetoothClass? = try { device.bluetoothClass } catch (e: SecurityException) { null }
         val deviceClass = cls?.deviceClass ?: 0
         val byClass = when (cls?.majorDeviceClass) {
@@ -117,16 +116,33 @@ object BluetoothDevices {
         return byName ?: byClass ?: DeviceKind.OTHER
     }
 
+    /** A paired device, for the settings' "Device types" list. */
+    data class Paired(val address: String, val name: String, val guessed: DeviceKind)
+
+    /** Every paired device, by name (empty without the Nearby devices permission or with Bluetooth off). */
+    @SuppressLint("MissingPermission") // checked by hasPermission()
+    fun paired(context: Context): List<Paired> {
+        if (!hasPermission(context)) return emptyList()
+        val bonded = try {
+            adapter(context)?.bondedDevices.orEmpty()
+        } catch (e: SecurityException) {
+            return emptyList()
+        }
+        return bonded.map { Paired(it.address, displayName(it), guessedKind(it)) }
+            .sortedBy { it.name.lowercase(Locale.ROOT) }
+    }
+
     /** This phone's battery, 0..100. */
     fun phoneLevel(context: Context): Int =
         context.getSystemService(BatteryManager::class.java)?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
             ?.takeIf { it in 0..100 } ?: 0
 }
 
-/** Battery levels from broadcasts, kept as a fallback for devices that don't answer directly. */
+/** Battery levels from broadcasts (a fallback for devices that don't answer directly), and the kinds you chose. */
 object DevicePrefs {
     private const val FILE = "widgetsplus_devices"
     private const val LEVEL = "level_"
+    private const val KIND = "kind_"
 
     private fun prefs(context: Context) = context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
@@ -135,6 +151,16 @@ object DevicePrefs {
     fun setCachedLevel(context: Context, address: String, level: Int) {
         val edit = prefs(context).edit()
         if (level in 0..100) edit.putInt(LEVEL + address, level) else edit.remove(LEVEL + address)
+        edit.apply()
+    }
+
+    /** The kind you chose for a device (by its Bluetooth address), or null for automatic. */
+    fun kindChoice(context: Context, address: String): DeviceKind? =
+        prefs(context).getString(KIND + address, null)?.let { name -> DeviceKind.entries.firstOrNull { it.name == name } }
+
+    fun setKindChoice(context: Context, address: String, kind: DeviceKind?) {
+        val edit = prefs(context).edit()
+        if (kind == null) edit.remove(KIND + address) else edit.putString(KIND + address, kind.name)
         edit.apply()
     }
 }
