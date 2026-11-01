@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -289,16 +291,26 @@ private fun DayLine(
             }
             day.events.forEach { event ->
                 val time = if (event.allDay) stringResource(R.string.agenda_all_day) else AgendaFormat.time(context, event.begin)
-                Text(
-                    buildAnnotatedString {
-                        withStyle(SpanStyle(color = onCardVar, fontWeight = FontWeight.Medium)) { append(time) }
-                        append("  ")
-                        append(event.title)
-                    },
-                    color = onCard, fontSize = 12.5.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).clickable { onOpenEvent(event) }.padding(vertical = 2.dp),
-                )
+                // Calendar colour: a dot before the time, as on the widget and the day sheet.
+                Row(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).clickable { onOpenEvent(event) }.padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    if (event.color != 0) {
+                        Box(Modifier.size(7.dp).clip(CircleShape).background(Color(event.color).copy(alpha = 1f)))
+                    }
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(SpanStyle(color = onCardVar, fontWeight = FontWeight.Medium)) { append(time) }
+                            append("  ")
+                            append(event.title)
+                        },
+                        color = onCard, fontSize = 12.5.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
         }
     }
