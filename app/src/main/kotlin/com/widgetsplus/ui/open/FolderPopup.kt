@@ -76,6 +76,9 @@ import kotlinx.coroutines.launch
 /** One swipeable page of the popup. */
 private data class Tab(val title: String, val items: List<FolderItem>, val category: Category? = null)
 
+/** Pages in the open folder's looping pager; plenty to swipe through in either direction. */
+private const val LOOP_PAGES = 100_000
+
 /**
  * Scrim + centred card in the agenda widget's style: its see-through plate (the Frosting setting
  * sets how see-through) with a hairline, the folder's name top left when it has one, the tabs as
@@ -100,7 +103,15 @@ fun FolderPopup(
     val tabs = remember(folder, categories, items, allLabel, otherLabel) {
         buildTabs(folder, categories, items, labelOf, allLabel, otherLabel)
     }
-    val pagerState = rememberPagerState(pageCount = { tabs.size })
+    // With more than one tab the tabs loop: past the last comes the first again, and before the
+    // first, the last. The pager then has LOOP_PAGES pages, starts in the middle on the first tab,
+    // and page mod the number of tabs is the tab it shows.
+    val loops = tabs.size > 1
+    val pagerState = rememberPagerState(
+        initialPage = if (loops) LOOP_PAGES / 2 - (LOOP_PAGES / 2) % tabs.size else 0,
+        pageCount = { if (tabs.size > 1) LOOP_PAGES else tabs.size },
+    )
+    fun tabIndex(page: Int) = if (tabs.size > 1) page.mod(tabs.size) else page
     // While an app is being dragged, swipes mustn't change the tab.
     var dragging by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -157,7 +168,7 @@ fun FolderPopup(
                     if (tabs.size > 1) {
                         Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             tabs.forEachIndexed { index, tab ->
-                                val selected = pagerState.currentPage == index
+                                val selected = tabIndex(pagerState.currentPage) == index
                                 Box(
                                     Modifier
                                         .height(32.dp)
@@ -166,7 +177,11 @@ fun FolderPopup(
                                             if (selected) Modifier.background(badge)
                                             else Modifier.border(1.dp, onPlate.copy(alpha = 0.35f), RoundedCornerShape(16.dp)),
                                         )
-                                        .selectable(selected = selected, role = Role.Tab, onClick = { scope.launch { pagerState.animateScrollToPage(index) } })
+                                        .selectable(selected = selected, role = Role.Tab, onClick = {
+                                            // Straight to that tab, the way the tabs are laid out.
+                                            val current = pagerState.currentPage
+                                            scope.launch { pagerState.animateScrollToPage(current + index - tabIndex(current)) }
+                                        })
                                         .padding(horizontal = 14.dp),
                                     contentAlignment = Alignment.Center,
                                 ) {
@@ -194,7 +209,8 @@ fun FolderPopup(
                         verticalAlignment = Alignment.Top,
                         userScrollEnabled = !dragging,
                     ) { page ->
-                        val shown = tabs[page].items
+                        val tab = tabs[tabIndex(page)]
+                        val shown = tab.items
                         if (shown.isEmpty()) {
                             Text(
                                 stringResource(R.string.folder_empty),
@@ -210,7 +226,7 @@ fun FolderPopup(
                                 textColor = onCard,
                                 onLaunch = onLaunch,
                                 onDragging = { dragging = it },
-                                onReorder = { onReorder(tabs[page].category, it) },
+                                onReorder = { onReorder(tab.category, it) },
                             )
                         }
                     }
