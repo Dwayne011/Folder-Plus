@@ -174,9 +174,13 @@ object WidgetRenderer {
      * cards ([FolderCards]) travel inside this update, built here in one go, so the launcher
      * never asks a service for them: when it did, Android fetched them in the background, one
      * request per widget size at the same time, and could mix up the cards' icons or, when a
-     * request ran late, show no cards at all. An update keeps the card on show. Every tap on a
-     * card goes through the stack's template to [WidgetTapActivity], with the card's fill-in
-     * saying what was tapped.
+     * request ran late, show no cards at all. Every tap on a card goes through the stack's
+     * template to [WidgetTapActivity], with the card's fill-in saying what was tapped; it
+     * remembers the card's category ([FolderStackPosition]).
+     *
+     * The stack lists the categories from the one last used and every update shows card 0
+     * (CardLoop): StackView, looping, otherwise leaves some cards empty when an update arrives
+     * away from card 0, and the stack showed no card until another swipe.
      */
     @RequiresApi(Build.VERSION_CODES.S)
     private fun stack(
@@ -190,14 +194,20 @@ object WidgetRenderer {
         val frame = heightDp - 2 * MosaicLayout.BORDER_DP + 2 * STACK_FRAME_PADDING_DP
         views.setViewLayoutHeight(R.id.fstack_column, 4 * frame + 16f, TypedValue.COMPLEX_UNIT_DIP)
 
-        views.setRemoteAdapter(R.id.fstack, FolderCards(context, apps, folder, widthDp, heightDp).items(tabs))
-        // Cards fill in what was tapped. The template must be mutable, and on Android 14 a mutable
-        // PendingIntent must be explicit, so it targets our tap activity.
-        val template = Intent(context, WidgetTapActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val lastTab = FolderStackPosition.get(context, appWidgetId)
+        views.setRemoteAdapter(R.id.fstack, FolderCards(context, apps, folder, widthDp, heightDp).items(tabs, lastTab))
+        // Cards fill in what was tapped; the template says which widget. The template must be
+        // mutable, and on Android 14 a mutable PendingIntent must be explicit, so it targets our
+        // tap activity.
+        val template = Intent(context, WidgetTapActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
         views.setPendingIntentTemplate(
             R.id.fstack,
             PendingIntent.getActivity(context, requestCode(appWidgetId, ZONE_STACK), template, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE),
         )
+        // After the cards, so the stack is on card 0 before it refills them.
+        views.setDisplayedChild(R.id.fstack, 0)
         return views
     }
 

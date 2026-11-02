@@ -14,6 +14,7 @@ import com.widgetsplus.core.model.FolderItem
 import com.widgetsplus.core.model.FolderTabContents
 import com.widgetsplus.core.model.NameAlign
 import com.widgetsplus.core.model.TabContent
+import com.widgetsplus.core.widget.CardLoop
 import com.widgetsplus.core.widget.MosaicLayout
 import com.widgetsplus.core.widget.MosaicPlan
 import kotlin.math.roundToInt
@@ -38,11 +39,15 @@ internal class FolderCards(
     private val widthDp: Float,
     private val heightDp: Float,
 ) {
-    fun items(tabs: List<TabContent>): RemoteViews.RemoteCollectionItems {
+    /**
+     * The cards in the loop's order, starting from the tab whose key is [lastTab] (the first tab
+     * when there isn't one): the widget shows card 0 on every update ([CardLoop]).
+     */
+    fun items(tabs: List<TabContent>, lastTab: String?): RemoteViews.RemoteCollectionItems {
         val builder = RemoteViews.RemoteCollectionItems.Builder()
             .setHasStableIds(true)
             .setViewTypeCount(1)
-        tabs.forEach { tab -> builder.addItem(stableId(tab), card(tab)) }
+        CardLoop.order(tabs, { it.key }, lastTab).forEach { tab -> builder.addItem(stableId(tab), card(tab)) }
         return builder.build()
     }
 

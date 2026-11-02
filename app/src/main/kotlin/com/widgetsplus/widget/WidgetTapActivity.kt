@@ -1,6 +1,7 @@
 package com.widgetsplus.widget
 
 import android.app.Activity
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -59,6 +60,12 @@ class WidgetTapActivity : Activity() {
         if (folderId <= 0) {
             finish()
             return
+        }
+        // A card of a widget that swipes between categories: its next update starts there.
+        val appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+        val tappedTab = tab
+        if (tappedTab != null && appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+            FolderStackPosition.set(this, appWidgetId, tappedTab)
         }
         if (intent.getBooleanExtra(EXTRA_OPEN_NOW, false)) {
             // "+N" or a gap on a category card: open the folder on that category.

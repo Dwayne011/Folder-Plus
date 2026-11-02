@@ -59,6 +59,7 @@ abstract class FolderWidgetProvider : AppWidgetProvider() {
     }
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        FolderStackPosition.clear(context, appWidgetIds)
         val pending = goAsync()
         scope.launch {
             try {
