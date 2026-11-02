@@ -53,7 +53,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewModelScope
 import com.widgetsplus.Graph
 import com.widgetsplus.R
-import com.widgetsplus.agenda.AgendaSetupActivity
+import com.widgetsplus.agenda.AgendaConfigActivity
 import com.widgetsplus.devices.DevicesSetupActivity
 import com.widgetsplus.core.model.Folder
 import com.widgetsplus.apps.ShortcutStore
@@ -160,7 +160,7 @@ fun FolderListScreen(onOpenFolder: (Long) -> Unit) {
                             text = { Text(stringResource(R.string.agenda_menu)) },
                             onClick = {
                                 menuOpen = false
-                                context.startActivity(Intent(context, AgendaSetupActivity::class.java))
+                                context.startActivity(Intent(context, AgendaConfigActivity::class.java))
                             },
                         )
                         DropdownMenuItem(

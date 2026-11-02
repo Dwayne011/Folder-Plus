@@ -40,6 +40,8 @@ class AgendaWidgetProvider : AppWidgetProvider() {
         const val EXTRA_SLOTS = "slots"
         /** Card height in dp for the option 2 stack (Android 12+); 0 selects the fallback layout. */
         const val EXTRA_CARD_HEIGHT = "card_height_dp"
+        /** Width of a day card in dp, so the cards can tell which titles need a second line. */
+        const val EXTRA_CARD_WIDTH = "card_width_dp"
 
         fun placedIds(context: Context): IntArray =
             AppWidgetManager.getInstance(context).getAppWidgetIds(ComponentName(context, AgendaWidgetProvider::class.java))
@@ -138,7 +140,7 @@ class AgendaWidgetProvider : AppWidgetProvider() {
                 views.setViewVisibility(R.id.agenda_stack_column, View.GONE)
                 views.setViewVisibility(R.id.agenda_empty, View.VISIBLE)
                 views.setTextViewText(R.id.agenda_empty, context.getString(R.string.agenda_need_permission))
-                val setup = Intent(context, AgendaSetupActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                val setup = Intent(context, AgendaConfigActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 views.setOnClickPendingIntent(R.id.agenda_root, PendingIntent.getActivity(context, appWidgetId, setup, immutable))
             } else {
                 views.setViewVisibility(R.id.agenda_stack_column, View.VISIBLE)
@@ -147,6 +149,7 @@ class AgendaWidgetProvider : AppWidgetProvider() {
                     .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
                     .putExtra(EXTRA_SLOTS, slotsFor(frameH))
                     .putExtra(EXTRA_CARD_HEIGHT, if (parked) frameH else 0f)
+                    .putExtra(EXTRA_CARD_WIDTH, size.width - FRAME_PADDING_DP - 2 * STACK_FRAME_PADDING_DP)
                 adapter.data = Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME))
                 @Suppress("DEPRECATION")
                 views.setRemoteAdapter(R.id.agenda_stack, adapter)

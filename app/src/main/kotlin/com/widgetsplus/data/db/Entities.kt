@@ -14,6 +14,7 @@ import com.widgetsplus.core.model.HostedWidget
 import com.widgetsplus.core.model.LockMode
 import com.widgetsplus.core.model.SortMode
 import com.widgetsplus.core.model.TapAction
+import com.widgetsplus.core.model.TextSize
 import com.widgetsplus.core.model.WidgetSize
 
 @Entity(tableName = "folders")
@@ -38,6 +39,8 @@ data class FolderEntity(
     @ColumnInfo(defaultValue = "40") val frosting: Int = 40,
     // Added in schema v5: where the "All" tab sits among the category tabs.
     @ColumnInfo(defaultValue = "0") val allTabPosition: Int = 0,
+    // Added in schema v6: size of the app names in the open folder, in percent.
+    @ColumnInfo(defaultValue = "100") val appNameSize: Int = 100,
 )
 
 @Entity(
@@ -101,6 +104,7 @@ fun FolderEntity.toModel() = Folder(
     showAllCategory = showAllCategory,
     frosting = frosting.coerceIn(0, Folder.MAX_FROSTING),
     allTabPosition = allTabPosition.coerceAtLeast(0),
+    appNameSize = TextSize.clamp(appNameSize),
 )
 
 fun Folder.toEntity() = FolderEntity(
@@ -120,6 +124,7 @@ fun Folder.toEntity() = FolderEntity(
     showAllCategory = showAllCategory,
     frosting = frosting,
     allTabPosition = allTabPosition,
+    appNameSize = appNameSize,
 )
 
 fun CategoryEntity.toModel() = Category(id, folderId, name, position, sortMode)

@@ -6,15 +6,16 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.widgetsplus.ui.theme.WidgetsPlusTheme
+import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.time.LocalDate
 
 /** The "+N more" sheet: one day's events as a scrollable list, swipe down to close. */
 class AgendaDayActivity : ComponentActivity() {
@@ -30,14 +31,17 @@ class AgendaDayActivity : ComponentActivity() {
                 LaunchedEffect(date) {
                     day = withContext(Dispatchers.IO) { CalendarAgenda.loadDay(this@AgendaDayActivity, date) }
                 }
-                AgendaDaySheet(
-                    date = date,
-                    day = day,
-                    palette = remember { AgendaPalette(this) },
-                    onOpenEvent = { AgendaFormat.open(this, AgendaFormat.eventIntent(it)); finish() },
-                    onOpenLocation = { loc -> AgendaFormat.locationIntent(loc)?.let { AgendaFormat.open(this, it) }; finish() },
-                    onDismiss = ::finish,
-                )
+                // The calendar's text size from its settings.
+                CompositionLocalProvider(LocalAgendaTextScale provides remember { AgendaPrefs.textScale(this) }) {
+                    AgendaDaySheet(
+                        date = date,
+                        day = day,
+                        palette = remember { AgendaPalette(this) },
+                        onOpenEvent = { AgendaFormat.open(this, AgendaFormat.eventIntent(it)); finish() },
+                        onOpenLocation = { loc -> AgendaFormat.locationIntent(loc)?.let { AgendaFormat.open(this, it) }; finish() },
+                        onDismiss = ::finish,
+                    )
+                }
             }
         }
     }

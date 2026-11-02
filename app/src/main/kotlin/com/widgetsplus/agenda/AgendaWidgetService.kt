@@ -3,12 +3,16 @@ package com.widgetsplus.agenda
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Paint
+import android.graphics.Typeface
 import android.os.Build
 import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
+import androidx.annotation.RequiresApi
 import com.widgetsplus.R
+import com.widgetsplus.core.agenda.AgendaRows
 import java.time.DayOfWeek
 
 /** Supplies the day cards for the agenda widget's stack. */
@@ -18,20 +22,32 @@ class AgendaWidgetService : RemoteViewsService() {
             applicationContext,
             intent.getIntExtra(AgendaWidgetProvider.EXTRA_SLOTS, 3),
             intent.getFloatExtra(AgendaWidgetProvider.EXTRA_CARD_HEIGHT, 0f),
+            intent.getFloatExtra(AgendaWidgetProvider.EXTRA_CARD_WIDTH, 0f),
         )
 }
 
 /**
  * [cardHeightDp] > 0: Android 12+ "parked" stack; each card is set to exactly the frame's height
  * so the cards behind it wait out of sight. 0: fallback stack, where every card is opaque.
+ *
+ * Text size (the calendar settings' slider) applies to the parked stack, where rows can be sized:
+ * text, pills and rows grow or shrink with it, titles too long for one line get a second line
+ * above 100%, and each card shows as many rows as fit ([AgendaRows]). The fallback stack on
+ * Android 8 to 11 keeps the normal size and [slotCount] rows.
  */
 class AgendaRemoteViewsFactory(
     private val context: Context,
     private val slotCount: Int,
     private val cardHeightDp: Float,
+    private val cardWidthDp: Float,
 ) : RemoteViewsService.RemoteViewsFactory {
     private var days: List<AgendaDay> = emptyList()
     private lateinit var palette: AgendaPalette
+    private val sized = cardHeightDp > 0f && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    private var scale = 1f
+    private val density = context.resources.displayMetrics.density
+    private val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = font("google-sans-text", 700) }
+    private val dayNumberPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = font("google-sans", 700); letterSpacing = -0.02f }
 
     private class Slot(val root: Int, val bg: Int, val badge: Int, val icon: Int, val whenText: Int, val title: Int, val loc: Int, val dot: Int)
 
@@ -47,6 +63,7 @@ class AgendaRemoteViewsFactory(
 
     override fun onDataSetChanged() {
         palette = AgendaPalette(context)
+        scale = if (sized) AgendaPrefs.textScale(context) else 1f
         days = CalendarAgenda.load(context)
     }
 
@@ -62,7 +79,15 @@ class AgendaRemoteViewsFactory(
         palette = AgendaPalette(context)
         val day = days[position]
         val views = RemoteViews(context.packageName, R.layout.widget_agenda_day)
-        val visibleSlots = slotCount.coerceIn(1, slots.size)
+
+        // Which rows show: sized to the text (titles on two lines above 100% when they need it)
+        // and fitted to the card; or, on the fallback stack, the fixed number of 44dp rows.
+        val candidates = day.events.take(slots.size)
+        val twoLines = candidates.map { sized && AgendaRows.titlesWrap(scale) && needsTwoLines(it.title) }
+        val rowHeights = candidates.mapIndexed { i, e -> AgendaRows.rowDp(scale, twoLines[i], e.location.isNotEmpty()) }
+        val visibleSlots = if (sized) AgendaRows.fit(cardHeightDp, rowHeights, day.events.size, scale)
+        else slotCount.coerceIn(1, slots.size)
+        if (sized && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) sizeDayCard(views, day.date.dayOfMonth.toString())
 
         if (cardHeightDp > 0f && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             views.setViewLayoutHeight(R.id.day_root, cardHeightDp, TypedValue.COMPLEX_UNIT_DIP)
@@ -116,6 +141,13 @@ class AgendaRemoteViewsFactory(
                 return@forEachIndexed
             }
             views.setViewVisibility(slot.root, View.VISIBLE)
+            if (sized && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                views.setViewLayoutHeight(slot.root, rowHeights[index], TypedValue.COMPLEX_UNIT_DIP)
+                views.setTextViewTextSize(slot.whenText, TypedValue.COMPLEX_UNIT_DIP, 10f * scale)
+                views.setTextViewTextSize(slot.title, TypedValue.COMPLEX_UNIT_DIP, 12.5f * scale)
+                views.setTextViewTextSize(slot.loc, TypedValue.COMPLEX_UNIT_DIP, 11f * scale)
+                views.setInt(slot.title, "setMaxLines", if (twoLines[index]) 2 else 1)
+            }
             AgendaPalette.tint(views, slot.bg, palette.card, 255)
             AgendaPalette.tint(views, slot.badge, palette.badge, 255)
             views.setImageViewResource(slot.icon, CalendarAgenda.iconFor(event.title))
@@ -142,7 +174,7 @@ class AgendaRemoteViewsFactory(
             views.setOnClickFillInIntent(slot.root, Intent().setData(fill.data).putExtras(fill.extras ?: android.os.Bundle()))
         }
 
-        val extra = day.events.size - visibleSlots
+        val extra = day.events.size - minOf(visibleSlots, day.events.size)
         views.setViewVisibility(R.id.day_more_wrap, if (extra > 0) View.VISIBLE else View.GONE)
         if (extra > 0) {
             views.setViewVisibility(R.id.day_more, View.VISIBLE)
@@ -160,5 +192,45 @@ class AgendaRemoteViewsFactory(
             views.setOnClickFillInIntent(R.id.day_free, Intent().setData(AgendaFormat.dayIntent(day.date).data))
         }
         return views
+    }
+
+    /** Text sizes on the date card, the pills and "Nothing planned", for [scale]. */
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun sizeDayCard(views: RemoteViews, dayNumber: String) {
+        val dip = TypedValue.COMPLEX_UNIT_DIP
+        views.setTextViewTextSize(R.id.day_dow, dip, 16f * scale)
+        views.setTextViewTextSize(R.id.day_num, dip, dayNumberSize(dayNumber))
+        listOf(R.id.day_month_text, R.id.day_today_text, R.id.day_more).forEach { views.setTextViewTextSize(it, dip, 10.5f * scale) }
+        listOf(R.id.day_month_pill, R.id.day_today_pill, R.id.day_more_wrap).forEach { views.setViewLayoutHeight(it, AgendaRows.chipDp(scale), dip) }
+        views.setTextViewTextSize(R.id.day_free_text, dip, 11f * scale)
+        views.setViewLayoutHeight(R.id.day_free, AgendaRows.baseRowDp(scale), dip)
+    }
+
+    /** The date number grows with the text, but never wider than the date card's 92dp inside. */
+    private fun dayNumberSize(text: String): Float {
+        val size = 56f * scale
+        dayNumberPaint.textSize = size * density
+        val width = dayNumberPaint.measureText(text) / density
+        return if (width > DAY_NUMBER_MAX_DP) size * DAY_NUMBER_MAX_DP / width else size
+    }
+
+    /** Whether [title] is too long for one line of the row at this size. */
+    private fun needsTwoLines(title: String): Boolean {
+        val widthDp = cardWidthDp - ROW_CHROME_DP
+        if (widthDp <= 0f) return false
+        titlePaint.textSize = 12.5f * scale * density
+        return titlePaint.measureText(title) / density > widthDp
+    }
+
+    private fun font(family: String, weight: Int): Typeface {
+        val base = Typeface.create(family, Typeface.NORMAL)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) Typeface.create(base, weight, false)
+        else Typeface.create(base, Typeface.BOLD)
+    }
+
+    private companion object {
+        /** Everything beside a row's title: date card 104, gap 12, group padding 12, row padding 16, badge 32, gap 8. */
+        const val ROW_CHROME_DP = 184f
+        const val DAY_NUMBER_MAX_DP = 90f
     }
 }

@@ -3,12 +3,10 @@ package com.widgetsplus.devices
 import android.Manifest
 import android.app.Activity
 import android.appwidget.AppWidgetManager
-import android.content.ComponentName
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -23,7 +21,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AddToHomeScreen
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Devices
@@ -130,14 +127,6 @@ class DevicesSetupActivity : ComponentActivity() {
                     },
                     {
                         SettingRow(
-                            title = stringResource(R.string.devices_add_widget),
-                            subtitle = stringResource(R.string.devices_add_widget_hint),
-                            leading = { RowIcon(Icons.Default.AddToHomeScreen) },
-                            onClick = { pinWidget() },
-                        )
-                    },
-                    {
-                        SettingRow(
                             title = stringResource(R.string.devices_bluetooth_settings),
                             subtitle = stringResource(R.string.devices_bluetooth_settings_hint),
                             leading = { RowIcon(Icons.Default.Bluetooth) },
@@ -224,14 +213,5 @@ class DevicesSetupActivity : ComponentActivity() {
         DeviceKind.SPEAKER -> Icons.Default.Speaker
         DeviceKind.CAR -> Icons.Default.DirectionsCar
         DeviceKind.OTHER -> Icons.Default.Bluetooth
-    }
-
-    private fun pinWidget() {
-        val manager = AppWidgetManager.getInstance(this)
-        if (!manager.isRequestPinAppWidgetSupported) {
-            Toast.makeText(this, R.string.pin_not_supported, Toast.LENGTH_LONG).show()
-            return
-        }
-        manager.requestPinAppWidget(ComponentName(this, DevicesWidgetProvider::class.java), null, null)
     }
 }

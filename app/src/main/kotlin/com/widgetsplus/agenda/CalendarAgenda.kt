@@ -8,6 +8,7 @@ import android.provider.CalendarContract
 import androidx.core.content.ContextCompat
 import com.widgetsplus.R
 import com.widgetsplus.core.agenda.EventText
+import com.widgetsplus.core.model.TextSize
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -34,10 +35,21 @@ data class AgendaDay(val date: LocalDate, val events: List<AgendaEvent>) {
 /** A calendar on the device, for the "which calendars" chooser. */
 data class AgendaCalendar(val id: Long, val name: String, val account: String, val color: Int)
 
-/** Which calendars the user has switched off. Shared by every agenda widget. */
+/** Which calendars the user has switched off, and the text size. Shared by every agenda widget. */
 object AgendaPrefs {
     private const val FILE = "widgetsplus_agenda"
     private const val KEY_EXCLUDED = "excluded_calendars"
+    private const val KEY_TEXT_SIZE = "text_size"
+
+    /** Text size in percent ([TextSize]) for the widget and its day and 30-day views. */
+    fun textSize(context: Context): Int =
+        TextSize.clamp(context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getInt(KEY_TEXT_SIZE, TextSize.DEFAULT))
+
+    fun textScale(context: Context): Float = TextSize.scale(textSize(context))
+
+    fun setTextSize(context: Context, percent: Int) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putInt(KEY_TEXT_SIZE, TextSize.clamp(percent)).apply()
+    }
 
     fun excluded(context: Context): Set<Long> =
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getStringSet(KEY_EXCLUDED, emptySet())

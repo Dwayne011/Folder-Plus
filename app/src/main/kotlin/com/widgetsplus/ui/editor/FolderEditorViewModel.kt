@@ -14,7 +14,7 @@ import com.widgetsplus.core.model.HostedWidget
 import com.widgetsplus.core.model.LockMode
 import com.widgetsplus.core.model.SortMode
 import com.widgetsplus.core.model.TapAction
-import com.widgetsplus.core.model.WidgetSize
+import com.widgetsplus.core.model.TextSize
 import com.widgetsplus.core.sort.AppSorter
 import com.widgetsplus.widget.WidgetUpdater
 import kotlinx.coroutines.flow.SharingStarted
@@ -68,9 +68,9 @@ class FolderEditorViewModel(private val graph: Graph, val folderId: Long) : View
     fun setDoubleTapAction(action: TapAction) = update { it.copy(doubleTapAction = action) }
     fun setSortMode(mode: SortMode) = update { it.copy(sortMode = mode) }
     fun setLockMode(mode: LockMode) = update { it.copy(lockMode = mode) }
-    fun setWidgetSize(size: WidgetSize) = update { it.copy(widgetSize = size) }
     fun setShowAllCategory(show: Boolean) = update { it.copy(showAllCategory = show) }
     fun setFrosting(level: Int) = update { it.copy(frosting = level.coerceIn(0, Folder.MAX_FROSTING)) }
+    fun setAppNameSize(percent: Int) = update { it.copy(appNameSize = TextSize.clamp(percent)) }
 
     /** Stores the widget picked in HostedWidgetPickerActivity, releasing any previous one. */
     fun setHostedWidget(provider: String, appWidgetId: Int) = update { old ->

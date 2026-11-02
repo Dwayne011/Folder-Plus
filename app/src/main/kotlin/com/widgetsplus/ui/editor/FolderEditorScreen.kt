@@ -23,9 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.AddToHomeScreen
 import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.AspectRatio
 import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -52,10 +50,8 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -78,7 +74,6 @@ import com.widgetsplus.core.model.FolderIconMode
 import com.widgetsplus.core.model.LockMode
 import com.widgetsplus.core.model.SortMode
 import com.widgetsplus.core.model.TapAction
-import com.widgetsplus.core.model.WidgetSize
 import com.widgetsplus.graph
 import com.widgetsplus.ui.common.AppIconImage
 import com.widgetsplus.ui.common.ConfirmDialog
@@ -91,20 +86,16 @@ import com.widgetsplus.ui.common.SetPinDialog
 import com.widgetsplus.ui.common.SettingRow
 import com.widgetsplus.ui.common.SettingsGroup
 import com.widgetsplus.ui.common.TextInputDialog
+import com.widgetsplus.ui.common.TextSizeRow
 import com.widgetsplus.ui.common.displayName
 import com.widgetsplus.ui.common.label
 import com.widgetsplus.widget.HostedWidgetPickerActivity
-import com.widgetsplus.widget.WidgetPinner
-import com.widgetsplus.widget.WidgetUpdater
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
 /** Which dialog the editor is showing; kept as a string so it survives rotation. */
 private const val DIALOG_NONE = ""
 private const val DIALOG_RENAME = "rename"
 private const val DIALOG_DELETE = "delete"
-private const val DIALOG_SIZE = "size"
 private const val DIALOG_ICON = "icon"
 private const val DIALOG_DEFAULT = "default"
 private const val DIALOG_TAP = "tap"
@@ -188,15 +179,6 @@ fun FolderEditorScreen(
                 )
                 Spacer(Modifier.height(16.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    FilledTonalButton(onClick = {
-                        if (!WidgetPinner.pin(context, current)) {
-                            Toast.makeText(context, R.string.pin_not_supported, Toast.LENGTH_LONG).show()
-                        }
-                    }) {
-                        Icon(Icons.Default.AddToHomeScreen, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                        Text(stringResource(R.string.add_to_home))
-                    }
                     FilledTonalButton(onClick = onManageApps) {
                         Icon(Icons.Default.Apps, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                         Spacer(Modifier.width(ButtonDefaults.IconSpacing))
@@ -239,7 +221,7 @@ fun FolderEditorScreen(
                 {
                     SettingRow(
                         title = stringResource(R.string.appearance),
-                        subtitle = current.iconMode.label() + " · " + current.widgetSize.label,
+                        subtitle = current.iconMode.label(),
                         leading = { RowIcon(Icons.Default.Palette) },
                         trailing = chevron,
                         onClick = onAppearance,
@@ -406,39 +388,10 @@ fun AppearanceScreen(folderId: Long, onBack: () -> Unit) {
     var dialog by rememberSaveable { mutableStateOf(DIALOG_NONE) }
     val current = folder ?: return
 
-    var widgetCount by remember { mutableIntStateOf(0) }
-    LaunchedEffect(current.id, items) {
-        widgetCount = withContext(Dispatchers.IO) {
-            val placed = WidgetUpdater.placedWidgetIds(context).toSet()
-            context.graph.repository.widgetIdsForFolder(current.id).count { it in placed }
-        }
-    }
-
     EditorScaffold(title = stringResource(R.string.appearance), onBack = onBack) {
         item { SectionTitle(stringResource(R.string.widget_section)) }
         item {
             SettingsGroup(rows = listOf(
-                {
-                    SettingRow(
-                        title = stringResource(R.string.add_to_home),
-                        subtitle = if (widgetCount == 0) stringResource(R.string.widgets_showing_none)
-                        else stringResource(R.string.widgets_showing_folder, widgetCount),
-                        leading = { RowIcon(Icons.Default.AddToHomeScreen) },
-                        onClick = {
-                            if (!WidgetPinner.pin(context, current)) {
-                                Toast.makeText(context, R.string.pin_not_supported, Toast.LENGTH_LONG).show()
-                            }
-                        },
-                    )
-                },
-                {
-                    SettingRow(
-                        title = stringResource(R.string.widget_size),
-                        subtitle = current.widgetSize.label + " · " + stringResource(R.string.widget_size_hint),
-                        leading = { RowIcon(Icons.Default.AspectRatio) },
-                        onClick = { dialog = DIALOG_SIZE },
-                    )
-                },
                 {
                     SettingRow(
                         title = stringResource(R.string.icon_mode),
@@ -453,7 +406,17 @@ fun AppearanceScreen(folderId: Long, onBack: () -> Unit) {
         item { SectionTitle(stringResource(R.string.popup_section)) }
         item {
             // The "All" tab's switch lives on the Categories page, beside the tabs it orders.
-            SettingsGroup(rows = listOf({ FrostingRow(level = current.frosting, onCommit = vm::setFrosting) }))
+            SettingsGroup(rows = listOf(
+                { FrostingRow(level = current.frosting, onCommit = vm::setFrosting) },
+                {
+                    TextSizeRow(
+                        title = stringResource(R.string.app_name_size),
+                        subtitle = stringResource(R.string.app_name_size_hint),
+                        percent = current.appNameSize,
+                        onCommit = vm::setAppNameSize,
+                    )
+                },
+            ))
         }
     }
 
@@ -522,14 +485,6 @@ private fun EditorDialogs(
             text = stringResource(R.string.delete_folder_confirm, folder.displayName()),
             confirmText = stringResource(R.string.delete),
             onConfirm = { vm.deleteFolder(onDeleted) },
-            onDismiss = onDismiss,
-        )
-
-        dialog == DIALOG_SIZE -> OptionPickerDialog(
-            title = stringResource(R.string.widget_size),
-            options = WidgetSize.PRESETS.map { Option(it, it.label) },
-            selected = folder.widgetSize,
-            onSelect = vm::setWidgetSize,
             onDismiss = onDismiss,
         )
 

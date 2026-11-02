@@ -58,7 +58,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.widgetsplus.R
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -153,13 +152,13 @@ fun AgendaMonthSheet(
                     Box(Modifier.width(36.dp).height(4.dp).clip(RoundedCornerShape(2.dp)).background(onPlate.copy(alpha = 0.35f)))
                 }
                 Row(Modifier.fillMaxWidth().padding(start = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(R.string.agenda_next_days), color = onPlate, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                    Text(stringResource(R.string.agenda_next_days), color = onPlate, fontSize = agendaSp(16f), fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                     val first = days?.firstOrNull()?.date
                     val last = days?.lastOrNull()?.date
                     if (first != null && last != null) {
                         Text(
                             stringResource(R.string.agenda_range, AgendaFormat.shortDate(first), AgendaFormat.shortDate(last)),
-                            color = onPlateVar, fontSize = 12.sp, fontWeight = FontWeight.Medium,
+                            color = onPlateVar, fontSize = agendaSp(12f), fontWeight = FontWeight.Medium,
                         )
                     }
                 }
@@ -175,8 +174,8 @@ fun AgendaMonthSheet(
                     items(rows, key = { r -> if (r is MonthRow.Day) "d${r.index}" else "h${(r as MonthRow.Heading).name}" }) { row ->
                         when (row) {
                             is MonthRow.Heading -> Text(
-                                row.name.uppercase(), color = onPlate, fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold,
-                                letterSpacing = 0.9.sp, modifier = Modifier.padding(start = 6.dp, top = 6.dp),
+                                row.name.uppercase(), color = onPlate, fontSize = agendaSp(11f), lineHeight = agendaSp(14f), fontWeight = FontWeight.Bold,
+                                letterSpacing = agendaSp(0.9f), modifier = Modifier.padding(start = 6.dp, top = 6.dp),
                             )
                             is MonthRow.Day -> DayLine(row, card, badge, accent, onCard, onCardVar, context, onShowDay, onOpenEvent)
                         }
@@ -242,7 +241,7 @@ fun AgendaMonthSheet(
                     dayOnTop?.let { d ->
                         Text(
                             AgendaFormat.dayTitle(d.day.date),
-                            color = onCard, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                            color = onCard, fontSize = agendaSp(13f), fontWeight = FontWeight.Bold,
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .offset { IntOffset(-with(density) { 26.dp.roundToPx() }, (fraction * (trackPx - thumbPx)).roundToInt() + with(density) { 18.dp.roundToPx() }) }
@@ -282,23 +281,27 @@ private fun DayLine(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Text(AgendaFormat.dow(day.date), color = onCardVar, fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.5.sp)
-            Text(day.date.dayOfMonth.toString(), color = onCard, fontSize = 20.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold)
+            Text(AgendaFormat.dow(day.date), color = onCardVar, fontSize = agendaSp(10f), lineHeight = agendaSp(12f), fontWeight = FontWeight.Medium, letterSpacing = agendaSp(0.5f))
+            Text(day.date.dayOfMonth.toString(), color = onCard, fontSize = agendaSp(20f), lineHeight = agendaSp(24f), fontWeight = FontWeight.Bold)
         }
         Column(Modifier.weight(1f).padding(vertical = 2.dp), verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically)) {
             if (day.events.isEmpty()) {
-                Text(stringResource(R.string.agenda_nothing_planned), color = onCardVar, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium)
+                Text(stringResource(R.string.agenda_nothing_planned), color = onCardVar, fontSize = agendaSp(12f), lineHeight = agendaSp(16f), fontWeight = FontWeight.Medium)
             }
+            // Above 100% text size a line too long for the width wraps onto a second line, and the
+            // dot stays beside the first line.
+            val wrap = LocalAgendaTextScale.current > 1f
+            val dotTop = with(LocalDensity.current) { (agendaSp(16f).toDp() - 7.dp) / 2 }
             day.events.forEach { event ->
                 val time = if (event.allDay) stringResource(R.string.agenda_all_day) else AgendaFormat.time(context, event.begin)
                 // Calendar colour: a dot before the time, as on the widget and the day sheet.
                 Row(
                     Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).clickable { onOpenEvent(event) }.padding(vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = if (wrap) Alignment.Top else Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                 ) {
                     if (event.color != 0) {
-                        Box(Modifier.size(7.dp).clip(CircleShape).background(Color(event.color).copy(alpha = 1f)))
+                        Box(Modifier.padding(top = if (wrap) dotTop else 0.dp).size(7.dp).clip(CircleShape).background(Color(event.color).copy(alpha = 1f)))
                     }
                     Text(
                         buildAnnotatedString {
@@ -306,8 +309,8 @@ private fun DayLine(
                             append("  ")
                             append(event.title)
                         },
-                        color = onCard, fontSize = 12.5.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        color = onCard, fontSize = agendaSp(12.5f), lineHeight = agendaSp(16f), fontWeight = FontWeight.Bold,
+                        maxLines = if (wrap) 2 else 1, overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),
                     )
                 }

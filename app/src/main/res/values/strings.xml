@@ -32,10 +32,6 @@
     <string name="section_behaviour">Tap behaviour</string>
     <string name="section_contents">Contents</string>
     <string name="section_security">Security</string>
-    <string name="add_to_home">Add to home screen</string>
-    <string name="pin_not_supported">Your launcher does not support adding widgets from apps. Add it from the launcher’s widget picker instead.</string>
-    <string name="widget_size">Widget size</string>
-    <string name="widget_size_hint">Used when adding from here. You can still resize it on the home screen.</string>
     <string name="show_label">Show folder name on widget</string>
     <string name="icon_mode">Widget icon</string>
     <string name="icon_mosaic">Mosaic of app icons</string>
@@ -116,8 +112,6 @@
     <string name="config_no_folders">You have no folders yet. Create one for this widget.</string>
     <string name="config_or_create">Or create a new folder for this widget</string>
     <string name="config_created_hint">Folder created and linked to this widget. Add apps to it next.</string>
-    <string name="widgets_showing_none">Not on the home screen yet</string>
-    <string name="widgets_showing_folder">Shown by %1$d home-screen widget(s). Edits here update all of them.</string>
     <string name="select">Select</string>
     <string name="selected_count">%1$d selected</string>
     <string name="clear_selection">Clear selection</string>
@@ -146,8 +140,6 @@
     <string name="devices_allow">Allow Nearby devices</string>
     <string name="devices_granted">Nearby devices allowed</string>
     <string name="devices_permission_hint">Lets the widget see connected devices and their battery</string>
-    <string name="devices_add_widget">Add to home screen</string>
-    <string name="devices_add_widget_hint">Same width as the agenda; it adapts to one, two or three devices</string>
     <string name="devices_bluetooth_settings">Bluetooth settings</string>
     <string name="devices_bluetooth_settings_hint">Connect or forget devices</string>
     <string name="devices_types_section">Device types</string>
@@ -171,16 +163,16 @@
     <string name="agenda_need_permission">Tap to allow calendar access</string>
     <string name="agenda_empty">Nothing in the next two weeks</string>
     <string name="agenda_setup_title">Agenda widget</string>
-    <string name="agenda_setup_body">The Agenda widget shows your upcoming days as cards you swipe through. It needs permission to read your calendars; nothing is written or sent anywhere.</string>
     <string name="agenda_allow">Allow calendar access</string>
     <string name="agenda_granted">Calendar access granted</string>
     <string name="agenda_permission_hint">Reads events from the calendars on this phone</string>
-    <string name="agenda_add_widget">Add Agenda to home screen</string>
-    <string name="agenda_add_widget_hint">Full width, 3 rows tall by default; resize it to 4 rows for more events</string>
     <string name="agenda_menu">Agenda widget…</string>
     <string name="agenda_no_calendar_app">No calendar app can open this</string>
     <string name="agenda_calendars">Calendars</string>
     <string name="agenda_calendars_hint">Choose which calendars the Agenda widget shows</string>
+    <string name="agenda_text_size">Text size</string>
+    <string name="agenda_text_size_hint">Every calendar widget, plus its day view and “Next 30 days”</string>
+    <string name="agenda_access_section">Calendar access</string>
     <string name="agenda_join_link">Join meeting</string>
 
     <!-- Static text shown in the launcher widget picker previews -->
@@ -204,6 +196,8 @@
     <string name="appearance">Appearance</string>
     <string name="frosting">Frosting</string>
     <string name="frosting_hint">Translucency and blur of the folder popup</string>
+    <string name="app_name_size">App name size</string>
+    <string name="app_name_size_hint">Names under the icons in this folder when it\'s open</string>
     <string name="edit_apps">Edit apps</string>
     <string name="add_to_category">Add to %1$s</string>
     <string name="select_all">Select all</string>

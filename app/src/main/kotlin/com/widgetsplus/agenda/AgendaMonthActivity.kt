@@ -7,15 +7,16 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.widgetsplus.ui.theme.WidgetsPlusTheme
+import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.time.LocalDate
 
 /**
  * "Next 30 days", opened from the month pill on the widget's date card: every day the widget
@@ -36,14 +37,17 @@ class AgendaMonthActivity : ComponentActivity() {
                 LaunchedEffect(Unit) {
                     days = withContext(Dispatchers.IO) { CalendarAgenda.load(this@AgendaMonthActivity) }
                 }
-                AgendaMonthSheet(
-                    days = days,
-                    scrollTo = from,
-                    palette = remember { AgendaPalette(this) },
-                    onShowDay = { index -> AgendaWidgetProvider.showDay(this, widgetId, index); finish() },
-                    onOpenEvent = { AgendaFormat.open(this, AgendaFormat.eventIntent(it)); finish() },
-                    onDismiss = ::finish,
-                )
+                // The calendar's text size from its settings.
+                CompositionLocalProvider(LocalAgendaTextScale provides remember { AgendaPrefs.textScale(this) }) {
+                    AgendaMonthSheet(
+                        days = days,
+                        scrollTo = from,
+                        palette = remember { AgendaPalette(this) },
+                        onShowDay = { index -> AgendaWidgetProvider.showDay(this, widgetId, index); finish() },
+                        onOpenEvent = { AgendaFormat.open(this, AgendaFormat.eventIntent(it)); finish() },
+                        onDismiss = ::finish,
+                    )
+                }
             }
         }
     }

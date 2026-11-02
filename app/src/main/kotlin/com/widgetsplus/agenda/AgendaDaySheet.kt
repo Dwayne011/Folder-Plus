@@ -56,7 +56,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.widgetsplus.R
 import java.time.LocalDate
 import kotlin.math.max
@@ -137,9 +136,9 @@ fun AgendaDaySheet(
                 Box(Modifier.width(36.dp).height(4.dp).clip(RoundedCornerShape(2.dp)).background(onPlate.copy(alpha = 0.35f)))
             }
             Row(Modifier.fillMaxWidth().padding(start = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(AgendaFormat.dayTitle(date), color = onPlate, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(AgendaFormat.dayTitle(date), color = onPlate, fontSize = agendaSp(16f), fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 val count = day?.events?.size ?: 0
-                Text(pluralStringResource(R.plurals.agenda_event_count, count, count), color = onPlateVar, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                Text(pluralStringResource(R.plurals.agenda_event_count, count, count), color = onPlateVar, fontSize = agendaSp(12f), fontWeight = FontWeight.Medium)
             }
             LazyColumn(
                 state = listState,
@@ -155,7 +154,7 @@ fun AgendaDaySheet(
                 if (day != null && events.isEmpty()) {
                     item {
                         Box(Modifier.fillMaxWidth().height(64.dp), contentAlignment = Alignment.Center) {
-                            Text(stringResource(R.string.agenda_nothing_planned), color = Color(palette.onCardVar), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                            Text(stringResource(R.string.agenda_nothing_planned), color = Color(palette.onCardVar), fontSize = agendaSp(12f), fontWeight = FontWeight.Medium)
                         }
                     }
                 }
@@ -194,9 +193,9 @@ private fun EventDetailCard(
                 if (event.color != 0) {
                     Box(Modifier.size(7.dp).clip(CircleShape).background(Color(event.color).copy(alpha = 1f)))
                 }
-                Text(AgendaFormat.timeRange(context, event), color = onCardVar, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium)
+                Text(AgendaFormat.timeRange(context, event), color = onCardVar, fontSize = agendaSp(12f), lineHeight = agendaSp(16f), fontWeight = FontWeight.Medium)
             }
-            Text(event.title, color = onCard, fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(event.title, color = onCard, fontSize = agendaSp(15f), lineHeight = agendaSp(20f), fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
             if (event.location.isNotEmpty()) {
                 val link = AgendaFormat.isLink(event.location)
                 Row(
@@ -212,13 +211,13 @@ private fun EventDetailCard(
                     Icon(if (link) Icons.Default.Link else Icons.Default.Place, contentDescription = null, tint = onCard, modifier = Modifier.size(14.dp))
                     Text(
                         if (link) stringResource(R.string.agenda_join_link) else event.location,
-                        color = onCard, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                        color = onCard, fontSize = agendaSp(12f), lineHeight = agendaSp(16f), fontWeight = FontWeight.Medium, maxLines = 2, overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
             if (event.description.isNotEmpty()) {
                 Spacer(Modifier.height(2.dp))
-                Text(event.description, color = onCardVar, fontSize = 12.sp, lineHeight = 16.sp, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                Text(event.description, color = onCardVar, fontSize = agendaSp(12f), lineHeight = agendaSp(16f), maxLines = 3, overflow = TextOverflow.Ellipsis)
             }
         }
     }

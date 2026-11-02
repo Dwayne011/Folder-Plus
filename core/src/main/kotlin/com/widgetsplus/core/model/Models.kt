@@ -131,6 +131,8 @@ data class Folder(
     val frosting: Int = DEFAULT_FROSTING,
     /** Where the "All" tab sits among the category tabs (0 = first). */
     val allTabPosition: Int = 0,
+    /** Size of the app names in the open folder, in percent ([TextSize]). */
+    val appNameSize: Int = TextSize.DEFAULT,
 ) {
     companion object {
         const val DEFAULT_FROSTING = 40

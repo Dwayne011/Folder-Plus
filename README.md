@@ -19,7 +19,8 @@ easy to uninstall). Works on any launcher that supports widgets.
 | Show a widget | Each folder can host one app widget from any installed app (like Action Launcher "Shutters"). The **Show widget** action opens it live in the popup; the popup toggles between the widget and the app grid. The first time, Android asks you to allow Widgets Plus to display widgets. |
 | Shortcuts | **Add shortcut** (Apps & categories) lists the shortcuts installed apps offer through Android's shortcut picker, grouped by app and searchable, kept apart from the app list. The chosen shortcut sits in the folder like an app, with its own name and icon. Shortcuts already on the home screen can't be moved in: Android gives them only to the home-screen app. Apps that hand shortcuts only to the home-screen app, or shortcuts this app isn't allowed to open, are refused with an explanation. Shortcuts are kept in the app's settings (covered by Google backup) and in JSON exports. |
 | Categories | Folders contain categories (tabs inside the open folder). Each category can override the folder's sort order. The Categories page (from Apps & categories) reorders every tab, "All" included, and holds the switch that hides "All" (apps without a category then get an "Other" tab, last). |
-| Widget size | Four widget providers appear in the launcher picker (1×1, 1×2, 2×2, 4×1), every one of them resizable. The folder's *Widget size* setting picks which one "Add to home screen" uses, and the mosaic adapts to the space the launcher gives it. |
+| Widget size | Four widget providers appear in the launcher picker (1×1, 1×2, 2×2, 4×1), every one of them resizable, and the mosaic adapts to the space the launcher gives it. Widgets are added the usual Android way, from the launcher's widget list; none of the settings screens add widgets. |
+| Text size | **Calendar**: one *Text size* slider (80% to 140% in 5% steps) at the top of the calendar widget's settings, for every calendar widget and its day and "Next 30 days" views. Text, pills and rows grow with it; above 100% a title too long for one line wraps onto a second line (on the widget and in "Next 30 days"), and each card shows as many rows as fit, the rest under "+N more" (Android 12+; Android 8 to 11 keep the normal size on the widget). **Folders**: each folder's Appearance has an *App name size* slider (same range) for the names in the open folder. |
 | Sorting | Manual, name A–Z / Z–A, most used, recently used, recently added. For a manual order, press and hold an app in the open folder and drag it; in a category tab this rearranges that category's apps. In Apps & categories, drag an app by its handle, icon or name (or press and hold anywhere on its row): a buzz when it's picked up, a tick as it passes each app, and the list scrolls when you drag near its top or bottom edge. Dragging in a folder sorted another way switches it to Manual. |
 | Lock | Per folder: off, PIN, biometrics, or PIN **or** biometrics. One app-wide PIN, stored as a salted PBKDF2 hash. Biometrics use the system `BiometricPrompt`. |
 | Agenda widget | Full width (5×3, resizable to 5×4): a see-through plate with an 8dp border holding a card stack (Android `StackView`), one card per day. StackView keeps the next days' cards just behind the front one; on Android 12+ the stack is made about four card-heights tall so those cards wait above the widget, out of sight (Android 8 to 11 fall back to opaque cards on a solid plate). Swipe down for the next day, up for the previous one, anywhere on the widget except the bottom border strip. The date card has a month pill at the top, which opens a "Next 30 days" sheet (scrolls by finger or a hold-and-drag scrubber; tap a day to show it on the widget, an event to open it), and a "Go to Today" pill at the bottom of every other day's card that jumps back to today. The widget holds 30 days with the date on the left and compact event rows (time, title, location) on the right. The launcher animates the swipe between days. Tap the date to open Calendar on that day, tap an event to open it, tap **+N more** for a centred day sheet that lists every event with time range, location and description and is swiped down to close; in the sheet the location chip opens a meeting link or searches Maps. Long-press → settings chooses which calendars are shown. Material You colours, blur behind the sheet on Android 12+. |
@@ -88,13 +89,14 @@ the app icon is a shortcut to the same folder settings.
 2. Pick a default app and choose what single tap / double tap do.
 3. Long-press the widget and tap the launcher's **settings** button to come
    back to that folder's settings at any time. Every widget showing the same
-   folder updates when you edit it; **Add to home screen** in the settings
-   places an additional one.
+   folder updates when you edit it; to show a folder in another widget, add one
+   from the launcher's widget list and pick the folder.
 4. In a folder's app list, use the **Select** action to move or remove several
    apps at once.
 5. Optional: turn on a PIN or biometric lock in the folder's Security section.
-6. Drop the **Agenda** widget. The first tap asks for calendar access; long-press
-   → settings picks which calendars it shows.
+6. Drop the **Agenda** widget. Its settings page (opened when it's added, from
+   long-press → settings, or from the app's menu) holds the text size, calendar
+   access and which calendars it shows.
 
 ## Known limitations / to verify on device
 

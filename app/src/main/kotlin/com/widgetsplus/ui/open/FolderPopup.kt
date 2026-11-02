@@ -43,8 +43,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -66,10 +66,12 @@ import com.widgetsplus.core.model.FolderItem
 import com.widgetsplus.core.model.FolderTab
 import com.widgetsplus.core.model.FolderTabs
 import com.widgetsplus.core.model.SortMode
+import com.widgetsplus.core.model.TextSize
 import com.widgetsplus.core.sort.AppSorter
 import com.widgetsplus.ui.common.AppIconImage
-import kotlinx.coroutines.launch
 import kotlin.math.ceil
+import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 /** One swipeable page of the popup. */
 private data class Tab(val title: String, val items: List<FolderItem>, val category: Category? = null)
@@ -106,11 +108,16 @@ fun FolderPopup(
     val onCard = colorResource(R.color.agenda_on_card)
     val badge = colorResource(R.color.agenda_badge)
 
-    // Tall enough for the fullest page (4 columns), capped so the card stays a popup.
-    val pagerHeight = remember(tabs) {
+    // The folder's own app name size (Appearance); 1.0 at 100%.
+    val labelScale = TextSize.scale(folder.appNameSize)
+
+    // Tall enough for the fullest page (4 columns), capped so the card stays a popup. A row is
+    // 92dp at 100%: icon and padding, plus two 15sp lines of name, which grow with the name size.
+    val pagerHeight = remember(tabs, labelScale) {
         val maxCount = tabs.maxOfOrNull { it.items.size } ?: 0
         val rows = ceil(maxCount / 4f).toInt().coerceAtLeast(1)
-        (rows * 92 + 16).coerceIn(108, 440).dp
+        val rowDp = 62f + 30f * labelScale
+        (rows * rowDp + 16f).roundToInt().coerceIn(108, 440).dp
     }
 
     Box(
@@ -199,6 +206,7 @@ fun FolderPopup(
                             ReorderableAppGrid(
                                 items = shown,
                                 labelOf = labelOf,
+                                labelScale = labelScale,
                                 textColor = onCard,
                                 onLaunch = onLaunch,
                                 onDragging = { dragging = it },
@@ -255,6 +263,7 @@ private fun buildTabs(
 private fun ReorderableAppGrid(
     items: List<FolderItem>,
     labelOf: (AppRef) -> String,
+    labelScale: Float,
     textColor: Color,
     onLaunch: (FolderItem) -> Unit,
     onDragging: (Boolean) -> Unit,
@@ -338,8 +347,8 @@ private fun ReorderableAppGrid(
                 Text(
                     labelOf(item.app),
                     color = textColor,
-                    fontSize = 12.sp,
-                    lineHeight = 15.sp,
+                    fontSize = (12f * labelScale).sp,
+                    lineHeight = (15f * labelScale).sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,

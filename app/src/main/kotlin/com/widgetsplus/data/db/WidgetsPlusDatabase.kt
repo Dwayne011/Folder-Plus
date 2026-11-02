@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [FolderEntity::class, CategoryEntity::class, FolderItemEntity::class, WidgetBindingEntity::class],
-    version = 5,
+    version = 6,
     exportSchema = false,
 )
 abstract class WidgetsPlusDatabase : RoomDatabase() {
@@ -48,9 +48,16 @@ abstract class WidgetsPlusDatabase : RoomDatabase() {
             }
         }
 
+        /** v5 -> v6: size of the app names in the open folder. */
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE folders ADD COLUMN appNameSize INTEGER NOT NULL DEFAULT 100")
+            }
+        }
+
         fun build(context: Context): WidgetsPlusDatabase =
             Room.databaseBuilder(context.applicationContext, WidgetsPlusDatabase::class.java, "widgetsplus.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                 .fallbackToDestructiveMigration()
                 .build()
     }
