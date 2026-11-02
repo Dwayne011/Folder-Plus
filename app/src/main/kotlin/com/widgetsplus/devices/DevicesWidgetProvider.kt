@@ -109,16 +109,27 @@ class DevicesWidgetProvider : AppWidgetProvider() {
                 return
             }
 
-            val bluetooth = PendingIntent.getActivity(
-                context, 1, Intent(Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            )
-            v.setOnClickPendingIntent(R.id.dev_root, bluetooth)
             v.setViewVisibility(R.id.dev_row, View.VISIBLE)
             v.setViewVisibility(R.id.dev_message, View.GONE)
 
             val on = BluetoothDevices.isOn(context)
             val devices = if (on) BluetoothDevices.connectedWithBattery(context).take(3) else emptyList()
+
+            // A tap opens Bluetooth settings; with Bluetooth on but nothing connected (only this
+            // phone shows), it opens the phone's Battery page instead.
+            val phoneOnly = on && devices.isEmpty()
+            val tap = if (phoneOnly) {
+                PendingIntent.getActivity(
+                    context, 3, Intent(Intent.ACTION_POWER_USAGE_SUMMARY).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                )
+            } else {
+                PendingIntent.getActivity(
+                    context, 1, Intent(Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                )
+            }
+            v.setOnClickPendingIntent(R.id.dev_root, tap)
             v.setTextViewText(
                 R.id.dev_head,
                 context.getString(
