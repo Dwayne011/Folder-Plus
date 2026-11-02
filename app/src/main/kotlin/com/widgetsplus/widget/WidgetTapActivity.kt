@@ -24,7 +24,10 @@ import kotlinx.coroutines.launch
 /**
  * Invisible activity behind a widget's main tap area when the folder has a
  * double-tap action, and behind every app icon on a folder widget bigger than
- * one cell (a single tap opens that app, a double tap opens the folder).
+ * one cell (a single tap opens that app, a double tap opens the folder). On a
+ * widget that swipes between categories it is also the target of every tap on
+ * a card ([EXTRA_TAB] says which category; "+N" and gaps set [EXTRA_OPEN_NOW]
+ * and open the folder on that tab straight away).
  *
  * The first tap starts this activity (a direct activity PendingIntent, which
  * launchers always allow). While it is up, a second tap either lands on its
@@ -40,6 +43,8 @@ class WidgetTapActivity : Activity() {
     /** Set when an app icon was tapped: the single tap opens this app. */
     private var targetApp: AppRef? = null
     private var targetItemId = -1L
+    /** The category tab the folder opens on (a card of a widget that swipes between categories). */
+    private var tab: String? = null
     private var decided = false
     private var secondTapSeen = false
     private var createdAt = 0L
@@ -50,7 +55,15 @@ class WidgetTapActivity : Activity() {
         val folderId = intent.getLongExtra(EXTRA_FOLDER_ID, -1L)
         targetApp = intent.getStringExtra(EXTRA_APP)?.let(AppRef::unflatten)
         targetItemId = intent.getLongExtra(EXTRA_ITEM_ID, -1L)
+        tab = intent.getStringExtra(EXTRA_TAB)
         if (folderId <= 0) {
+            finish()
+            return
+        }
+        if (intent.getBooleanExtra(EXTRA_OPEN_NOW, false)) {
+            // "+N" or a gap on a category card: open the folder on that category.
+            decided = true
+            startActivity(FolderOpenActivity.intent(this, folderId, tab = tab))
             finish()
             return
         }
@@ -140,7 +153,7 @@ class WidgetTapActivity : Activity() {
 
     private fun perform(folder: Folder, action: TapAction) {
         when (action) {
-            TapAction.OPEN_FOLDER -> startActivity(FolderOpenActivity.intent(this, folder.id))
+            TapAction.OPEN_FOLDER -> startActivity(FolderOpenActivity.intent(this, folder.id, tab = tab))
             TapAction.SHOW_WIDGET -> startActivity(FolderOpenActivity.intent(this, folder.id, showWidget = true))
             TapAction.LAUNCH_DEFAULT_APP -> {
                 val app = folder.defaultApp ?: return
@@ -166,6 +179,8 @@ class WidgetTapActivity : Activity() {
         const val EXTRA_FOLDER_ID = "folder_id"
         const val EXTRA_APP = "app"
         const val EXTRA_ITEM_ID = "item_id"
+        const val EXTRA_TAB = "tab"
+        const val EXTRA_OPEN_NOW = "open_now"
 
         /** Measured from activity creation, which already trails the first tap slightly. */
         private const val WINDOW_MILLIS = TapResolver.DEFAULT_WINDOW_MILLIS + 50

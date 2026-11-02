@@ -197,6 +197,13 @@
     <string name="frosting">Frosting</string>
     <string name="frosting_hint">Translucency and blur of the folder popup</string>
     <string name="app_name_size">App name size</string>
+    <string name="show_category_name">Show category name</string>
+    <string name="show_category_name_hint">On the widget, above each category\'s apps. Swipe the widget up or down to change category.</string>
+    <string name="name_position">Name position</string>
+    <string name="name_position_hint">2×2 and bigger</string>
+    <string name="align_left">Left</string>
+    <string name="align_centre">Centre</string>
+    <string name="align_right">Right</string>
     <string name="app_name_size_hint">Names under the icons in this folder when it\'s open</string>
     <string name="edit_apps">Edit apps</string>
     <string name="add_to_category">Add to %1$s</string>

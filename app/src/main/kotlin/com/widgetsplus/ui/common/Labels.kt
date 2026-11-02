@@ -6,6 +6,7 @@ import com.widgetsplus.R
 import com.widgetsplus.core.model.Folder
 import com.widgetsplus.core.model.FolderIconMode
 import com.widgetsplus.core.model.LockMode
+import com.widgetsplus.core.model.NameAlign
 import com.widgetsplus.core.model.SortMode
 import com.widgetsplus.core.model.TapAction
 
@@ -53,3 +54,12 @@ fun FolderIconMode.label(): String = stringResource(
 /** Folder names may be blank (no label on the widget); the app still needs something to show. */
 @Composable
 fun Folder.displayName(): String = name.ifBlank { stringResource(R.string.untitled_folder) }
+
+@Composable
+fun NameAlign.label(): String = stringResource(
+    when (this) {
+        NameAlign.LEFT -> R.string.align_left
+        NameAlign.CENTER -> R.string.align_centre
+        NameAlign.RIGHT -> R.string.align_right
+    },
+)

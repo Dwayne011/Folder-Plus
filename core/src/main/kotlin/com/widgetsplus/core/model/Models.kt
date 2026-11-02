@@ -133,6 +133,10 @@ data class Folder(
     val allTabPosition: Int = 0,
     /** Size of the app names in the open folder, in percent ([TextSize]). */
     val appNameSize: Int = TextSize.DEFAULT,
+    /** The widget shows each category's name in a pill above its apps (when it cycles categories). */
+    val showCategoryName: Boolean = false,
+    /** Where that pill sits on widgets two columns wide or more. */
+    val categoryNameAlign: NameAlign = NameAlign.CENTER,
 ) {
     companion object {
         const val DEFAULT_FROSTING = 40
@@ -157,6 +161,9 @@ data class Folder(
     val effectiveDoubleTapAction: TapAction
         get() = if (supports(doubleTapAction)) doubleTapAction else TapAction.NONE
 }
+
+/** Where the category name pill sits on a folder widget two columns wide or more. */
+enum class NameAlign { LEFT, CENTER, RIGHT }
 
 data class Category(
     val id: Long = 0,

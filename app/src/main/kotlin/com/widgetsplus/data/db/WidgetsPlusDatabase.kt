@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [FolderEntity::class, CategoryEntity::class, FolderItemEntity::class, WidgetBindingEntity::class],
-    version = 6,
+    version = 7,
     exportSchema = false,
 )
 abstract class WidgetsPlusDatabase : RoomDatabase() {
@@ -55,9 +55,17 @@ abstract class WidgetsPlusDatabase : RoomDatabase() {
             }
         }
 
+        /** v6 -> v7: the category name pill on the widget, and where it sits. */
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE folders ADD COLUMN showCategoryName INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE folders ADD COLUMN categoryNameAlign INTEGER NOT NULL DEFAULT 1")
+            }
+        }
+
         fun build(context: Context): WidgetsPlusDatabase =
             Room.databaseBuilder(context.applicationContext, WidgetsPlusDatabase::class.java, "widgetsplus.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                 .fallbackToDestructiveMigration()
                 .build()
     }

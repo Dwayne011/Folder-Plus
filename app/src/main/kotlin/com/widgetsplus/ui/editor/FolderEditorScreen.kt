@@ -28,12 +28,14 @@ import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FormatAlignCenter
 import androidx.compose.material.icons.filled.Gesture
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Pin
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.ButtonDefaults
@@ -72,6 +74,7 @@ import com.widgetsplus.core.model.Category
 import com.widgetsplus.core.model.Folder
 import com.widgetsplus.core.model.FolderIconMode
 import com.widgetsplus.core.model.LockMode
+import com.widgetsplus.core.model.NameAlign
 import com.widgetsplus.core.model.SortMode
 import com.widgetsplus.core.model.TapAction
 import com.widgetsplus.graph
@@ -85,6 +88,7 @@ import com.widgetsplus.ui.common.SectionTitle
 import com.widgetsplus.ui.common.SetPinDialog
 import com.widgetsplus.ui.common.SettingRow
 import com.widgetsplus.ui.common.SettingsGroup
+import com.widgetsplus.ui.common.SwitchRow
 import com.widgetsplus.ui.common.TextInputDialog
 import com.widgetsplus.ui.common.TextSizeRow
 import com.widgetsplus.ui.common.displayName
@@ -97,6 +101,7 @@ private const val DIALOG_NONE = ""
 private const val DIALOG_RENAME = "rename"
 private const val DIALOG_DELETE = "delete"
 private const val DIALOG_ICON = "icon"
+private const val DIALOG_NAME_ALIGN = "name_align"
 private const val DIALOG_DEFAULT = "default"
 private const val DIALOG_TAP = "tap"
 private const val DIALOG_DOUBLE_TAP = "double"
@@ -391,7 +396,7 @@ fun AppearanceScreen(folderId: Long, onBack: () -> Unit) {
     EditorScaffold(title = stringResource(R.string.appearance), onBack = onBack) {
         item { SectionTitle(stringResource(R.string.widget_section)) }
         item {
-            SettingsGroup(rows = listOf(
+            SettingsGroup(rows = listOf<@Composable () -> Unit>(
                 {
                     SettingRow(
                         title = stringResource(R.string.icon_mode),
@@ -400,7 +405,24 @@ fun AppearanceScreen(folderId: Long, onBack: () -> Unit) {
                         onClick = { dialog = DIALOG_ICON },
                     )
                 },
-            ))
+                // The widget swipes between categories (bigger than 1x1); this names the one shown.
+                {
+                    SwitchRow(
+                        title = stringResource(R.string.show_category_name),
+                        subtitle = stringResource(R.string.show_category_name_hint),
+                        checked = current.showCategoryName,
+                        onCheckedChange = vm::setShowCategoryName,
+                        leading = { RowIcon(Icons.Default.TextFields) },
+                    )
+                },
+            ) + if (current.showCategoryName) listOf<@Composable () -> Unit>({
+                SettingRow(
+                    title = stringResource(R.string.name_position),
+                    subtitle = current.categoryNameAlign.label() + " · " + stringResource(R.string.name_position_hint),
+                    leading = { RowIcon(Icons.Default.FormatAlignCenter) },
+                    onClick = { dialog = DIALOG_NAME_ALIGN },
+                )
+            }) else emptyList())
         }
 
         item { SectionTitle(stringResource(R.string.popup_section)) }
@@ -485,6 +507,14 @@ private fun EditorDialogs(
             text = stringResource(R.string.delete_folder_confirm, folder.displayName()),
             confirmText = stringResource(R.string.delete),
             onConfirm = { vm.deleteFolder(onDeleted) },
+            onDismiss = onDismiss,
+        )
+
+        dialog == DIALOG_NAME_ALIGN -> OptionPickerDialog(
+            title = stringResource(R.string.name_position),
+            options = NameAlign.entries.map { Option(it, it.label()) },
+            selected = folder.categoryNameAlign,
+            onSelect = vm::setCategoryNameAlign,
             onDismiss = onDismiss,
         )
 

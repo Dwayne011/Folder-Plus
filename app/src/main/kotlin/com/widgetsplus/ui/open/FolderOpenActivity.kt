@@ -56,6 +56,8 @@ class FolderOpenActivity : FragmentActivity() {
         val lock = appGraph.lockManager
 
         val startOnWidget = intent.getBooleanExtra(EXTRA_SHOW_WIDGET, false)
+        // The category a widget card was showing, so the folder opens on that tab.
+        val startTab = intent.getStringExtra(EXTRA_TAB)
         setContent {
             WidgetsPlusTheme {
                 val state by remember(folderId) {
@@ -124,6 +126,7 @@ class FolderOpenActivity : FragmentActivity() {
                             onShowWidget = if (hosted != null) ({ showingWidget = true }) else null,
                             frosting = folder.frosting,
                             onReorder = { category, ordered -> reorder(folder, state.items, category, ordered) },
+                            initialTab = startTab,
                         )
                     }
                 }
@@ -215,12 +218,14 @@ class FolderOpenActivity : FragmentActivity() {
     companion object {
         const val EXTRA_FOLDER_ID = "folder_id"
         const val EXTRA_SHOW_WIDGET = "show_widget"
+        const val EXTRA_TAB = "tab"
         private const val MAX_BLUR_DP = 40
 
-        fun intent(context: Context, folderId: Long, showWidget: Boolean = false): Intent =
+        fun intent(context: Context, folderId: Long, showWidget: Boolean = false, tab: String? = null): Intent =
             Intent(context, FolderOpenActivity::class.java)
                 .putExtra(EXTRA_FOLDER_ID, folderId)
                 .putExtra(EXTRA_SHOW_WIDGET, showWidget)
+                .putExtra(EXTRA_TAB, tab)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
     }
 }

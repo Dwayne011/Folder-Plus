@@ -47,9 +47,16 @@ object MosaicLayout {
     fun innerWidth(widthDp: Float) = widthDp - 2 * BORDER_DP - 2 * PANEL_PADDING_DP
     fun innerHeight(heightDp: Float) = heightDp - 2 * BORDER_DP - 2 * PANEL_PADDING_DP
 
-    fun plan(widthDp: Float, heightDp: Float, appCount: Int): MosaicPlan {
+    /** The category name pill above the apps (18dp) and its gap. */
+    const val NAME_PILL_DP = 18f + GAP_DP
+
+    /**
+     * [reservedTopDp] is taken off the panel's height above the apps (the category name pill,
+     * [NAME_PILL_DP]); the apps get the rest.
+     */
+    fun plan(widthDp: Float, heightDp: Float, appCount: Int, reservedTopDp: Float = 0f): MosaicPlan {
         val iw = innerWidth(widthDp)
-        val ih = innerHeight(heightDp)
+        val ih = innerHeight(heightDp) - reservedTopDp
         val count = max(0, appCount)
         if (isCompact(widthDp, heightDp)) {
             val icon = max(8f, (min(iw, ih) - COMPACT_GAP_DP) / 2f)

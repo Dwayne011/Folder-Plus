@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One card of a folder widget that swipes between categories: the pale panel with, optionally,
+     the category's name in a pill at the top (shaped like the agenda's month pill), and the
+     category's apps centred below it as the mosaic (rows of widget_folder_row added at runtime).
+
+     The pill's row is as wide as the app grid's full columns (set at runtime), so left and right
+     line up with the grid's edges on every card. RemoteViews can't move a view, so each position
+     has its own pill: left, centre, right, and a full-width one for one-column widgets. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fcard_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="UseAppTint,ContentDescription,SpUsage,UnusedAttribute">
+
+    <ImageView android:id="@+id/fcard_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_group" android:tint="@color/agenda_group" />
+
+    <!-- clipToPadding off: a one-column widget's pill reaches 1dp into the padding (5dp in from
+         the panel's edges, as in the mockup). -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:orientation="vertical"
+        android:padding="6dp">
+
+        <FrameLayout
+            android:id="@+id/fcard_pill_row"
+            android:layout_width="match_parent"
+            android:layout_height="18dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="6dp"
+            android:visibility="gone">
+
+            <FrameLayout android:id="@+id/fcard_pill_left" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_gravity="start" android:visibility="gone">
+                <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/agenda_shape_chip" android:tint="@color/agenda_badge" />
+                <TextView android:id="@+id/fcard_pill_left_text" android:layout_width="wrap_content" android:layout_height="match_parent" android:ellipsize="end" android:fontFamily="google-sans-text" android:gravity="center" android:includeFontPadding="false" android:maxLines="1" android:paddingStart="10dp" android:paddingEnd="10dp" android:textColor="@color/agenda_on_card" android:textFontWeight="500" android:textSize="10.5dp" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+            </FrameLayout>
+
+            <FrameLayout android:id="@+id/fcard_pill_center" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_gravity="center_horizontal" android:visibility="gone">
+                <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/agenda_shape_chip" android:tint="@color/agenda_badge" />
+                <TextView android:id="@+id/fcard_pill_center_text" android:layout_width="wrap_content" android:layout_height="match_parent" android:ellipsize="end" android:fontFamily="google-sans-text" android:gravity="center" android:includeFontPadding="false" android:maxLines="1" android:paddingStart="10dp" android:paddingEnd="10dp" android:textColor="@color/agenda_on_card" android:textFontWeight="500" android:textSize="10.5dp" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+            </FrameLayout>
+
+            <FrameLayout android:id="@+id/fcard_pill_right" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_gravity="end" android:visibility="gone">
+                <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/agenda_shape_chip" android:tint="@color/agenda_badge" />
+                <TextView android:id="@+id/fcard_pill_right_text" android:layout_width="wrap_content" android:layout_height="match_parent" android:ellipsize="end" android:fontFamily="google-sans-text" android:gravity="center" android:includeFontPadding="false" android:maxLines="1" android:paddingStart="10dp" android:paddingEnd="10dp" android:textColor="@color/agenda_on_card" android:textFontWeight="500" android:textSize="10.5dp" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+            </FrameLayout>
+
+            <!-- One-column widgets (1x2): the pill spans the row with smaller text. -->
+            <FrameLayout android:id="@+id/fcard_pill_full" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+                <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/agenda_shape_chip" android:tint="@color/agenda_badge" />
+                <TextView android:id="@+id/fcard_pill_full_text" android:layout_width="match_parent" android:layout_height="match_parent" android:ellipsize="end" android:fontFamily="google-sans-text" android:gravity="center" android:includeFontPadding="false" android:maxLines="1" android:paddingStart="2dp" android:paddingEnd="2dp" android:textColor="@color/agenda_on_card" android:textFontWeight="500" android:textSize="8.5dp" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+            </FrameLayout>
+        </FrameLayout>
+
+        <!-- The apps, centred in the space left: rows of 34dp icons, 6dp apart. -->
+        <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+            <LinearLayout
+                android:id="@+id/fcard_grid"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:orientation="vertical" />
+        </FrameLayout>
+    </LinearLayout>
+</FrameLayout>

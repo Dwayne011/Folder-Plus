@@ -12,6 +12,7 @@ import com.widgetsplus.core.model.FolderIconMode
 import com.widgetsplus.core.model.FolderItem
 import com.widgetsplus.core.model.HostedWidget
 import com.widgetsplus.core.model.LockMode
+import com.widgetsplus.core.model.NameAlign
 import com.widgetsplus.core.model.SortMode
 import com.widgetsplus.core.model.TapAction
 import com.widgetsplus.core.model.TextSize
@@ -41,6 +42,9 @@ data class FolderEntity(
     @ColumnInfo(defaultValue = "0") val allTabPosition: Int = 0,
     // Added in schema v6: size of the app names in the open folder, in percent.
     @ColumnInfo(defaultValue = "100") val appNameSize: Int = 100,
+    // Added in schema v7: the category name pill on the widget, and where it sits (0 left, 1 centre, 2 right).
+    @ColumnInfo(defaultValue = "0") val showCategoryName: Boolean = false,
+    @ColumnInfo(defaultValue = "1") val categoryNameAlign: Int = 1,
 )
 
 @Entity(
@@ -105,6 +109,8 @@ fun FolderEntity.toModel() = Folder(
     frosting = frosting.coerceIn(0, Folder.MAX_FROSTING),
     allTabPosition = allTabPosition.coerceAtLeast(0),
     appNameSize = TextSize.clamp(appNameSize),
+    showCategoryName = showCategoryName,
+    categoryNameAlign = NameAlign.entries.getOrElse(categoryNameAlign) { NameAlign.CENTER },
 )
 
 fun Folder.toEntity() = FolderEntity(
@@ -125,6 +131,8 @@ fun Folder.toEntity() = FolderEntity(
     frosting = frosting,
     allTabPosition = allTabPosition,
     appNameSize = appNameSize,
+    showCategoryName = showCategoryName,
+    categoryNameAlign = categoryNameAlign.ordinal,
 )
 
 fun CategoryEntity.toModel() = Category(id, folderId, name, position, sortMode)

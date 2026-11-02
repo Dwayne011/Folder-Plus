@@ -63,18 +63,15 @@ import com.widgetsplus.core.model.AppRef
 import com.widgetsplus.core.model.Category
 import com.widgetsplus.core.model.Folder
 import com.widgetsplus.core.model.FolderItem
-import com.widgetsplus.core.model.FolderTab
-import com.widgetsplus.core.model.FolderTabs
-import com.widgetsplus.core.model.SortMode
+import com.widgetsplus.core.model.FolderTabContents
 import com.widgetsplus.core.model.TextSize
-import com.widgetsplus.core.sort.AppSorter
 import com.widgetsplus.ui.common.AppIconImage
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
 /** One swipeable page of the popup. */
-private data class Tab(val title: String, val items: List<FolderItem>, val category: Category? = null)
+private data class Tab(val key: String, val title: String, val items: List<FolderItem>, val category: Category? = null)
 
 /** Pages in the open folder's looping pager; plenty to swipe through in either direction. */
 private const val LOOP_PAGES = 100_000
@@ -97,6 +94,8 @@ fun FolderPopup(
     frosting: Int = Folder.DEFAULT_FROSTING,
     /** A tab's apps in their new order after a press-and-hold drag; the tab's category, if any. */
     onReorder: (category: Category?, ordered: List<FolderItem>) -> Unit = { _, _ -> },
+    /** The tab to open on ([FolderTabContents] key), e.g. the category the widget was showing. */
+    initialTab: String? = null,
 ) {
     val allLabel = stringResource(R.string.category_all)
     val otherLabel = stringResource(R.string.category_other)
@@ -107,8 +106,9 @@ fun FolderPopup(
     // first, the last. The pager then has LOOP_PAGES pages, starts in the middle on the first tab,
     // and page mod the number of tabs is the tab it shows.
     val loops = tabs.size > 1
+    val startTab = tabs.indexOfFirst { it.key == initialTab }.coerceAtLeast(0)
     val pagerState = rememberPagerState(
-        initialPage = if (loops) LOOP_PAGES / 2 - (LOOP_PAGES / 2) % tabs.size else 0,
+        initialPage = if (loops) LOOP_PAGES / 2 - (LOOP_PAGES / 2) % tabs.size + startTab else startTab,
         pageCount = { if (tabs.size > 1) LOOP_PAGES else tabs.size },
     )
     fun tabIndex(page: Int) = if (tabs.size > 1) page.mod(tabs.size) else page
@@ -248,27 +248,13 @@ private fun buildTabs(
     labelOf: (AppRef) -> String,
     allLabel: String,
     otherLabel: String,
-): List<Tab> {
-    fun sorted(list: List<FolderItem>, mode: SortMode) = AppSorter.sort(list, mode) { labelOf(it.app) }
-    if (categories.isEmpty()) return listOf(Tab(allLabel, sorted(items, folder.sortMode)))
-
-    val tabs = mutableListOf<Tab>()
-    FolderTabs.ordered(categories, folder.allTabPosition).forEach { tab ->
-        when (tab) {
-            FolderTab.All -> if (folder.showAllCategory) tabs += Tab(allLabel, sorted(items, folder.sortMode))
-            is FolderTab.OfCategory -> tabs += Tab(
-                tab.category.name,
-                sorted(items.filter { it.categoryId == tab.category.id }, tab.category.sortMode ?: folder.sortMode),
-                tab.category,
-            )
-        }
+): List<Tab> = FolderTabContents.build(folder, categories, items, labelOf).map { content ->
+    val title = when (content.key) {
+        FolderTabContents.KEY_ALL -> allLabel
+        FolderTabContents.KEY_OTHER -> otherLabel
+        else -> content.category?.name.orEmpty()
     }
-    if (!folder.showAllCategory) {
-        val knownIds = categories.map { it.id }.toSet()
-        val other = items.filter { it.categoryId == null || it.categoryId !in knownIds }
-        if (other.isNotEmpty()) tabs += Tab(otherLabel, sorted(other, folder.sortMode))
-    }
-    return tabs
+    Tab(content.key, title, content.items, content.category)
 }
 
 /**

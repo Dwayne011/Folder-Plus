@@ -8,6 +8,7 @@ import com.widgetsplus.core.model.Folder
 import com.widgetsplus.core.model.FolderIconMode
 import com.widgetsplus.core.model.FolderItem
 import com.widgetsplus.core.model.LockMode
+import com.widgetsplus.core.model.NameAlign
 import com.widgetsplus.core.model.SortMode
 import com.widgetsplus.core.model.TapAction
 import com.widgetsplus.core.model.TextSize
@@ -54,6 +55,8 @@ object BackupCodec {
                     .put("frosting", f.frosting)
                     .put("allTabPosition", f.allTabPosition)
                     .put("appNameSize", f.appNameSize)
+                    .put("showCategoryName", f.showCategoryName)
+                    .put("categoryNameAlign", f.categoryNameAlign.name)
                     .put("hostedWidgetProvider", f.hostedWidget?.provider ?: JSONObject.NULL)
                     .put("categories", JSONArray().apply {
                         categories.forEach { c ->
@@ -146,6 +149,8 @@ object BackupCodec {
             frosting = obj.optInt("frosting", Folder.DEFAULT_FROSTING).coerceIn(0, Folder.MAX_FROSTING),
             allTabPosition = obj.optInt("allTabPosition", 0).coerceAtLeast(0),
             appNameSize = TextSize.clamp(obj.optInt("appNameSize", TextSize.DEFAULT)),
+            showCategoryName = obj.optBoolean("showCategoryName", false),
+            categoryNameAlign = enumOrNull<NameAlign>(obj.optString("categoryNameAlign")) ?: NameAlign.CENTER,
             position = position,
             hostedWidget = null, // host ids never survive a restore; the provider name is kept only for reference
         )
