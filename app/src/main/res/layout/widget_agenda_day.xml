@@ -30,10 +30,14 @@
             <TextView android:id="@+id/day_dow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans" android:textFontWeight="500" android:letterSpacing="0.05" android:textAllCaps="true" android:textSize="16dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
             <TextView android:id="@+id/day_num" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="-1dp" android:layout_marginBottom="-5dp" android:fontFamily="google-sans" android:textFontWeight="700" android:textStyle="bold" android:letterSpacing="-0.02" android:textAllCaps="true" android:textSize="56dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
         </LinearLayout>
-        <!-- month pill (top): opens the "Next 30 days" sheet -->
-        <FrameLayout android:id="@+id/day_month_pill" android:layout_width="wrap_content" android:layout_height="18dp" android:layout_gravity="top|center_horizontal" android:layout_marginTop="10dp">
-            <ImageView android:id="@+id/day_month_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_chip" />
-            <TextView android:id="@+id/day_month_text" android:layout_width="wrap_content" android:layout_height="match_parent" android:fontFamily="google-sans-text" android:textFontWeight="500" android:gravity="center" android:paddingStart="10dp" android:paddingEnd="10dp" android:textAllCaps="true" android:textSize="10.5dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+        <!-- month pill (top): opens the "Next 30 days" sheet. The pill is 18dp tall; the tap target
+             around it is the date card's full width and 48dp from its top edge, like Go to Today's.
+             The pill sits exactly where it did. -->
+        <FrameLayout android:id="@+id/day_month_tap" android:layout_width="match_parent" android:layout_height="48dp" android:layout_gravity="top">
+            <FrameLayout android:id="@+id/day_month_pill" android:layout_width="wrap_content" android:layout_height="18dp" android:layout_gravity="top|center_horizontal" android:layout_marginTop="10dp">
+                <ImageView android:id="@+id/day_month_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_chip" />
+                <TextView android:id="@+id/day_month_text" android:layout_width="wrap_content" android:layout_height="match_parent" android:fontFamily="google-sans-text" android:textFontWeight="500" android:gravity="center" android:paddingStart="10dp" android:paddingEnd="10dp" android:textAllCaps="true" android:textSize="10.5dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+            </FrameLayout>
         </FrameLayout>
         <!-- Today pill (bottom, every day but today): shows today's card again. The pill is 18dp
              tall; the tap target around it is the date card's full width and 48dp from its bottom
