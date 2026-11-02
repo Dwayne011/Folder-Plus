@@ -24,9 +24,20 @@ class TextSizeTest {
         assertEquals(48f, AgendaRows.baseRowDp(1.1f))
         assertEquals(40f, AgendaRows.baseRowDp(0.8f))
         // A second title line only adds height when there's also a location, or the text is big.
-        assertEquals(44f, AgendaRows.rowDp(1f, twoLineTitle = false, hasLocation = true))
-        assertEquals(58f, AgendaRows.rowDp(1f, twoLineTitle = true, hasLocation = true))
-        assertEquals(63f, AgendaRows.rowDp(1.4f, twoLineTitle = true, hasLocation = false))
+        assertEquals(44f, AgendaRows.rowDp(1f, twoLineTitle = false, locationLines = 1))
+        assertEquals(58f, AgendaRows.rowDp(1f, twoLineTitle = true, locationLines = 1))
+        assertEquals(63f, AgendaRows.rowDp(1.4f, twoLineTitle = true, locationLines = 0))
+    }
+
+    /** A location too long for one line gets a second, at any size; the row grows by that line. */
+    @Test fun twoLineLocationsGrowTheirRow() {
+        assertEquals(55f, AgendaRows.rowDp(1f, twoLineTitle = false, locationLines = 2))
+        assertEquals(44f, AgendaRows.rowDp(1f, twoLineTitle = false, locationLines = 0))
+        assertEquals(46f, AgendaRows.rowDp(0.8f, twoLineTitle = false, locationLines = 2))
+        assertEquals(40f, AgendaRows.rowDp(0.8f, twoLineTitle = false, locationLines = 1))
+        // Two events, both with long locations, fit easily on the card from the screenshot.
+        val rows = List(2) { AgendaRows.rowDp(1f, twoLineTitle = false, locationLines = 2) }
+        assertEquals(2, AgendaRows.fit(290f, rows, eventCount = 2, scale = 1f))
     }
 
     @Test fun titlesWrapOnlyAboveNormal() {
@@ -39,7 +50,7 @@ class TextSizeTest {
     @Test fun rowsThatFitMatchTheMockup() {
         val card = 290f
         fun rows(s: Float, twoLine: Set<Int> = emptySet()) = listOf(false, false, true, true, true).mapIndexed { i, loc ->
-            AgendaRows.rowDp(s, i in twoLine, loc)
+            AgendaRows.rowDp(s, i in twoLine, if (loc) 1 else 0)
         }
         assertEquals(5, AgendaRows.fit(card, rows(1f), eventCount = 6, scale = 1f))
         assertEquals(4, AgendaRows.fit(card, rows(1.05f), 6, 1.05f))

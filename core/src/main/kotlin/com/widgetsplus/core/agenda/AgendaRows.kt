@@ -7,7 +7,8 @@ import kotlin.math.ceil
  * Mirrors widget_agenda_day.xml: at 100% a row is 44dp (a 32dp badge beside 10dp time, 12.5dp
  * title and 11dp location text), rows sit 6dp apart in a group with 6dp padding, and the
  * "+N more" chip is 18dp, 6dp below the last row. Text, and so rows and the chip, grow with the
- * size. Above 100% a title too long for one line gets a second line, and its row grows by a line.
+ * size. Above 100% a title too long for one line gets a second line; at any size a location too
+ * long for one line gets a second line. Each extra line makes that row taller by the line.
  */
 object AgendaRows {
     const val MAX_ROWS = 5
@@ -30,10 +31,11 @@ object AgendaRows {
     fun baseRowDp(scale: Float): Float =
         maxOf(MIN_ROW_DP, up(SLACK_DP + (WHEN_LINE_DP + TITLE_LINE_DP + LOCATION_LINE_DP) * scale))
 
-    fun rowDp(scale: Float, twoLineTitle: Boolean, hasLocation: Boolean): Float {
+    /** A row's height with [locationLines] lines of location (0 when the event has none, 1 or 2). */
+    fun rowDp(scale: Float, twoLineTitle: Boolean, locationLines: Int): Float {
         val text = WHEN_LINE_DP * scale +
             (if (twoLineTitle) 2 else 1) * TITLE_LINE_DP * scale +
-            (if (hasLocation) LOCATION_LINE_DP * scale else 0f)
+            locationLines.coerceIn(0, 2) * LOCATION_LINE_DP * scale
         return maxOf(baseRowDp(scale), up(SLACK_DP + text))
     }
 

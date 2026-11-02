@@ -32,8 +32,9 @@ class AgendaWidgetService : RemoteViewsService() {
  *
  * Text size (the calendar settings' slider) applies to the parked stack, where rows can be sized:
  * text, pills and rows grow or shrink with it, titles too long for one line get a second line
- * above 100%, and each card shows as many rows as fit ([AgendaRows]). The fallback stack on
- * Android 8 to 11 keeps the normal size and [slotCount] rows.
+ * above 100%, locations too long for one line get a second line at any size, and each card shows
+ * as many rows as fit ([AgendaRows]). The fallback stack on Android 8 to 11 keeps the normal size,
+ * one-line text and [slotCount] rows.
  */
 class AgendaRemoteViewsFactory(
     private val context: Context,
@@ -47,6 +48,7 @@ class AgendaRemoteViewsFactory(
     private var scale = 1f
     private val density = context.resources.displayMetrics.density
     private val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = font("google-sans-text", 700) }
+    private val locationPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = font("google-sans-text", 500) }
     private val dayNumberPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = font("google-sans", 700); letterSpacing = -0.02f }
 
     private class Slot(val root: Int, val bg: Int, val badge: Int, val icon: Int, val whenText: Int, val title: Int, val loc: Int, val dot: Int)
@@ -80,11 +82,19 @@ class AgendaRemoteViewsFactory(
         val day = days[position]
         val views = RemoteViews(context.packageName, R.layout.widget_agenda_day)
 
-        // Which rows show: sized to the text (titles on two lines above 100% when they need it)
-        // and fitted to the card; or, on the fallback stack, the fixed number of 44dp rows.
+        // Which rows show: sized to the text (titles on two lines above 100% when they need it,
+        // locations on two lines whenever they need it) and fitted to the card; or, on the
+        // fallback stack, the fixed number of 44dp rows.
         val candidates = day.events.take(slots.size)
         val twoLines = candidates.map { sized && AgendaRows.titlesWrap(scale) && needsTwoLines(it.title) }
-        val rowHeights = candidates.mapIndexed { i, e -> AgendaRows.rowDp(scale, twoLines[i], e.location.isNotEmpty()) }
+        val locationLines = candidates.map { e ->
+            when {
+                e.location.isEmpty() -> 0
+                sized && tooWide(e.location, locationPaint, 11f) -> 2
+                else -> 1
+            }
+        }
+        val rowHeights = candidates.mapIndexed { i, _ -> AgendaRows.rowDp(scale, twoLines[i], locationLines[i]) }
         val visibleSlots = if (sized) AgendaRows.fit(cardHeightDp, rowHeights, day.events.size, scale)
         else slotCount.coerceIn(1, slots.size)
         if (sized && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) sizeDayCard(views, day.date.dayOfMonth.toString())
@@ -147,6 +157,7 @@ class AgendaRemoteViewsFactory(
                 views.setTextViewTextSize(slot.title, TypedValue.COMPLEX_UNIT_DIP, 12.5f * scale)
                 views.setTextViewTextSize(slot.loc, TypedValue.COMPLEX_UNIT_DIP, 11f * scale)
                 views.setInt(slot.title, "setMaxLines", if (twoLines[index]) 2 else 1)
+                views.setInt(slot.loc, "setMaxLines", if (locationLines[index] == 2) 2 else 1)
             }
             AgendaPalette.tint(views, slot.bg, palette.card, 255)
             AgendaPalette.tint(views, slot.badge, palette.badge, 255)
@@ -215,11 +226,14 @@ class AgendaRemoteViewsFactory(
     }
 
     /** Whether [title] is too long for one line of the row at this size. */
-    private fun needsTwoLines(title: String): Boolean {
+    private fun needsTwoLines(title: String): Boolean = tooWide(title, titlePaint, 12.5f)
+
+    /** Whether [text], at [sizeDp] scaled to this size, is wider than a row's text column. */
+    private fun tooWide(text: String, paint: Paint, sizeDp: Float): Boolean {
         val widthDp = cardWidthDp - ROW_CHROME_DP
         if (widthDp <= 0f) return false
-        titlePaint.textSize = 12.5f * scale * density
-        return titlePaint.measureText(title) / density > widthDp
+        paint.textSize = sizeDp * scale * density
+        return paint.measureText(text) / density > widthDp
     }
 
     private fun font(family: String, weight: Int): Typeface {
