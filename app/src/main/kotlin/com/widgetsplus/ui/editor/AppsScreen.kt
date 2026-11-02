@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
-import androidx.compose.foundation.gestures.awaitVerticalTouchSlopOrCancellation
 import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.horizontalScroll
@@ -356,8 +355,8 @@ private class RowReorder(
 )
 
 /**
- * A LazyColumn whose rows can be dragged to a new place when [dragEnabled]: straight away by the
- * handle, icon or name, or after a press and hold anywhere on the row. A haptic buzz when a row is
+ * A LazyColumn whose rows can be dragged to a new place when [dragEnabled]: after a short hold on
+ * the handle, icon or name, or a long press anywhere else on the row. A haptic buzz when a row is
  * picked up and a tick each time it passes another; near the list's top or bottom edge the list
  * scrolls, faster nearer the edge. The order is kept locally while dragging and committed once on
  * release.
@@ -540,34 +539,41 @@ private class HandleArea {
     }
 }
 
+/** How long a press on the handle, icon or name must stay still before it picks the row up. */
+private const val HANDLE_HOLD_MS = 200L
+
 /**
- * Picks a row up straight away when a press left of [handleEnd] (the handle, icon and name) moves
- * up or down, or holds still as long as a long press; anywhere else on the row, after a long press.
- * Then reports the finger's movement until it lifts or the gesture is taken over.
+ * Picks a row up after a short, still hold ([HANDLE_HOLD_MS]) on the handle, icon or name (left of
+ * [handleEnd]), or after a long press anywhere else on the row. A quick swipe or tap never picks
+ * it up: the swipe scrolls the list. Then reports the finger's movement until it lifts or the
+ * gesture is taken over.
  */
 private fun Modifier.reorderGesture(key: Any, handleEnd: () -> Float, reorder: () -> RowReorder?): Modifier =
     pointerInput(key) {
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false)
             var picked: PointerInputChange? = null
-            var overSlop = 0f
             if (down.position.x <= handleEnd()) {
-                var held = true
-                withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
-                    picked = awaitVerticalTouchSlopOrCancellation(down.id) { change, over ->
-                        change.consume()
-                        overSlop = over
+                // True when the press lifted, moved past the touch slop (the list scrolls) or was
+                // taken by something else before the hold time; null when it held still that long.
+                val cancelled = withTimeoutOrNull(HANDLE_HOLD_MS) {
+                    while (true) {
+                        val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id }
+                        if (change == null || !change.pressed || change.isConsumed ||
+                            (change.position - down.position).getDistance() > viewConfiguration.touchSlop
+                        ) {
+                            break
+                        }
                     }
-                    held = false
+                    true
                 }
-                if (held) picked = down
+                if (cancelled == null) picked = down
             } else {
                 picked = awaitLongPressOrCancellation(down.id)
             }
             val pointer = picked?.id ?: return@awaitEachGesture
             val callbacks = reorder() ?: return@awaitEachGesture
             if (!callbacks.onPickUp(down.position.y)) return@awaitEachGesture
-            if (overSlop != 0f) callbacks.onDragBy(overSlop)
             val completed = drag(pointer) { change ->
                 callbacks.onDragBy(change.positionChange().y)
                 change.consume()
