@@ -4,7 +4,6 @@ import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.util.SizeF
 import android.util.TypedValue
@@ -17,6 +16,7 @@ import com.widgetsplus.core.model.Folder
 import com.widgetsplus.core.model.FolderIconMode
 import com.widgetsplus.core.model.FolderItem
 import com.widgetsplus.core.model.FolderTabContents
+import com.widgetsplus.core.model.TabContent
 import com.widgetsplus.core.model.TapAction
 import com.widgetsplus.core.sort.AppSorter
 import com.widgetsplus.core.widget.MosaicLayout
@@ -38,7 +38,7 @@ import kotlin.math.roundToInt
  *
  * On Android 12+, a widget bigger than one cell whose folder has two tabs or more swipes between
  * them (approved mockup): a card stack like the agenda's, one card per tab of the open folder,
- * drawn by [FolderStackService]. Swipe down for the next category, up for the previous; it loops.
+ * drawn by [FolderCards]. Swipe down for the next category, up for the previous; it loops.
  *
  * Colours all come from the layouts' colour resources (none are set from here), so the launcher
  * re-resolves them when the phone's theme or wallpaper colours change.
@@ -68,27 +68,26 @@ object WidgetRenderer {
         val items = AppSorter.sort(graph.repository.getItems(folder.id), folder.sortMode) { apps.label(it.app) }
             .filter { apps.isInstalled(it.app) }
         // Tabs of the open folder: with two or more, bigger widgets swipe between them.
-        val tabCount = FolderTabContents.build(folder, graph.repository.getCategories(folder.id), items) { apps.label(it) }.size
+        val tabs = FolderTabContents.build(folder, graph.repository.getCategories(folder.id), items) { apps.label(it) }
         val options = manager.getAppWidgetOptions(appWidgetId)
 
         val views: RemoteViews = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             @Suppress("DEPRECATION")
             val sizes = options.getParcelableArrayList<SizeF>(AppWidgetManager.OPTION_APPWIDGET_SIZES)
             if (!sizes.isNullOrEmpty()) {
-                RemoteViews(sizes.take(16).associateWith { size -> build(context, apps, appWidgetId, folder, items, tabCount, size.width, size.height) })
+                RemoteViews(sizes.take(16).associateWith { size -> build(context, apps, appWidgetId, folder, items, tabs, size.width, size.height) })
             } else {
-                buildForOptions(context, apps, appWidgetId, folder, items, tabCount, options)
+                buildForOptions(context, apps, appWidgetId, folder, items, tabs, options)
             }
         } else {
-            buildForOptions(context, apps, appWidgetId, folder, items, tabCount, options)
+            buildForOptions(context, apps, appWidgetId, folder, items, tabs, options)
         }
+        // A stack's category cards go out inside this update, so nothing else needs refreshing.
         manager.updateAppWidget(appWidgetId, views)
-        // Category cards reload too (a no-op when the widget isn't a stack).
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) manager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.fstack)
     }
 
     private fun buildForOptions(
-        context: Context, apps: InstalledApps, appWidgetId: Int, folder: Folder, items: List<FolderItem>, tabCount: Int, options: android.os.Bundle,
+        context: Context, apps: InstalledApps, appWidgetId: Int, folder: Folder, items: List<FolderItem>, tabs: List<TabContent>, options: android.os.Bundle,
     ): RemoteViews {
         var width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
         var height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT)
@@ -97,7 +96,7 @@ object WidgetRenderer {
             width = w
             height = h
         }
-        return build(context, apps, appWidgetId, folder, items, tabCount, width.toFloat(), height.toFloat())
+        return build(context, apps, appWidgetId, folder, items, tabs, width.toFloat(), height.toFloat())
     }
 
     private fun build(
@@ -106,14 +105,14 @@ object WidgetRenderer {
         appWidgetId: Int,
         folder: Folder,
         items: List<FolderItem>,
-        tabCount: Int,
+        tabs: List<TabContent>,
         widthDp: Float,
         heightDp: Float,
     ): RemoteViews {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && tabCount > 1 && folder.iconMode == FolderIconMode.MOSAIC &&
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && tabs.size > 1 && folder.iconMode == FolderIconMode.MOSAIC &&
             items.isNotEmpty() && !MosaicLayout.isCompact(widthDp, heightDp)
         ) {
-            return stack(context, appWidgetId, folder, widthDp, heightDp)
+            return stack(context, apps, appWidgetId, folder, tabs, widthDp, heightDp)
         }
         val views = RemoteViews(context.packageName, R.layout.widget_folder_mosaic)
         val oneColumn = widthDp < MosaicLayout.SINGLE_COLUMN_MAX_DP
@@ -171,12 +170,18 @@ object WidgetRenderer {
 
     /**
      * A widget that swipes between categories: the plate and a card stack (widget_folder_stack),
-     * about four card-heights tall so the cards behind the front one wait above the frame, filled
-     * by [FolderStackService]. Every tap on a card goes through the stack's template to
-     * [WidgetTapActivity], with the card's fill-in saying what was tapped.
+     * about four card-heights tall so the cards behind the front one wait above the frame. The
+     * cards ([FolderCards]) travel inside this update, built here in one go, so the launcher
+     * never asks a service for them: when it did, Android fetched them in the background, one
+     * request per widget size at the same time, and could mix up the cards' icons or, when a
+     * request ran late, show no cards at all. An update keeps the card on show. Every tap on a
+     * card goes through the stack's template to [WidgetTapActivity], with the card's fill-in
+     * saying what was tapped.
      */
     @RequiresApi(Build.VERSION_CODES.S)
-    private fun stack(context: Context, appWidgetId: Int, folder: Folder, widthDp: Float, heightDp: Float): RemoteViews {
+    private fun stack(
+        context: Context, apps: InstalledApps, appWidgetId: Int, folder: Folder, tabs: List<TabContent>, widthDp: Float, heightDp: Float,
+    ): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_folder_stack)
         val oneColumn = widthDp < MosaicLayout.SINGLE_COLUMN_MAX_DP
         views.setImageViewResource(R.id.fstack_plate, if (oneColumn) R.drawable.folder_plate_small else R.drawable.agenda_shape_plate)
@@ -185,13 +190,7 @@ object WidgetRenderer {
         val frame = heightDp - 2 * MosaicLayout.BORDER_DP + 2 * STACK_FRAME_PADDING_DP
         views.setViewLayoutHeight(R.id.fstack_column, 4 * frame + 16f, TypedValue.COMPLEX_UNIT_DIP)
 
-        val adapter = Intent(context, FolderStackService::class.java)
-            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-            .putExtra(FolderStackService.EXTRA_WIDTH_DP, widthDp)
-            .putExtra(FolderStackService.EXTRA_HEIGHT_DP, heightDp)
-        adapter.data = Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME))
-        @Suppress("DEPRECATION")
-        views.setRemoteAdapter(R.id.fstack, adapter)
+        views.setRemoteAdapter(R.id.fstack, FolderCards(context, apps, folder, widthDp, heightDp).items(tabs))
         // Cards fill in what was tapped. The template must be mutable, and on Android 14 a mutable
         // PendingIntent must be explicit, so it targets our tap activity.
         val template = Intent(context, WidgetTapActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
