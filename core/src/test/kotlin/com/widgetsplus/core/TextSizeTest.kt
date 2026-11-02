@@ -23,21 +23,31 @@ class TextSizeTest {
         assertEquals(46f, AgendaRows.baseRowDp(1.05f))
         assertEquals(48f, AgendaRows.baseRowDp(1.1f))
         assertEquals(40f, AgendaRows.baseRowDp(0.8f))
-        // A second title line only adds height when there's also a location, or the text is big.
-        assertEquals(44f, AgendaRows.rowDp(1f, twoLineTitle = false, locationLines = 1))
-        assertEquals(58f, AgendaRows.rowDp(1f, twoLineTitle = true, locationLines = 1))
-        assertEquals(63f, AgendaRows.rowDp(1.4f, twoLineTitle = true, locationLines = 0))
+        // Rows whose title and location take one line each keep the usual height.
+        assertEquals(44f, AgendaRows.rowDp(1f, text(1f, 1, 1), hasSecondLine = false))
+        assertEquals(52f, AgendaRows.rowDp(1.2f, text(1.2f, 1, 1), hasSecondLine = false))
     }
 
-    /** A location too long for one line gets a second, at any size; the row grows by that line. */
-    @Test fun twoLineLocationsGrowTheirRow() {
-        assertEquals(55f, AgendaRows.rowDp(1f, twoLineTitle = false, locationLines = 2))
-        assertEquals(44f, AgendaRows.rowDp(1f, twoLineTitle = false, locationLines = 0))
-        assertEquals(46f, AgendaRows.rowDp(0.8f, twoLineTitle = false, locationLines = 2))
-        assertEquals(40f, AgendaRows.rowDp(0.8f, twoLineTitle = false, locationLines = 1))
-        // Two events, both with long locations, fit easily on the card from the screenshot.
-        val rows = List(2) { AgendaRows.rowDp(1f, twoLineTitle = false, locationLines = 2) }
-        assertEquals(2, AgendaRows.fit(290f, rows, eventCount = 2, scale = 1f))
+    /**
+     * The row's text as the widget measures it: Google Sans Text lines are about 1.25 times the
+     * text size (10dp time, 12.5dp title, 11dp location at 100%), as in the screenshots.
+     */
+    private fun text(s: Float, titleLines: Int, locationLines: Int) =
+        (10f + titleLines * 12.5f + locationLines * 11f) * 1.25f * s
+
+    /** A second line makes the row its text plus 4dp above and below, so nothing is clipped. */
+    @Test fun rowsWithASecondLineFitTheirTextEvenly() {
+        assertEquals(64f, AgendaRows.rowDp(1f, text(1f, 1, 2), hasSecondLine = true))
+        assertEquals(75f, AgendaRows.rowDp(1.2f, text(1.2f, 1, 2), hasSecondLine = true))
+        assertEquals(57f, AgendaRows.rowDp(1.1f, text(1.1f, 2, 0), hasSecondLine = true))
+        for (s in listOf(0.8f, 1f, 1.2f, 1.4f)) {
+            val t = text(s, 1, 2)
+            val row = AgendaRows.rowDp(s, t, hasSecondLine = true)
+            assertTrue("room at $s", row - t >= 2 * AgendaRows.TALL_ROW_PADDING_DP)
+        }
+        // Two events with long locations fit easily on a 290dp card; three at 120% too.
+        assertEquals(2, AgendaRows.fit(290f, List(2) { AgendaRows.rowDp(1f, text(1f, 1, 2), true) }, eventCount = 2, scale = 1f))
+        assertEquals(3, AgendaRows.fit(290f, List(3) { AgendaRows.rowDp(1.2f, text(1.2f, 1, 2), true) }, eventCount = 3, scale = 1.2f))
     }
 
     @Test fun titlesWrapOnlyAboveNormal() {
@@ -50,7 +60,8 @@ class TextSizeTest {
     @Test fun rowsThatFitMatchTheMockup() {
         val card = 290f
         fun rows(s: Float, twoLine: Set<Int> = emptySet()) = listOf(false, false, true, true, true).mapIndexed { i, loc ->
-            AgendaRows.rowDp(s, i in twoLine, if (loc) 1 else 0)
+            val titleLines = if (i in twoLine) 2 else 1
+            AgendaRows.rowDp(s, text(s, titleLines, if (loc) 1 else 0), hasSecondLine = i in twoLine)
         }
         assertEquals(5, AgendaRows.fit(card, rows(1f), eventCount = 6, scale = 1f))
         assertEquals(4, AgendaRows.fit(card, rows(1.05f), 6, 1.05f))

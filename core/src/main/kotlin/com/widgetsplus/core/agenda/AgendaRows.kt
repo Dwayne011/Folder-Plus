@@ -8,7 +8,8 @@ import kotlin.math.ceil
  * title and 11dp location text), rows sit 6dp apart in a group with 6dp padding, and the
  * "+N more" chip is 18dp, 6dp below the last row. Text, and so rows and the chip, grow with the
  * size. Above 100% a title too long for one line gets a second line; at any size a location too
- * long for one line gets a second line. Each extra line makes that row taller by the line.
+ * long for one line gets a second line. A row with a second line is as tall as its text (measured
+ * from the font) plus [TALL_ROW_PADDING_DP] above and below, so the text sits evenly inside it.
  */
 object AgendaRows {
     const val MAX_ROWS = 5
@@ -31,13 +32,16 @@ object AgendaRows {
     fun baseRowDp(scale: Float): Float =
         maxOf(MIN_ROW_DP, up(SLACK_DP + (WHEN_LINE_DP + TITLE_LINE_DP + LOCATION_LINE_DP) * scale))
 
-    /** A row's height with [locationLines] lines of location (0 when the event has none, 1 or 2). */
-    fun rowDp(scale: Float, twoLineTitle: Boolean, locationLines: Int): Float {
-        val text = WHEN_LINE_DP * scale +
-            (if (twoLineTitle) 2 else 1) * TITLE_LINE_DP * scale +
-            locationLines.coerceIn(0, 2) * LOCATION_LINE_DP * scale
-        return maxOf(baseRowDp(scale), up(SLACK_DP + text))
-    }
+    /** Space above and below the text in a row whose title or location takes a second line. */
+    const val TALL_ROW_PADDING_DP = 4f
+
+    /**
+     * A row's height: the usual [baseRowDp] when the title and location take one line each; when
+     * either takes a second line, the row's text ([textDp], measured from the font) with
+     * [TALL_ROW_PADDING_DP] above and below, and never shorter than the usual row.
+     */
+    fun rowDp(scale: Float, textDp: Float, hasSecondLine: Boolean): Float =
+        if (!hasSecondLine) baseRowDp(scale) else maxOf(baseRowDp(scale), up(textDp + 2 * TALL_ROW_PADDING_DP))
 
     fun chipDp(scale: Float): Float = CHIP_DP * scale
 

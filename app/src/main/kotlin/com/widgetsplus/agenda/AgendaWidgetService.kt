@@ -47,6 +47,7 @@ class AgendaRemoteViewsFactory(
     private val sized = cardHeightDp > 0f && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     private var scale = 1f
     private val density = context.resources.displayMetrics.density
+    private val whenPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = font("google-sans-text", 500) }
     private val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = font("google-sans-text", 700) }
     private val locationPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = font("google-sans-text", 500) }
     private val dayNumberPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = font("google-sans", 700); letterSpacing = -0.02f }
@@ -90,11 +91,20 @@ class AgendaRemoteViewsFactory(
         val locationLines = candidates.map { e ->
             when {
                 e.location.isEmpty() -> 0
-                sized && tooWide(e.location, locationPaint, 11f) -> 2
+                // Too wide for one line, or already two lines in the calendar ("The O2" + address).
+                sized && ('\n' in e.location || tooWide(e.location, locationPaint, 11f)) -> 2
                 else -> 1
             }
         }
-        val rowHeights = candidates.mapIndexed { i, _ -> AgendaRows.rowDp(scale, twoLines[i], locationLines[i]) }
+        // A row with a second line is as tall as its text, measured from the font (lines are
+        // taller than the text size), plus even padding above and below.
+        val whenLine = lineDp(whenPaint, 10f)
+        val titleLine = lineDp(titlePaint, 12.5f)
+        val locationLine = lineDp(locationPaint, 11f)
+        val rowHeights = candidates.indices.map { i ->
+            val text = whenLine + (if (twoLines[i]) 2 else 1) * titleLine + locationLines[i] * locationLine
+            AgendaRows.rowDp(scale, text, hasSecondLine = twoLines[i] || locationLines[i] == 2)
+        }
         val visibleSlots = if (sized) AgendaRows.fit(cardHeightDp, rowHeights, day.events.size, scale)
         else slotCount.coerceIn(1, slots.size)
         if (sized && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) sizeDayCard(views, day.date.dayOfMonth.toString())
@@ -224,6 +234,13 @@ class AgendaRemoteViewsFactory(
         dayNumberPaint.textSize = size * density
         val width = dayNumberPaint.measureText(text) / density
         return if (width > DAY_NUMBER_MAX_DP) size * DAY_NUMBER_MAX_DP / width else size
+    }
+
+    /** One line's height (no font padding, as in the layout) for [sizeDp] text at this size. */
+    private fun lineDp(paint: Paint, sizeDp: Float): Float {
+        paint.textSize = sizeDp * scale * density
+        val metrics = paint.fontMetrics
+        return (metrics.descent - metrics.ascent) / density
     }
 
     /** Whether [title] is too long for one line of the row at this size. */
