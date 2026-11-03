@@ -1,5 +1,6 @@
 package com.widgetsplus.agenda
 
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
@@ -15,15 +16,36 @@ import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import com.widgetsplus.R
+import com.widgetsplus.widget.WidgetListeners
+import java.time.LocalDate
+import java.time.ZoneId
 
 /**
  * Agenda widget: a see-through plate holding a StackView with one card per day.
  * The launcher animates the swipe between days; this class only draws.
+ *
+ * It never wakes the phone to refresh. The cards reload when an event is added, changed or
+ * removed, when the clock or time zone changes (AgendaEventsReceiver, on only while a widget is
+ * placed), and just after midnight, when "today" moves on, by an alarm that waits for the phone
+ * to be awake.
  */
 class AgendaWidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         appWidgetIds.forEach { render(context, appWidgetManager, it) }
+        // Placed (also sent after the phone restarts and after this app updates).
+        WidgetListeners.setAgenda(context, true)
+        scheduleMidnight(context)
+    }
+
+    override fun onEnabled(context: Context) {
+        WidgetListeners.setAgenda(context, true)
+        scheduleMidnight(context)
+    }
+
+    override fun onDisabled(context: Context) {
+        WidgetListeners.setAgenda(context, false)
+        cancelMidnight(context)
     }
 
     override fun onAppWidgetOptionsChanged(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, newOptions: Bundle) {
@@ -32,11 +54,25 @@ class AgendaWidgetProvider : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
-        if (intent.action == Intent.ACTION_PROVIDER_CHANGED || intent.action == ACTION_REFRESH) notifyDataChanged(context)
+        when (intent.action) {
+            ACTION_REFRESH -> notifyDataChanged(context)
+            ACTION_MIDNIGHT -> {
+                if (placedIds(context).isEmpty()) {
+                    cancelMidnight(context)
+                } else {
+                    updateAll(context)
+                    notifyDataChanged(context)
+                    scheduleMidnight(context)
+                }
+            }
+        }
     }
 
     companion object {
         const val ACTION_REFRESH = "com.widgetsplus.agenda.REFRESH"
+        private const val ACTION_MIDNIGHT = "com.widgetsplus.agenda.MIDNIGHT"
+        /** Android 12+ gives inexact alarms at least a 10-minute window; this is that window. */
+        private const val MIDNIGHT_WINDOW_MS = 10 * 60 * 1000L
         const val EXTRA_SLOTS = "slots"
         /** Card height in dp for the option 2 stack (Android 12+); 0 selects the fallback layout. */
         const val EXTRA_CARD_HEIGHT = "card_height_dp"
@@ -55,6 +91,29 @@ class AgendaWidgetProvider : AppWidgetProvider() {
             val ids = placedIds(context)
             if (ids.isNotEmpty()) AppWidgetManager.getInstance(context).notifyAppWidgetViewDataChanged(ids, R.id.agenda_stack)
         }
+
+        /**
+         * Reloads the cards just after the next local midnight. Not a wake-up alarm: if the phone
+         * is asleep then, it comes as soon as the phone wakes, before the screen shows the widget.
+         * No permission needed (it isn't exact).
+         */
+        fun scheduleMidnight(context: Context) {
+            val alarms = context.getSystemService(AlarmManager::class.java) ?: return
+            val zone = ZoneId.systemDefault()
+            val next = LocalDate.now(zone).plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli() + 5_000L
+            alarms.setWindow(AlarmManager.RTC, next, MIDNIGHT_WINDOW_MS, midnightIntent(context))
+        }
+
+        fun cancelMidnight(context: Context) {
+            context.getSystemService(AlarmManager::class.java)?.cancel(midnightIntent(context))
+        }
+
+        private fun midnightIntent(context: Context): PendingIntent =
+            PendingIntent.getBroadcast(
+                context, 1,
+                Intent(context, AgendaWidgetProvider::class.java).setAction(ACTION_MIDNIGHT),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
 
         /** Padding of the clipping frame around the stack, in dp (see widget_agenda.xml). */
         private const val FRAME_PADDING_DP = 16f

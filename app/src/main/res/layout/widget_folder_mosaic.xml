@@ -46,6 +46,6 @@
         android:contentDescription="@string/widget_open_folder"
         android:visibility="gone">
         <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/folder_circle" android:tint="@color/agenda_badge" />
-        <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:padding="3dp" android:src="@drawable/ic_expand" android:tint="@color/agenda_on_card" />
+        <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:padding="3dp" android:src="@drawable/ic_expand" android:tint="@color/agenda_on_badge" />
     </FrameLayout>
 </FrameLayout>

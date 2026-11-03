@@ -70,6 +70,9 @@ enum class SortMode {
     RECENTLY_ADDED;
 
     val isAutomatic: Boolean get() = this != MANUAL
+
+    /** The order changes when an app is opened. */
+    val isByUse: Boolean get() = this == MOST_USED || this == RECENTLY_USED
 }
 
 /** Which image the widget shows for the folder. */

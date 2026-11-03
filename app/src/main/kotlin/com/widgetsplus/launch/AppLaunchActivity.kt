@@ -24,8 +24,10 @@ class AppLaunchActivity : Activity() {
             if (itemId > 0) {
                 val appContext = applicationContext
                 CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-                    appContext.graph.repository.recordLaunch(itemId)
-                    WidgetUpdater.updateAll(appContext)
+                    val repo = appContext.graph.repository
+                    repo.recordLaunch(itemId)
+                    // Only this app's folder, and only when its order goes by use.
+                    repo.folderIdForItem(itemId)?.let { WidgetUpdater.afterLaunch(appContext, it) }
                 }
             }
         }

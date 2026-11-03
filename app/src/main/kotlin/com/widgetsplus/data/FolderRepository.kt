@@ -77,6 +77,7 @@ class FolderRepository(private val db: WidgetsPlusDatabase) {
     suspend fun setItemCategory(itemId: Long, categoryId: Long?) = db.items().setCategory(itemId, categoryId)
 
     suspend fun recordLaunch(itemId: Long) = db.items().recordLaunch(itemId, System.currentTimeMillis())
+    suspend fun folderIdForItem(itemId: Long): Long? = db.items().get(itemId)?.folderId
 
     /** Persists a manual reorder: [orderedItems] is the full item list in its new order. */
     suspend fun saveManualOrder(orderedItems: List<FolderItem>) {

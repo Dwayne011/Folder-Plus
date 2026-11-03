@@ -131,7 +131,10 @@ object WidgetRenderer {
             views.setViewVisibility(R.id.folder_single, View.VISIBLE)
             val px = (minOf(64f, minOf(MosaicLayout.innerWidth(widthDp), MosaicLayout.innerHeight(heightDp))) * density).roundToInt().coerceAtLeast(1)
             val icon = folder.defaultApp?.takeIf { folder.iconMode == FolderIconMode.DEFAULT_APP }?.let { apps.icon(it, px) }
-            views.setImageViewBitmap(R.id.folder_single, icon ?: IconComposer.glyph(context, px))
+            // The folder glyph goes as the drawable itself, so the launcher draws it in the
+            // phone's light or dark theme.
+            if (icon != null) views.setImageViewBitmap(R.id.folder_single, icon)
+            else views.setImageViewResource(R.id.folder_single, R.drawable.ic_folder)
             folderTaps(context, views, appWidgetId, folder, items)
             return views
         }
@@ -284,11 +287,10 @@ object WidgetRenderer {
 
     private fun unconfigured(context: Context, appWidgetId: Int): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_folder_mosaic)
-        val density = context.resources.displayMetrics.density
         views.removeAllViews(R.id.folder_grid)
         views.setViewVisibility(R.id.folder_grid, View.GONE)
         views.setViewVisibility(R.id.folder_single, View.VISIBLE)
-        views.setImageViewBitmap(R.id.folder_single, IconComposer.glyph(context, (48 * density).toInt()))
+        views.setImageViewResource(R.id.folder_single, R.drawable.ic_folder)
         views.setContentDescription(R.id.folder_root, context.getString(R.string.widget_setup_prompt))
         views.setViewVisibility(R.id.folder_badge, View.GONE)
         val intent = Intent(context, FolderWidgetConfigActivity::class.java)

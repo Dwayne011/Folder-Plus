@@ -9,6 +9,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -97,6 +98,8 @@ fun AgendaMonthSheet(
     val accent = Color(palette.accent)
     val onCard = Color(palette.onCard)
     val onCardVar = Color(palette.onCardVar)
+    // On the accent (the scrubber's day label) text stays dark, in dark mode too.
+    val onBadge = Color(palette.onBadge)
     val onPlate = Color(palette.onPlate)
     val onPlateVar = Color(palette.onPlateVar)
 
@@ -241,7 +244,7 @@ fun AgendaMonthSheet(
                     dayOnTop?.let { d ->
                         Text(
                             AgendaFormat.dayTitle(d.day.date),
-                            color = onCard, fontSize = agendaSp(13f), fontWeight = FontWeight.Bold,
+                            color = onBadge, fontSize = agendaSp(13f), fontWeight = FontWeight.Bold,
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .offset { IntOffset(-with(density) { 26.dp.roundToPx() }, (fraction * (trackPx - thumbPx)).roundToInt() + with(density) { 18.dp.roundToPx() }) }
@@ -274,7 +277,8 @@ private fun DayLine(
             .width(46.dp)
             .fillMaxHeight()
             .clip(RoundedCornerShape(12.dp))
-            .background(badge.copy(alpha = 0.55f))
+            // Fainter on the dark card, so the light text on it stays easy to read.
+            .background(badge.copy(alpha = if (isSystemInDarkTheme()) 0.25f else 0.55f))
         if (day.isToday) chip = chip.border(2.dp, accent, RoundedCornerShape(12.dp))
         Column(
             chip.clickable { onShowDay(row.index) }.semantics { contentDescription = label }.padding(vertical = 4.dp),

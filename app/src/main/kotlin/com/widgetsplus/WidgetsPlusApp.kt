@@ -38,9 +38,11 @@ class WidgetsPlusApp : Application() {
     }
 
     /**
-     * The folder and devices widgets take every colour from their layouts, which the launcher
-     * re-resolves on a theme change. The agenda's day cards are drawn here, so when the theme
-     * changes while the app is running, redraw them.
+     * The folder and devices widgets take every colour from their layouts, and on Android 12+
+     * the agenda's day cards name their colours by resource too, so the launcher re-resolves
+     * them all when the phone switches between light and dark or the wallpaper colours change.
+     * Older versions get the day cards' colours from here, so when the theme changes while the
+     * app is running, redraw them.
      */
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)

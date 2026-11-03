@@ -38,7 +38,13 @@ class InstalledApps(context: Context) {
     /** Labels read one app at a time by [loadLabels], for before the full list has loaded. */
     private val earlyLabels = ConcurrentHashMap<AppRef, String>()
 
-    private val iconCache = object : LruCache<String, Bitmap>(64) {}
+    /**
+     * Icons by app and size, up to [ICON_CACHE_BYTES] of them (about 400 widget-sized icons), so
+     * widgets with many apps don't have to load every icon again each time they're drawn.
+     */
+    private val iconCache = object : LruCache<String, Bitmap>(ICON_CACHE_BYTES) {
+        override fun sizeOf(key: String, value: Bitmap): Int = value.allocationByteCount
+    }
 
     /** Default icon size in px used for both Compose grids and widgets. */
     val iconSizePx: Int = (56 * appContext.resources.displayMetrics.density).toInt().coerceAtLeast(96)
@@ -137,5 +143,10 @@ class InstalledApps(context: Context) {
         val bitmap = drawable.toBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
         iconCache.put(key, bitmap)
         return bitmap
+    }
+
+    private companion object {
+        /** 16 MB; the cache only takes what the icons on show need. */
+        const val ICON_CACHE_BYTES = 16 * 1024 * 1024
     }
 }

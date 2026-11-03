@@ -145,13 +145,26 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_agenda" />
+        </receiver>
+        <!-- Calendar changes, the clock and start-up for the calendar widget. Off until a calendar
+             widget is placed (WidgetListeners). Exported: the calendar's broadcast comes from
+             the calendar provider's own uid. -->
+        <receiver
+            android:name=".agenda.AgendaEventsReceiver"
+            android:enabled="false"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.PROVIDER_CHANGED" />
                 <data android:scheme="content" android:host="com.android.calendar" />
             </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_agenda" />
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
         </receiver>
         <service
             android:name=".agenda.AgendaWidgetService"
@@ -172,14 +185,26 @@
             android:noHistory="true"
             android:taskAffinity="com.widgetsplus.popup"
             android:theme="@style/Theme.WidgetsPlus.Popup" />
-        <!-- Connected devices widget. Exported: the Bluetooth broadcasts come from the Bluetooth
-             app's own uid, and protected system broadcasts can only be sent by the system. -->
+        <!-- Connected devices widget. -->
         <receiver
             android:name=".devices.DevicesWidgetProvider"
             android:exported="true"
             android:label="@string/devices_widget_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_devices" />
+        </receiver>
+        <!-- Bluetooth events and start-up for the devices widget. Off until a devices widget is
+             placed (WidgetListeners). Exported: the Bluetooth broadcasts come from the Bluetooth
+             app's own uid, and protected system broadcasts can only be sent by the system. -->
+        <receiver
+            android:name=".devices.DevicesEventsReceiver"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
                 <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
                 <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED" />
                 <action android:name="android.bluetooth.device.action.BATTERY_LEVEL_CHANGED" />
@@ -187,11 +212,15 @@
                 <action android:name="android.bluetooth.a2dp.profile.action.CONNECTION_STATE_CHANGED" />
                 <action android:name="android.bluetooth.headset.profile.action.CONNECTION_STATE_CHANGED" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        <!-- After an update of this app: turns the widgets' listeners back on for placed widgets. -->
+        <receiver
+            android:name=".widget.AppUpdatedReceiver"
+            android:exported="false">
+            <intent-filter>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_devices" />
         </receiver>
         <activity
             android:name=".devices.DevicesSetupActivity"

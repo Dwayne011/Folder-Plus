@@ -18,4 +18,8 @@
     <color name="agenda_on_plate">@android:color/system_neutral1_100</color>
     <color name="agenda_on_plate_var">@android:color/system_neutral2_200</color>
     <color name="agenda_accent">@android:color/system_accent1_200</color>
+    <!-- Text and icons on the badge and accent colours (pills, icon squares, weekend date
+         cards): the same dark tones as on the cards, but these stay dark in dark mode too. -->
+    <color name="agenda_on_badge">@android:color/system_accent1_900</color>
+    <color name="agenda_on_badge_var">@android:color/system_neutral2_700</color>
 </resources>

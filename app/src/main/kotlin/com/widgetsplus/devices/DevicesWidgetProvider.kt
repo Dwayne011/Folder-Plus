@@ -4,63 +4,58 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
-import android.bluetooth.BluetoothDevice
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.SystemClock
 import android.provider.Settings
 import android.view.View
 import android.widget.RemoteViews
 import com.widgetsplus.R
+import com.widgetsplus.widget.WidgetListeners
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Connected devices widget: the battery of every connected Bluetooth device that reports one
  * (up to three), with this phone beside a single device, or this phone alone when none is.
  *
  * It redraws when a device connects or disconnects, reports a new battery level, or Bluetooth is
- * switched on or off (all delivered to this manifest receiver), and every 15 minutes for this
- * phone's own level, which Android doesn't broadcast to apps in the background.
+ * switched on or off (DevicesEventsReceiver, on only while a widget is placed; a burst of these,
+ * as when earbuds connect, makes one redraw), and about every 15 minutes for this phone's own
+ * level, which Android doesn't broadcast to apps in the background. Neither wakes the phone.
  */
 class DevicesWidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         appWidgetIds.forEach { render(context, appWidgetManager, it) }
+        // Placed (also sent after the phone restarts and after this app updates).
+        WidgetListeners.setDevices(context, true)
         scheduleRefresh(context)
     }
 
-    override fun onEnabled(context: Context) = scheduleRefresh(context)
+    override fun onEnabled(context: Context) {
+        WidgetListeners.setDevices(context, true)
+        scheduleRefresh(context)
+    }
 
     override fun onDisabled(context: Context) {
-        context.getSystemService(AlarmManager::class.java)?.cancel(refreshIntent(context))
+        WidgetListeners.setDevices(context, false)
+        cancelRefresh(context)
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
-        when (intent.action) {
-            ACTION_BATTERY_LEVEL_CHANGED -> {
-                deviceOf(intent)?.let { d ->
-                    DevicePrefs.setCachedLevel(context, d.address, intent.getIntExtra(EXTRA_BATTERY_LEVEL, -1))
-                }
-                updateAll(context)
-            }
-            BluetoothDevice.ACTION_ACL_DISCONNECTED -> {
-                deviceOf(intent)?.let { DevicePrefs.setCachedLevel(context, it.address, -1) }
-                updateAll(context)
-            }
-            BluetoothDevice.ACTION_ACL_CONNECTED, ACTION_ADAPTER_STATE_CHANGED, ACTION_A2DP_STATE, ACTION_HEADSET_STATE, ACTION_REFRESH -> updateAll(context)
-            Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED -> { scheduleRefresh(context); updateAll(context) }
+        if (intent.action == ACTION_REFRESH) {
+            // The 15-minute refresh: stop it if no devices widget is placed any more.
+            if (placedIds(context).isEmpty()) cancelRefresh(context) else updateAll(context)
         }
     }
-
-    private fun deviceOf(intent: Intent): BluetoothDevice? =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-        }
 
     companion object {
         /** The level each device reports; a system broadcast that third-party apps may receive. */
@@ -71,9 +66,37 @@ class DevicesWidgetProvider : AppWidgetProvider() {
         const val ACTION_HEADSET_STATE = "android.bluetooth.headset.profile.action.CONNECTION_STATE_CHANGED"
         const val ACTION_REFRESH = "com.widgetsplus.devices.REFRESH"
 
+        fun placedIds(context: Context): IntArray =
+            AppWidgetManager.getInstance(context).getAppWidgetIds(ComponentName(context, DevicesWidgetProvider::class.java))
+
         fun updateAll(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
-            manager.getAppWidgetIds(ComponentName(context, DevicesWidgetProvider::class.java)).forEach { render(context, manager, it) }
+            placedIds(context).forEach { render(context, manager, it) }
+        }
+
+        /** How long to wait for the rest of a burst of Bluetooth events before redrawing. */
+        private const val BURST_MS = 800L
+        private val burstPending = AtomicBoolean(false)
+        private val burstScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+        /**
+         * Redraws once for a burst of Bluetooth events (earbuds connecting send several within a
+         * second). Each event stores what it carries before calling this, and the one redraw
+         * reads it all.
+         */
+        fun updateSoon(receiver: BroadcastReceiver, context: Context) {
+            if (!burstPending.compareAndSet(false, true)) return
+            val pending = receiver.goAsync()
+            val appContext = context.applicationContext
+            burstScope.launch {
+                try {
+                    delay(BURST_MS)
+                    burstPending.set(false)
+                    updateAll(appContext)
+                } finally {
+                    pending.finish()
+                }
+            }
         }
 
         private fun refreshIntent(context: Context): PendingIntent =
@@ -82,6 +105,10 @@ class DevicesWidgetProvider : AppWidgetProvider() {
                 Intent(context, DevicesWidgetProvider::class.java).setAction(ACTION_REFRESH),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
+
+        fun cancelRefresh(context: Context) {
+            context.getSystemService(AlarmManager::class.java)?.cancel(refreshIntent(context))
+        }
 
         /** This phone's level every ~15 minutes (inexact, so it costs no extra wake-ups). */
         fun scheduleRefresh(context: Context) {

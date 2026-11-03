@@ -17,6 +17,10 @@
     <color name="agenda_on_plate">#F5EDE8</color>
     <color name="agenda_on_plate_var">#C7B8B0</color>
     <color name="agenda_accent">#F5B895</color>
+    <!-- Text and icons on the badge and accent colours (pills, icon squares, weekend date
+         cards): the same dark tones as on the cards, but these stay dark in dark mode too. -->
+    <color name="agenda_on_badge">#2B1B12</color>
+    <color name="agenda_on_badge_var">#65534A</color>
     <!-- Connected devices widget: low battery (15% or less) on the agenda's pale panel. -->
     <color name="dev_low">#BA1A1A</color>
 </resources>

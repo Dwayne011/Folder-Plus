@@ -33,6 +33,18 @@ object WidgetUpdater {
             .forEach { WidgetRenderer.render(context, manager, it) }
     }
 
+    /**
+     * After an app in [folderId] was opened. Its widgets only change when the folder, or one of
+     * its categories, is sorted by use (most used, recently used), so only then are they redrawn;
+     * otherwise nothing on them is different and redrawing every icon would only cost battery.
+     */
+    suspend fun afterLaunch(context: Context, folderId: Long) {
+        val repo = context.graph.repository
+        val folder = repo.getFolder(folderId) ?: return
+        val byUse = folder.sortMode.isByUse || repo.getCategories(folderId).any { it.sortMode?.isByUse == true }
+        if (byUse) updateForFolder(context, folderId)
+    }
+
     fun updateAllAsync(context: Context) {
         val appContext = context.applicationContext
         scope.launch { updateAll(appContext) }

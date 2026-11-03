@@ -122,39 +122,42 @@ class AgendaRemoteViewsFactory(
         // Date card as in the mockup: a 2dp accent ring on today only. Weekends have a blue
         // (accent) face; today's ring on a blue face is pale so it still shows. The ring is a
         // plate behind the face, so on other days it takes the face colour and disappears.
+        // Colours go by resource, so the launcher draws them in the phone's light or dark theme.
         val weekend = day.date.dayOfWeek == DayOfWeek.SATURDAY || day.date.dayOfWeek == DayOfWeek.SUNDAY
-        val face = if (weekend) palette.accent else palette.card
+        val face = if (weekend) R.color.agenda_accent else R.color.agenda_card
         val ring = when {
             !day.isToday -> face
-            weekend -> palette.card
-            else -> palette.accent
+            weekend -> R.color.agenda_card
+            else -> R.color.agenda_accent
         }
-        AgendaPalette.tint(views, R.id.day_date_bg, face, 255)
-        AgendaPalette.tint(views, R.id.day_today_ring, ring, 255)
+        palette.tintRes(views, R.id.day_date_bg, face)
+        palette.tintRes(views, R.id.day_today_ring, ring)
         views.setTextViewText(R.id.day_dow, AgendaFormat.dow(day.date))
         views.setTextViewText(R.id.day_num, day.date.dayOfMonth.toString())
-        views.setTextColor(R.id.day_dow, palette.onCardVar)
-        views.setTextColor(R.id.day_num, palette.onCard)
+        // On the blue weekend face the text is the dark on-badge colour, in dark mode too.
+        palette.textRes(views, R.id.day_dow, if (weekend) R.color.agenda_on_badge_var else R.color.agenda_on_card_var)
+        palette.textRes(views, R.id.day_num, if (weekend) R.color.agenda_on_badge else R.color.agenda_on_card)
 
         // Pills on the date card: the month (top) opens the next 30 days; Today (bottom, every
         // day but today) shows today's card again. On a blue weekend face they are pale.
-        val pill = if (weekend) palette.card else palette.badge
+        val pill = if (weekend) R.color.agenda_card else R.color.agenda_badge
+        val onPill = if (weekend) R.color.agenda_on_card else R.color.agenda_on_badge
         views.setTextViewText(R.id.day_month_text, AgendaFormat.mon(day.date))
-        views.setTextColor(R.id.day_month_text, palette.onCard)
-        AgendaPalette.tint(views, R.id.day_month_bg, pill, 255)
+        palette.textRes(views, R.id.day_month_text, onPill)
+        palette.tintRes(views, R.id.day_month_bg, pill)
         // The whole 48dp strip around the pill, not just the pill.
         views.setOnClickFillInIntent(R.id.day_month_tap, Intent().setData(AgendaFormat.monthUri(day.date)))
         views.setViewVisibility(R.id.day_today_tap, if (day.isToday) View.GONE else View.VISIBLE)
         if (!day.isToday) {
-            views.setTextColor(R.id.day_today_text, palette.onCard)
-            AgendaPalette.tint(views, R.id.day_today_bg, pill, 255)
+            palette.textRes(views, R.id.day_today_text, onPill)
+            palette.tintRes(views, R.id.day_today_bg, pill)
             // The whole 48dp strip around the pill, not just the pill.
             views.setOnClickFillInIntent(R.id.day_today_tap, Intent().setData(AgendaFormat.todayUri()))
         }
         views.setOnClickFillInIntent(R.id.day_date, Intent().setData(AgendaFormat.dayIntent(day.date).data))
 
         // Event group
-        AgendaPalette.tint(views, R.id.day_group_bg, palette.group, 255)
+        palette.tintRes(views, R.id.day_group_bg, R.color.agenda_group)
         slots.forEachIndexed { index, slot ->
             val event = day.events.getOrNull(index)
             if (event == null || index >= visibleSlots) {
@@ -170,13 +173,13 @@ class AgendaRemoteViewsFactory(
                 views.setInt(slot.title, "setMaxLines", if (twoLines[index]) 2 else 1)
                 views.setInt(slot.loc, "setMaxLines", if (locationLines[index] == 2) 2 else 1)
             }
-            AgendaPalette.tint(views, slot.bg, palette.card, 255)
-            AgendaPalette.tint(views, slot.badge, palette.badge, 255)
+            palette.tintRes(views, slot.bg, R.color.agenda_card)
+            palette.tintRes(views, slot.badge, R.color.agenda_badge)
             views.setImageViewResource(slot.icon, CalendarAgenda.iconFor(event.title))
-            views.setInt(slot.icon, "setColorFilter", palette.onCard)
+            palette.tintRes(views, slot.icon, R.color.agenda_on_badge)
             views.setTextViewText(slot.whenText, AgendaFormat.whenLabel(context, day.date, event))
             views.setTextViewText(slot.title, event.title)
-            views.setTextColor(slot.whenText, palette.onCardVar)
+            palette.textRes(views, slot.whenText, R.color.agenda_on_card_var)
             // Calendar colour: a small dot before the time, in the colour Calendar shows the event in.
             if (event.color != 0) {
                 views.setViewVisibility(slot.dot, View.VISIBLE)
@@ -184,8 +187,8 @@ class AgendaRemoteViewsFactory(
             } else {
                 views.setViewVisibility(slot.dot, View.GONE)
             }
-            views.setTextColor(slot.title, palette.onCard)
-            views.setTextColor(slot.loc, palette.onCardVar)
+            palette.textRes(views, slot.title, R.color.agenda_on_card)
+            palette.textRes(views, slot.loc, R.color.agenda_on_card_var)
             if (event.location.isNotEmpty()) {
                 views.setViewVisibility(slot.loc, View.VISIBLE)
                 views.setTextViewText(slot.loc, event.location)
@@ -201,16 +204,16 @@ class AgendaRemoteViewsFactory(
         if (extra > 0) {
             views.setViewVisibility(R.id.day_more, View.VISIBLE)
             views.setTextViewText(R.id.day_more, context.getString(R.string.agenda_more, extra))
-            views.setTextColor(R.id.day_more, palette.onCardVar)
-            AgendaPalette.tint(views, R.id.day_more_bg, palette.card, 255)
+            palette.textRes(views, R.id.day_more, R.color.agenda_on_card_var)
+            palette.tintRes(views, R.id.day_more_bg, R.color.agenda_card)
             views.setOnClickFillInIntent(R.id.day_more_wrap, Intent().setData(AgendaFormat.moreUri(day.date)))
         }
 
         val free = day.events.isEmpty()
         views.setViewVisibility(R.id.day_free, if (free) View.VISIBLE else View.GONE)
         if (free) {
-            AgendaPalette.tint(views, R.id.day_free_outline, palette.onCard, AgendaPalette.OUTLINE_ALPHA)
-            views.setTextColor(R.id.day_free_text, palette.onCardVar)
+            palette.tintRes(views, R.id.day_free_outline, R.color.agenda_on_card, AgendaPalette.OUTLINE_ALPHA)
+            palette.textRes(views, R.id.day_free_text, R.color.agenda_on_card_var)
             views.setOnClickFillInIntent(R.id.day_free, Intent().setData(AgendaFormat.dayIntent(day.date).data))
         }
         return views

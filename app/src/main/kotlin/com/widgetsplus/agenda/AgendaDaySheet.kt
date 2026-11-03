@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -159,7 +160,7 @@ fun AgendaDaySheet(
                     }
                 }
                 items(events, key = { it.id }) { event ->
-                    EventDetailCard(event, card, Color(palette.badge), Color(palette.onCard), Color(palette.onCardVar), onOpenEvent, onOpenLocation)
+                    EventDetailCard(event, card, Color(palette.badge), Color(palette.onBadge), Color(palette.onCard), Color(palette.onCardVar), onOpenEvent, onOpenLocation)
                 }
             }
         }
@@ -169,7 +170,7 @@ fun AgendaDaySheet(
 @Composable
 private fun EventDetailCard(
     event: AgendaEvent,
-    card: Color, badge: Color, onCard: Color, onCardVar: Color,
+    card: Color, badge: Color, onBadge: Color, onCard: Color, onCardVar: Color,
     onOpenEvent: (AgendaEvent) -> Unit,
     onOpenLocation: (String) -> Unit,
 ) {
@@ -185,7 +186,7 @@ private fun EventDetailCard(
         verticalAlignment = Alignment.Top,
     ) {
         Box(Modifier.padding(top = 2.dp).size(40.dp).clip(RoundedCornerShape(12.dp)).background(badge), contentAlignment = Alignment.Center) {
-            Icon(painterResource(CalendarAgenda.iconFor(event.title)), contentDescription = null, tint = onCard, modifier = Modifier.size(22.dp))
+            Icon(painterResource(CalendarAgenda.iconFor(event.title)), contentDescription = null, tint = onBadge, modifier = Modifier.size(22.dp))
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             // Calendar colour: a dot before the time, as on the widget's event rows.
@@ -202,7 +203,8 @@ private fun EventDetailCard(
                     Modifier
                         .padding(top = 2.dp)
                         .clip(RoundedCornerShape(999.dp))
-                        .background(badge.copy(alpha = 0.45f))
+                        // Fainter on the dark card, so the light text on it stays easy to read.
+                        .background(badge.copy(alpha = if (isSystemInDarkTheme()) 0.25f else 0.45f))
                         .clickable { onOpenLocation(event.location) }
                         .padding(start = 6.dp, end = 10.dp, top = 3.dp, bottom = 3.dp),
                     verticalAlignment = Alignment.CenterVertically,

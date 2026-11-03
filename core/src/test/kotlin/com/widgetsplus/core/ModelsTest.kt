@@ -3,6 +3,7 @@ package com.widgetsplus.core
 import com.widgetsplus.core.model.AppRef
 import com.widgetsplus.core.model.Folder
 import com.widgetsplus.core.model.HostedWidget
+import com.widgetsplus.core.model.SortMode
 import com.widgetsplus.core.model.TapAction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -33,5 +34,10 @@ class ModelsTest {
         val withWidget = f.copy(hostedWidget = HostedWidget("com.x/com.x.Provider", 42))
         assertEquals(TapAction.SHOW_WIDGET, withWidget.effectiveTapAction)
         assertEquals(TapAction.SHOW_WIDGET, withWidget.effectiveDoubleTapAction)
+    }
+
+    /** Only these orders change when an app is opened, so only they redraw the widget then. */
+    @Test fun onlyUseBasedSortsChangeOnLaunch() {
+        assertEquals(setOf(SortMode.MOST_USED, SortMode.RECENTLY_USED), SortMode.entries.filter { it.isByUse }.toSet())
     }
 }

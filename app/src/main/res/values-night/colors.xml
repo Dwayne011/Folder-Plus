@@ -3,4 +3,11 @@
     <color name="widget_background">#E6202124</color>
     <color name="widget_text">#DEFFFFFF</color>
     <color name="widget_glyph">#9FA8DA</color>
+    <!-- Dark mode (approved mockup): dark panels and cards with light text; the plate, badge,
+         accent and the text on them stay as in light mode. Every colour here is also in
+         values-night-v31, or this fixed one would win over the wallpaper's on Android 12+. -->
+    <color name="agenda_card">#422B1B</color>
+    <color name="agenda_group">#2B1708</color>
+    <color name="agenda_on_card">#F2E6E0</color>
+    <color name="agenda_on_card_var">#DAC2B6</color>
 </resources>

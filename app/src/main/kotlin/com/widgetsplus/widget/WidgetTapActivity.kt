@@ -143,7 +143,7 @@ class WidgetTapActivity : Activity() {
                 val repo = appContext.graph.repository
                 val id = itemId.takeIf { it > 0 } ?: repo.getItems(current.id).firstOrNull { it.app == app }?.id
                 id?.let { repo.recordLaunch(it) }
-                WidgetUpdater.updateForFolder(appContext, current.id)
+                WidgetUpdater.afterLaunch(appContext, current.id)
             }
         }
         finish()
@@ -169,7 +169,7 @@ class WidgetTapActivity : Activity() {
                     scope.launch {
                         val repo = appContext.graph.repository
                         repo.getItems(folder.id).firstOrNull { it.app == app }?.let { repo.recordLaunch(it.id) }
-                        WidgetUpdater.updateForFolder(appContext, folder.id)
+                        WidgetUpdater.afterLaunch(appContext, folder.id)
                     }
                 }
             }

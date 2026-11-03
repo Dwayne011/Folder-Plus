@@ -164,7 +164,7 @@ class FolderOpenActivity : FragmentActivity() {
             val appContext = applicationContext
             CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
                 appContext.graph.repository.recordLaunch(item.id)
-                WidgetUpdater.updateForFolder(appContext, folder.id)
+                WidgetUpdater.afterLaunch(appContext, folder.id)
             }
         }
         finish()

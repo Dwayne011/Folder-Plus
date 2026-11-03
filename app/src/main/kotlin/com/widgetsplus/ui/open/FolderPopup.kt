@@ -118,6 +118,8 @@ fun FolderPopup(
     val onPlate = colorResource(R.color.agenda_on_plate)
     val onCard = colorResource(R.color.agenda_on_card)
     val badge = colorResource(R.color.agenda_badge)
+    // On the badge colour (the selected tab) text stays dark, in dark mode too.
+    val onBadge = colorResource(R.color.agenda_on_badge)
 
     // The folder's own app name size (Appearance); 1.0 at 100%.
     val labelScale = TextSize.scale(folder.appNameSize)
@@ -185,7 +187,7 @@ fun FolderPopup(
                                         .padding(horizontal = 14.dp),
                                     contentAlignment = Alignment.Center,
                                 ) {
-                                    Text(tab.title, color = if (selected) onCard else onPlate, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+                                    Text(tab.title, color = if (selected) onBadge else onPlate, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1)
                                 }
                             }
                         }
