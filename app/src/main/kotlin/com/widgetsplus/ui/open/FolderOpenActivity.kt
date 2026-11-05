@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.widgetsplus.R
+import com.widgetsplus.core.model.AppRef
 import com.widgetsplus.core.model.Category
 import com.widgetsplus.core.model.Folder
 import com.widgetsplus.core.model.FolderItem
@@ -76,6 +77,8 @@ class FolderOpenActivity : FragmentActivity() {
                 if (folder == null) return@WidgetsPlusTheme
 
                 LaunchedEffect(Unit) { appGraph.installedApps.ensureLoaded() }
+                // The phone's apps, for the plus pill's picker.
+                val installed by appGraph.installedApps.apps.collectAsStateWithLifecycle()
                 // The folder's own app names, read before its apps are shown: right after the app's
                 // process starts the full app list isn't loaded yet, and names would fall back to
                 // package names.
@@ -127,6 +130,8 @@ class FolderOpenActivity : FragmentActivity() {
                             frosting = folder.frosting,
                             onReorder = { category, ordered -> reorder(folder, state.items, category, ordered) },
                             initialTab = startTab,
+                            installedApps = installed,
+                            onAddApps = { category, apps -> addApps(folder, category, apps) },
                         )
                     }
                 }
@@ -156,6 +161,17 @@ class FolderOpenActivity : FragmentActivity() {
     override fun onStop() {
         graph.hostedWidgets.stopListening()
         super.onStop()
+    }
+
+    /** The plus pill's picker: [apps] join [category] (null: no category), and the widgets follow. */
+    private fun addApps(folder: Folder, category: Category?, apps: List<AppRef>) {
+        if (apps.isEmpty()) return
+        // Not lifecycleScope: the folder may be closed before the write lands.
+        val appContext = applicationContext
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            appContext.graph.repository.addApps(folder.id, apps, category?.id)
+            WidgetUpdater.updateForFolder(appContext, folder.id)
+        }
     }
 
     private fun launch(folder: Folder, item: FolderItem) {

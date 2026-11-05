@@ -10,6 +10,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.widgetsplus.R
+import com.widgetsplus.apps.LauncherApp
 import com.widgetsplus.core.model.AppRef
 import com.widgetsplus.core.model.Category
 import com.widgetsplus.core.model.Folder
@@ -75,6 +78,9 @@ private data class Tab(val key: String, val title: String, val items: List<Folde
 
 /** Pages in the open folder's looping pager; plenty to swipe through in either direction. */
 private const val LOOP_PAGES = 100_000
+
+/** Room under the apps for the plus pill (32dp and its 10dp margin), so it never covers one. */
+private const val ADD_PILL_SPACE_DP = 44
 
 /**
  * Scrim + centred card in the agenda widget's style: its see-through plate (the Frosting setting
@@ -96,6 +102,10 @@ fun FolderPopup(
     onReorder: (category: Category?, ordered: List<FolderItem>) -> Unit = { _, _ -> },
     /** The tab to open on ([FolderTabContents] key), e.g. the category the widget was showing. */
     initialTab: String? = null,
+    /** The phone's apps, for the plus pill's picker (approved mockup); those in the folder are left out. */
+    installedApps: List<LauncherApp> = emptyList(),
+    /** Adds apps to a tab's category (null: All or Other, so no category). Null hides the plus pill. */
+    onAddApps: ((category: Category?, apps: List<AppRef>) -> Unit)? = null,
 ) {
     val allLabel = stringResource(R.string.category_all)
     val otherLabel = stringResource(R.string.category_other)
@@ -114,6 +124,9 @@ fun FolderPopup(
     fun tabIndex(page: Int) = if (tabs.size > 1) page.mod(tabs.size) else page
     // While an app is being dragged, swipes mustn't change the tab.
     var dragging by remember { mutableStateOf(false) }
+    // The tab (key) the plus pill's picker is adding to; null while the folder shows.
+    var addingTo by rememberSaveable { mutableStateOf<String?>(null) }
+    val pillSpace = if (onAddApps != null) ADD_PILL_SPACE_DP else 0
     val scope = rememberCoroutineScope()
     val onPlate = colorResource(R.color.agenda_on_plate)
     val onCard = colorResource(R.color.agenda_on_card)
@@ -130,7 +143,7 @@ fun FolderPopup(
         val maxCount = tabs.maxOfOrNull { it.items.size } ?: 0
         val rows = ceil(maxCount / 4f).toInt().coerceAtLeast(1)
         val rowDp = 62f + 30f * labelScale
-        (rows * rowDp + 16f).roundToInt().coerceIn(108, 440).dp
+        (rows * rowDp + 16f).roundToInt().coerceIn(108, 440).dp + pillSpace.dp
     }
 
     Box(
@@ -152,7 +165,21 @@ fun FolderPopup(
                 // Swallow clicks so they don't reach the scrim.
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = {}),
         ) {
-            Column(Modifier.padding(8.dp)) {
+            val addingTab = addingTo?.let { key -> tabs.firstOrNull { it.key == key } }
+            if (addingTab != null && onAddApps != null) {
+                val inFolder = remember(items) { items.map { it.app }.toSet() }
+                Column(Modifier.padding(8.dp)) {
+                    AddToTabPicker(
+                        tabTitle = addingTab.title,
+                        candidates = installedApps.filter { it.ref !in inFolder },
+                        onAdd = { apps ->
+                            onAddApps(addingTab.category, apps)
+                            addingTo = null
+                        },
+                        onBack = { addingTo = null },
+                    )
+                }
+            } else Column(Modifier.padding(8.dp)) {
                 if (folder.name.isNotBlank()) {
                     Text(
                         folder.name,
@@ -215,7 +242,7 @@ fun FolderPopup(
                         val shown = tab.items
                         if (shown.isEmpty()) {
                             Text(
-                                stringResource(R.string.folder_empty),
+                                stringResource(if (onAddApps != null) R.string.tab_empty else R.string.folder_empty),
                                 textAlign = TextAlign.Center,
                                 color = colorResource(R.color.agenda_on_card_var),
                                 modifier = Modifier.fillMaxWidth().padding(24.dp),
@@ -229,8 +256,17 @@ fun FolderPopup(
                                 onLaunch = onLaunch,
                                 onDragging = { dragging = it },
                                 onReorder = { onReorder(tab.category, it) },
+                                bottomSpace = pillSpace,
                             )
                         }
+                    }
+                    if (onAddApps != null) {
+                        val current = tabs[tabIndex(pagerState.currentPage)]
+                        AddPill(
+                            tabTitle = current.title,
+                            onClick = { addingTo = current.key },
+                            modifier = Modifier.align(Alignment.BottomEnd).padding(10.dp),
+                        )
                     }
                 }
             }
@@ -272,6 +308,8 @@ private fun ReorderableAppGrid(
     onLaunch: (FolderItem) -> Unit,
     onDragging: (Boolean) -> Unit,
     onReorder: (List<FolderItem>) -> Unit,
+    /** Room under the last row, in dp (for the plus pill). */
+    bottomSpace: Int = 0,
 ) {
     val gridState = rememberLazyGridState()
     val haptics = LocalHapticFeedback.current
@@ -295,6 +333,7 @@ private fun ReorderableAppGrid(
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
         state = gridState,
+        contentPadding = PaddingValues(bottom = bottomSpace.dp),
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 4.dp, vertical = 8.dp)
