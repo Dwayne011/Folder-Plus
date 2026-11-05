@@ -62,6 +62,9 @@ internal class FolderCards(
         val dip = TypedValue.COMPLEX_UNIT_DIP
         val views = RemoteViews(context.packageName, R.layout.widget_folder_card)
         val oneColumn = widthDp < MosaicLayout.SINGLE_COLUMN_MAX_DP
+        // Exactly the frame's size: the stack measures cards with "at most" sizes, so a card left
+        // to match its parent would shrink to its icons and sit on the left.
+        views.setViewLayoutWidth(R.id.fcard_root, widthDp - 2 * MosaicLayout.BORDER_DP, dip)
         views.setViewLayoutHeight(R.id.fcard_root, heightDp - 2 * MosaicLayout.BORDER_DP, dip)
         views.setImageViewResource(R.id.fcard_panel, if (oneColumn) R.drawable.folder_panel_small else R.drawable.agenda_shape_group)
         views.setContentDescription(R.id.fcard_root, title(tab))

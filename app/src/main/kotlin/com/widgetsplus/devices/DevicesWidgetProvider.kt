@@ -160,15 +160,26 @@ open class DevicesWidgetProvider : AppWidgetProvider() {
             val views = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 @Suppress("DEPRECATION")
                 val sizes = options.getParcelableArrayList<SizeF>(AppWidgetManager.OPTION_APPWIDGET_SIZES)
-                if (!sizes.isNullOrEmpty()) RemoteViews(sizes.take(16).associateWith { build(context, snap, it.width, addedSmall) })
-                else build(context, snap, options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).toFloat(), addedSmall)
+                if (!sizes.isNullOrEmpty()) RemoteViews(sizes.take(16).associateWith { build(context, snap, it.width, it.height, addedSmall) })
+                else build(context, snap, optionsWidth(options), optionsHeight(options), addedSmall)
             } else {
-                build(context, snap, options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).toFloat(), addedSmall)
+                build(context, snap, optionsWidth(options), optionsHeight(options), addedSmall)
             }
             manager.updateAppWidget(appWidgetId, views)
         }
 
-        private fun build(context: Context, snap: Snapshot, widthDp: Float, addedSmall: Boolean): RemoteViews {
+        private fun optionsWidth(options: android.os.Bundle) = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).toFloat()
+        private fun optionsHeight(options: android.os.Bundle) = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).toFloat()
+
+        /**
+         * The wide layout's column without its name: the drawing (52dp), the gaps (6, 3 and 5dp),
+         * the level (12dp) and the bar (5dp), inside the panel's 28dp header, 8dp border and 20dp
+         * of padding. A name's line is 15.6dp.
+         */
+        private const val WIDE_COLUMN_FIXED_DP = 52f + 6f + 3f + 12f + 5f + 5f + 28f + 8f + 20f
+        private const val WIDE_NAME_LINE_DP = 15.6f
+
+        private fun build(context: Context, snap: Snapshot, widthDp: Float, heightDp: Float, addedSmall: Boolean): RemoteViews {
             val small = if (widthDp > 0f) widthDp < SMALL_MAX_WIDTH_DP else addedSmall
             val v = RemoteViews(context.packageName, if (small) R.layout.widget_devices_small else R.layout.widget_devices)
 
@@ -212,13 +223,17 @@ open class DevicesWidgetProvider : AppWidgetProvider() {
             val devices = snap.devices.map { DeviceColumn(it.name, it.battery, DevicesDraw.drawingFor(it.kind), DevicesDraw.iconFor(it.kind)) }
             if (small) {
                 // This phone first, then each device (approved 2×2 mockup).
-                DevicesSmall.fill(context, v, listOf(phone) + devices, widthDp)
+                DevicesSmall.fill(context, v, listOf(phone) + devices, widthDp, heightDp)
                 return v
             }
             v.setViewVisibility(R.id.dev_row, View.VISIBLE)
             // Three or two devices; one device beside this phone; or this phone alone.
             val columns = if (devices.size <= 1) devices + phone else devices
             SLOTS.forEachIndexed { i, ids -> fill(context, v, ids, columns.getOrNull(i)) }
+            // A name too long for its column takes a second line when the widget is tall enough
+            // (it would otherwise end in "…" in narrow columns); otherwise it stays on one line.
+            val nameLines = if (heightDp >= WIDE_COLUMN_FIXED_DP + 2 * WIDE_NAME_LINE_DP) 2 else 1
+            SLOTS.forEach { v.setInt(it.name, "setMaxLines", nameLines) }
             return v
         }
 

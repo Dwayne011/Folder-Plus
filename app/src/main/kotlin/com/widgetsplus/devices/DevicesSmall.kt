@@ -66,7 +66,12 @@ internal object DevicesSmall {
     /** Around a list row's bar: the well's 8dp inset and the rows' 10dp padding each side, the 10dp after the drawing, and the level (6dp gap, 26dp). */
     private const val LIST_ROW_FIXED_DP = 2 * 8f + 2 * 10f + 10f + 6f + 26f
 
-    fun fill(context: Context, v: RemoteViews, columns: List<DeviceColumn>, widthDp: Float) {
+    /** Above and below the list rows: the 28dp header, the 8dp border and the rows' 6dp padding each side. */
+    private const val LIST_FIXED_HEIGHT_DP = 28f + 8f + 2 * 6f
+    /** The 2×2 widget's height when the launcher doesn't say. */
+    private const val DEFAULT_HEIGHT_DP = 201f
+
+    fun fill(context: Context, v: RemoteViews, columns: List<DeviceColumn>, widthDp: Float, heightDp: Float) {
         val n = columns.size
         v.setViewVisibility(R.id.ds1, if (n == 1) View.VISIBLE else View.GONE)
         v.setViewVisibility(R.id.ds2, if (n == 2) View.VISIBLE else View.GONE)
@@ -80,10 +85,16 @@ internal object DevicesSmall {
                 val fit = if (n == 3 && sized) THREE_ROWS else FOUR_ROWS
                 val width = if (widthDp > 0f) widthDp else DEFAULT_WIDTH_DP
                 val barW = if (sized) (width - LIST_ROW_FIXED_DP - fit.boxW).coerceAtLeast(16f) else 30f
+                // A long name takes a second line only when its row has room for it and the level
+                // below; otherwise it ends in "…", so the level is never cut off.
+                val rowH = ((if (heightDp > 0f) heightDp else DEFAULT_HEIGHT_DP) - LIST_FIXED_HEIGHT_DP) / n
+                val twoLines = 2 * 1.2f * fit.name + 3f + 1.2f * fit.sub + 2f
+                val nameLines = if (rowH >= twoLines) 2 else 1
                 LIST.forEachIndexed { i, ids ->
                     val c = columns.getOrNull(i)
                     v.setViewVisibility(ids.root, if (c == null) View.GONE else View.VISIBLE)
                     if (c == null) return@forEachIndexed
+                    listOf(ids.name, ids.nameLow).forEach { v.setInt(it, "setMaxLines", nameLines) }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         val dip = TypedValue.COMPLEX_UNIT_DIP
                         v.setViewLayoutWidth(ids.box, fit.boxW, dip)

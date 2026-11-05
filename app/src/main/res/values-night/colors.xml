@@ -10,4 +10,6 @@
     <color name="agenda_group">#2B1708</color>
     <color name="agenda_on_card">#F2E6E0</color>
     <color name="agenda_on_card_var">#DAC2B6</color>
+    <!-- Low battery on the dark panel: the light red of the approved mockup, readable there. -->
+    <color name="dev_low">#FFB4AB</color>
 </resources>
