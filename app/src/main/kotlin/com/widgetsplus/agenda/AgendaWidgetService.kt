@@ -173,7 +173,10 @@ class AgendaRemoteViewsFactory(
                 views.setInt(slot.title, "setMaxLines", if (twoLines[index]) 2 else 1)
                 views.setInt(slot.loc, "setMaxLines", if (locationLines[index] == 2) 2 else 1)
             }
-            palette.tintRes(views, slot.bg, R.color.agenda_card)
+            // All-day events: the row takes on the event's calendar colour, and the dot that
+            // otherwise shows that colour is left off (approved option B).
+            val tinted = event.allDay && event.color != 0
+            if (tinted) palette.tintCalendar(views, slot.bg, event.color) else palette.tintRes(views, slot.bg, R.color.agenda_card)
             palette.tintRes(views, slot.badge, R.color.agenda_badge)
             views.setImageViewResource(slot.icon, CalendarAgenda.iconFor(event.title))
             palette.tintRes(views, slot.icon, R.color.agenda_on_badge)
@@ -181,7 +184,7 @@ class AgendaRemoteViewsFactory(
             views.setTextViewText(slot.title, event.title)
             palette.textRes(views, slot.whenText, R.color.agenda_on_card_var)
             // Calendar colour: a small dot before the time, in the colour Calendar shows the event in.
-            if (event.color != 0) {
+            if (event.color != 0 && !tinted) {
                 views.setViewVisibility(slot.dot, View.VISIBLE)
                 AgendaPalette.tint(views, slot.dot, event.color, 255)
             } else {

@@ -129,6 +129,7 @@
 
     <!-- Connected devices widget -->
     <string name="devices_widget_label">Connected devices</string>
+    <string name="devices_widget_label_2x2">Connected devices (2×2)</string>
     <string name="devices_widget_description">Battery of the Bluetooth devices connected to this phone, or this phone\'s battery when none are.</string>
     <string name="devices_header_connected">Connected</string>
     <string name="devices_header_none">No devices</string>

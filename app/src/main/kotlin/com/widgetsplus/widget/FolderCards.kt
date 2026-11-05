@@ -69,9 +69,10 @@ internal class FolderCards(
         // The category's name, when the folder shows it.
         val pill = folder.showCategoryName
         if (pill) {
-            val fullColumns = MosaicLayout.plan(widthDp, heightDp, Int.MAX_VALUE, MosaicLayout.NAME_PILL_DP).columns
+            // As wide as a full row of icons, so left and right line up with the icons' edges.
+            val full = MosaicLayout.plan(widthDp, heightDp, Int.MAX_VALUE, MosaicLayout.NAME_PILL_DP, bigIcons = true)
             val rowWidth = if (oneColumn) widthDp - 2 * MosaicLayout.BORDER_DP - 2 * ONE_COLUMN_PILL_INSET_DP
-            else fullColumns * MosaicLayout.ICON_DP + (fullColumns - 1) * MosaicLayout.GAP_DP
+            else full.iconsWidthDp
             views.setViewVisibility(R.id.fcard_pill_row, View.VISIBLE)
             views.setViewLayoutWidth(R.id.fcard_pill_row, rowWidth, dip)
             val (pillId, textId) = when {
@@ -87,8 +88,8 @@ internal class FolderCards(
         }
 
         // The apps: as many as fit below the pill, "+N" for the rest of this category.
-        val plan = MosaicLayout.plan(widthDp, heightDp, tab.items.size, if (pill) MosaicLayout.NAME_PILL_DP else 0f)
-        val cellDp = plan.iconDp + plan.gapDp
+        val plan = MosaicLayout.plan(widthDp, heightDp, tab.items.size, if (pill) MosaicLayout.NAME_PILL_DP else 0f, bigIcons = true)
+        val cellDp = plan.cellDp
         views.removeAllViews(R.id.fcard_grid)
         views.setViewLayoutWidth(R.id.fcard_grid, plan.columns * cellDp, dip)
         views.setViewLayoutHeight(R.id.fcard_grid, plan.rows * cellDp, dip)
@@ -99,7 +100,7 @@ internal class FolderCards(
             for (c in 0 until plan.columns) {
                 val i = index++
                 val cell = when {
-                    i < plan.shown -> appCell(tab, tab.items[i], iconPx)
+                    i < plan.shown -> appCell(tab, tab.items[i], iconPx, plan)
                     i == plan.shown && plan.more > 0 -> moreCell(tab, plan)
                     else -> RemoteViews(context.packageName, R.layout.widget_folder_cell)
                 }
@@ -112,10 +113,11 @@ internal class FolderCards(
         return views
     }
 
-    private fun appCell(tab: TabContent, item: FolderItem, iconPx: Int): RemoteViews {
+    private fun appCell(tab: TabContent, item: FolderItem, iconPx: Int, plan: MosaicPlan): RemoteViews {
         val cell = RemoteViews(context.packageName, R.layout.widget_folder_cell)
         apps.icon(item.app, iconPx)?.let { cell.setImageViewBitmap(R.id.cell_icon, it) }
         cell.setContentDescription(R.id.cell_icon, apps.label(item.app))
+        FolderCellSize.apply(cell, plan)
         cell.setOnClickFillInIntent(
             R.id.cell_icon,
             fillIn(tab)
@@ -129,6 +131,7 @@ internal class FolderCards(
         val cell = RemoteViews(context.packageName, R.layout.widget_folder_cell_more)
         cell.setTextViewText(R.id.cell_more_text, "+${plan.more}")
         cell.setContentDescription(R.id.cell_more_text, context.resources.getQuantityString(R.plurals.widget_more_apps, plan.more, plan.more))
+        FolderCellSize.applyMore(cell, plan)
         cell.setOnClickFillInIntent(R.id.cell_more, fillIn(tab, openNow = true))
         return cell
     }

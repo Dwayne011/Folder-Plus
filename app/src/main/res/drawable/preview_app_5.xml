@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget-picker preview: a sample app icon (Bulb), a white disc like the round launcher
+     icons the real folder widget shows. Fixed colours, as app icons don't change with the theme. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp"
+    android:viewportWidth="48" android:viewportHeight="48">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M0,24a24,24 0 1,0 48,0a24,24 0 1,0 -48,0z" />
+    <path android:fillColor="#FFFBBC04" android:pathData="M15,21a9,9 0 1,0 18,0a9,9 0 1,0 -18,0z" />
+    <path android:fillColor="#FFF29900" android:pathData="M20,30h8v4a2,2 0 0,1 -2,2h-4a2,2 0 0,1 -2,-2z" />
+</vector>

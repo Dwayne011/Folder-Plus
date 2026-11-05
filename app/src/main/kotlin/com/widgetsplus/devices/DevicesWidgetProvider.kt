@@ -8,8 +8,10 @@ import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.SystemClock
 import android.provider.Settings
+import android.util.SizeF
 import android.view.View
 import android.widget.RemoteViews
 import com.widgetsplus.R
@@ -30,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * as when earbuds connect, makes one redraw), and about every 15 minutes for this phone's own
  * level, which Android doesn't broadcast to apps in the background. Neither wakes the phone.
  */
-class DevicesWidgetProvider : AppWidgetProvider() {
+open class DevicesWidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         appWidgetIds.forEach { render(context, appWidgetManager, it) }
@@ -39,12 +41,19 @@ class DevicesWidgetProvider : AppWidgetProvider() {
         scheduleRefresh(context)
     }
 
+    override fun onAppWidgetOptionsChanged(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, newOptions: android.os.Bundle) {
+        // Resized: the narrow and wide arrangements are chosen by size.
+        render(context, appWidgetManager, appWidgetId)
+    }
+
     override fun onEnabled(context: Context) {
         WidgetListeners.setDevices(context, true)
         scheduleRefresh(context)
     }
 
     override fun onDisabled(context: Context) {
+        // The last of this size was removed; the other size may still be on the home screen.
+        if (placedIds(context).isNotEmpty()) return
         WidgetListeners.setDevices(context, false)
         cancelRefresh(context)
     }
@@ -66,8 +75,12 @@ class DevicesWidgetProvider : AppWidgetProvider() {
         const val ACTION_HEADSET_STATE = "android.bluetooth.headset.profile.action.CONNECTION_STATE_CHANGED"
         const val ACTION_REFRESH = "com.widgetsplus.devices.REFRESH"
 
-        fun placedIds(context: Context): IntArray =
-            AppWidgetManager.getInstance(context).getAppWidgetIds(ComponentName(context, DevicesWidgetProvider::class.java))
+        /** Every devices widget placed, of either size. */
+        fun placedIds(context: Context): IntArray {
+            val manager = AppWidgetManager.getInstance(context)
+            return manager.getAppWidgetIds(ComponentName(context, DevicesWidgetProvider::class.java)) +
+                manager.getAppWidgetIds(ComponentName(context, DevicesWidgetProvider2x2::class.java))
+        }
 
         fun updateAll(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
@@ -121,30 +134,58 @@ class DevicesWidgetProvider : AppWidgetProvider() {
             )
         }
 
-        fun render(context: Context, manager: AppWidgetManager, appWidgetId: Int) {
-            // No colours are set here: the layout's colour resources follow the phone's theme.
-            val v = RemoteViews(context.packageName, R.layout.widget_devices)
+        /** What the widget shows, read once and drawn for every size the launcher may use. */
+        private class Snapshot(
+            val permitted: Boolean,
+            val on: Boolean,
+            val devices: List<ConnectedDevice>,
+            val phoneLevel: Int,
+        )
 
-            if (!BluetoothDevices.hasPermission(context)) {
+        private fun snapshot(context: Context): Snapshot {
+            if (!BluetoothDevices.hasPermission(context)) return Snapshot(false, false, emptyList(), 0)
+            val on = BluetoothDevices.isOn(context)
+            val devices = if (on) BluetoothDevices.connectedWithBattery(context).take(3) else emptyList()
+            return Snapshot(true, on, devices, BluetoothDevices.phoneLevel(context))
+        }
+
+        /** Narrower than this (2×2, or a big widget resized narrow) shows the 2×2 arrangement. */
+        private const val SMALL_MAX_WIDTH_DP = 240f
+
+        fun render(context: Context, manager: AppWidgetManager, appWidgetId: Int) {
+            val snap = snapshot(context)
+            val options = manager.getAppWidgetOptions(appWidgetId)
+            // Until the launcher gives a size, the 2×2 entry shows the 2×2 arrangement.
+            val addedSmall = manager.getAppWidgetInfo(appWidgetId)?.provider?.className == DevicesWidgetProvider2x2::class.java.name
+            val views = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                @Suppress("DEPRECATION")
+                val sizes = options.getParcelableArrayList<SizeF>(AppWidgetManager.OPTION_APPWIDGET_SIZES)
+                if (!sizes.isNullOrEmpty()) RemoteViews(sizes.take(16).associateWith { build(context, snap, it.width, addedSmall) })
+                else build(context, snap, options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).toFloat(), addedSmall)
+            } else {
+                build(context, snap, options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).toFloat(), addedSmall)
+            }
+            manager.updateAppWidget(appWidgetId, views)
+        }
+
+        private fun build(context: Context, snap: Snapshot, widthDp: Float, addedSmall: Boolean): RemoteViews {
+            val small = if (widthDp > 0f) widthDp < SMALL_MAX_WIDTH_DP else addedSmall
+            val v = RemoteViews(context.packageName, if (small) R.layout.widget_devices_small else R.layout.widget_devices)
+
+            if (!snap.permitted) {
                 v.setTextViewText(R.id.dev_head, context.getString(R.string.devices_header_connected))
-                v.setViewVisibility(R.id.dev_row, View.GONE)
+                if (small) SMALL_GROUPS.forEach { v.setViewVisibility(it, View.GONE) } else v.setViewVisibility(R.id.dev_row, View.GONE)
                 v.setViewVisibility(R.id.dev_message, View.VISIBLE)
                 v.setTextViewText(R.id.dev_message, context.getString(R.string.devices_need_permission))
                 val setup = Intent(context, DevicesSetupActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 v.setOnClickPendingIntent(R.id.dev_root, PendingIntent.getActivity(context, 2, setup, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
-                manager.updateAppWidget(appWidgetId, v)
-                return
+                return v
             }
-
-            v.setViewVisibility(R.id.dev_row, View.VISIBLE)
             v.setViewVisibility(R.id.dev_message, View.GONE)
-
-            val on = BluetoothDevices.isOn(context)
-            val devices = if (on) BluetoothDevices.connectedWithBattery(context).take(3) else emptyList()
 
             // A tap opens Bluetooth settings; with Bluetooth on but nothing connected (only this
             // phone shows), it opens the phone's Battery page instead.
-            val phoneOnly = on && devices.isEmpty()
+            val phoneOnly = snap.on && snap.devices.isEmpty()
             val tap = if (phoneOnly) {
                 PendingIntent.getActivity(
                     context, 3, Intent(Intent.ACTION_POWER_USAGE_SUMMARY).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
@@ -161,24 +202,27 @@ class DevicesWidgetProvider : AppWidgetProvider() {
                 R.id.dev_head,
                 context.getString(
                     when {
-                        !on -> R.string.devices_header_off
-                        devices.isEmpty() -> R.string.devices_header_none
+                        !snap.on -> R.string.devices_header_off
+                        snap.devices.isEmpty() -> R.string.devices_header_none
                         else -> R.string.devices_header_connected
                     },
                 ),
             )
-            // Three or two devices; one device beside this phone; or this phone alone.
-            val phone = Column(context.getString(R.string.devices_this_phone), BluetoothDevices.phoneLevel(context), DeviceDrawing.PHONE, 0)
-            val columns = buildList {
-                devices.forEach { add(Column(it.name, it.battery, DevicesDraw.drawingFor(it.kind), DevicesDraw.iconFor(it.kind))) }
-                if (devices.size <= 1) add(phone)
+            val phone = DeviceColumn(context.getString(R.string.devices_this_phone), snap.phoneLevel, DeviceDrawing.PHONE, 0)
+            val devices = snap.devices.map { DeviceColumn(it.name, it.battery, DevicesDraw.drawingFor(it.kind), DevicesDraw.iconFor(it.kind)) }
+            if (small) {
+                // This phone first, then each device (approved 2×2 mockup).
+                DevicesSmall.fill(context, v, listOf(phone) + devices, widthDp)
+                return v
             }
+            v.setViewVisibility(R.id.dev_row, View.VISIBLE)
+            // Three or two devices; one device beside this phone; or this phone alone.
+            val columns = if (devices.size <= 1) devices + phone else devices
             SLOTS.forEachIndexed { i, ids -> fill(context, v, ids, columns.getOrNull(i)) }
-            manager.updateAppWidget(appWidgetId, v)
+            return v
         }
 
-        /** One column of the widget: a drawing with a bar, or a ring with an icon. */
-        private class Column(val name: String, val level: Int, val drawing: DeviceDrawing?, val icon: Int)
+        private val SMALL_GROUPS = listOf(R.id.ds1, R.id.ds2, R.id.ds3)
 
         private class SlotIds(
             val root: Int,
@@ -206,7 +250,7 @@ class DevicesWidgetProvider : AppWidgetProvider() {
             ),
         )
 
-        private fun fill(context: Context, v: RemoteViews, s: SlotIds, c: Column?) {
+        private fun fill(context: Context, v: RemoteViews, s: SlotIds, c: DeviceColumn?) {
             v.setViewVisibility(s.root, if (c == null) View.GONE else View.VISIBLE)
             if (c == null) return
             val low = DevicesLevels.isLow(c.level)
@@ -244,3 +288,6 @@ class DevicesWidgetProvider : AppWidgetProvider() {
         }
     }
 }
+
+/** The connected devices widget's 2×2 entry in the widget list (approved mockup); same widget. */
+class DevicesWidgetProvider2x2 : DevicesWidgetProvider()

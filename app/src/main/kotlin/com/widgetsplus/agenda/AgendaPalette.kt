@@ -1,10 +1,12 @@
 package com.widgetsplus.agenda
 
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Build
 import android.widget.RemoteViews
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import com.widgetsplus.R
 
 /**
@@ -42,6 +44,36 @@ class AgendaPalette(private val context: Context) {
         views.setInt(viewId, "setImageAlpha", alpha)
     }
 
+    /** The card colour in light mode and in dark mode, whichever the phone is in now. */
+    private val cardLight by lazy { cardIn(night = false) }
+    private val cardDark by lazy { cardIn(night = true) }
+
+    private fun cardIn(night: Boolean): Int {
+        val config = Configuration(context.resources.configuration)
+        val mode = if (night) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO
+        config.uiMode = (config.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or mode
+        return ContextCompat.getColor(context.createConfigurationContext(config), R.color.agenda_card)
+    }
+
+    /**
+     * Tints a white shape ImageView to the card colour with [eventColor] (an event's calendar
+     * colour) mixed in, as all-day events are shown (approved option B): 30% in light mode, 34%
+     * in dark. On Android 12+ both versions go to the launcher, which shows the one for the
+     * phone's theme, so a switch between light and dark needs no redraw from this app.
+     */
+    fun tintCalendar(views: RemoteViews, viewId: Int, eventColor: Int) {
+        val opaque = eventColor or -0x1000000
+        val light = ColorUtils.blendARGB(cardLight, opaque, CALENDAR_TINT_LIGHT)
+        val dark = ColorUtils.blendARGB(cardDark, opaque, CALENDAR_TINT_DARK)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            views.setColorInt(viewId, "setColorFilter", light, dark)
+        } else {
+            val night = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+            views.setInt(viewId, "setColorFilter", if (night) dark else light)
+        }
+        views.setInt(viewId, "setImageAlpha", 255)
+    }
+
     /** Text colour from the colour resource [res], looked up by the launcher as in [tintRes]. */
     fun textRes(views: RemoteViews, viewId: Int, @ColorRes res: Int) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -52,6 +84,10 @@ class AgendaPalette(private val context: Context) {
     }
 
     companion object {
+        /** How much of an all-day event's calendar colour its row takes (approved mockup). */
+        const val CALENDAR_TINT_LIGHT = 0.30f
+        const val CALENDAR_TINT_DARK = 0.34f
+
         // Frosted surface opacities from the approved mockup (0..255).
         const val PLATE_ALPHA = 148   // 58%
         const val GROUP_ALPHA = 148   // 58%

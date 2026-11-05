@@ -141,7 +141,8 @@ object WidgetRenderer {
 
         views.setViewVisibility(R.id.folder_single, View.GONE)
         views.setViewVisibility(R.id.folder_grid, View.VISIBLE)
-        val plan = MosaicLayout.plan(widthDp, heightDp, items.size)
+        // Android 12+ can size views, so widgets two columns wide or more get big icons.
+        val plan = MosaicLayout.plan(widthDp, heightDp, items.size, bigIcons = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
         val iconPx = (plan.iconDp * density).roundToInt().coerceAtLeast(1)
         sizeGrid(views, plan, heightDp)
 
@@ -214,11 +215,18 @@ object WidgetRenderer {
         return views
     }
 
-    /** Square 2x2 mini mosaic, or only the rows a sparse folder needs (Android 12+ can size views). */
+    /**
+     * Square 2x2 mini mosaic, a centred block of big icons, or only the rows a sparse folder needs
+     * (Android 12+ can size views).
+     */
     private fun sizeGrid(views: RemoteViews, plan: MosaicPlan, heightDp: Float) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
         val pad = 2 * MosaicLayout.PANEL_PADDING_DP
         when {
+            plan.big -> {
+                views.setViewLayoutWidth(R.id.folder_grid, plan.columns * plan.cellDp + pad, TypedValue.COMPLEX_UNIT_DIP)
+                views.setViewLayoutHeight(R.id.folder_grid, plan.rows * plan.cellDp + pad, TypedValue.COMPLEX_UNIT_DIP)
+            }
             plan.compact -> {
                 val side = 2 * plan.iconDp + plan.gapDp + pad
                 views.setViewLayoutWidth(R.id.folder_grid, side, TypedValue.COMPLEX_UNIT_DIP)
@@ -243,6 +251,7 @@ object WidgetRenderer {
         val cell = RemoteViews(context.packageName, if (plan.compact) R.layout.widget_folder_cell_compact else R.layout.widget_folder_cell)
         apps.icon(item.app, iconPx)?.let { cell.setImageViewBitmap(R.id.cell_icon, it) }
         cell.setContentDescription(R.id.cell_icon, apps.label(item.app))
+        FolderCellSize.apply(cell, plan)
         if (!plan.compact && index < MAX_ICONS) {
             // Through the tap activity, so a quick second tap opens the folder instead.
             val intent = WidgetTapActivity.appIntent(context, folder.id, item.app.flatten(), item.id)
@@ -255,6 +264,7 @@ object WidgetRenderer {
         val cell = RemoteViews(context.packageName, if (plan.compact) R.layout.widget_folder_cell_more_compact else R.layout.widget_folder_cell_more)
         cell.setTextViewText(R.id.cell_more_text, "+${plan.more}")
         cell.setContentDescription(R.id.cell_more_text, context.resources.getQuantityString(R.plurals.widget_more_apps, plan.more, plan.more))
+        FolderCellSize.applyMore(cell, plan)
         if (plan.compact) {
             // Scale the count with the mini mosaic's tiles.
             cell.setTextViewTextSize(R.id.cell_more_text, TypedValue.COMPLEX_UNIT_DIP, (plan.iconDp * 0.42f).coerceIn(7f, 12f))

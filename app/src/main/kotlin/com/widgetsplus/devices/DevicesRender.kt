@@ -9,6 +9,9 @@ import android.graphics.RectF
 import com.widgetsplus.R
 import com.widgetsplus.core.devices.DeviceKind
 
+/** One device on a devices widget: a drawing with a bar, or (no drawing) a ring or its icon. */
+internal class DeviceColumn(val name: String, val level: Int, val drawing: DeviceDrawing?, val icon: Int)
+
 /** Levels at or below this show in the low-battery colour. */
 object DevicesLevels {
     const val LOW = 15

@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Connected devices widget at 2×2 and other narrow sizes (approved mockup): the plate with its
+     28dp header band, the events-panel colour inset 8dp, and one of three arrangements. Nothing
+     connected: this phone alone, big and centred (ds1). Otherwise one row per device, this phone
+     first, the rows sharing the height: two rows stacked so names show in full (ds2), or three or
+     four rows with the drawing on the left (ds3). Drawings are tinted vector layers as in the big
+     widget; device types without a drawing show their icon. Low battery uses the *_low views.
+     Every colour is a resource, so the launcher follows the phone's theme and wallpaper. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/dev_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="SpUsage,UnusedAttribute,ContentDescription,UseAppTint">
+
+    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:alpha="0.58" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/folder_plate_small" android:tint="@color/agenda_plate" />
+    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:alpha="0.16" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/folder_hairline_small" />
+    <TextView android:id="@+id/dev_head" android:layout_width="match_parent" android:layout_height="28dp" android:fontFamily="google-sans-text" android:textColor="@color/agenda_on_plate" android:textFontWeight="700" android:textStyle="bold" android:gravity="center" android:letterSpacing="0.1" android:textAllCaps="true" android:textSize="11dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="28dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp">
+
+        <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_group" android:tint="@color/agenda_group" />
+        <TextView android:id="@+id/dev_message" android:layout_width="match_parent" android:layout_height="match_parent" android:fontFamily="google-sans-text" android:gravity="center" android:padding="10dp" android:textColor="@color/agenda_on_card" android:textSize="11dp" android:visibility="gone" />
+
+        <!-- Nothing connected: this phone alone, big and centred. -->
+        <LinearLayout android:id="@+id/ds1" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:orientation="vertical" android:visibility="gone">
+            <FrameLayout android:id="@+id/ds1_box" android:layout_width="96dp" android:layout_height="46dp">
+                <ImageView android:id="@+id/ds1_draw_main" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_card" />
+                <ImageView android:id="@+id/ds1_draw_detail" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_badge" />
+                <ImageView android:id="@+id/ds1_draw_top" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_card" />
+                <ImageView android:id="@+id/ds1_icon" android:layout_width="20dp" android:layout_height="20dp" android:layout_gravity="center" android:tint="@color/agenda_on_card" android:visibility="gone" />
+            </FrameLayout>
+            <FrameLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp">
+                <TextView android:id="@+id/ds1_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans" android:textColor="@color/agenda_on_card" android:textFontWeight="500" android:textSize="11dp" android:maxLines="1" android:ellipsize="end"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                <TextView android:id="@+id/ds1_name_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans" android:textColor="@color/dev_low" android:textFontWeight="500" android:textSize="11dp" android:maxLines="1" android:ellipsize="end" android:visibility="gone"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+            </FrameLayout>
+            <FrameLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp">
+                <TextView android:id="@+id/ds1_sub" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/agenda_on_card_var" android:textSize="10dp" android:maxLines="1"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                <TextView android:id="@+id/ds1_sub_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/dev_low" android:textSize="10dp" android:maxLines="1" android:visibility="gone"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+            </FrameLayout>
+            <FrameLayout android:id="@+id/ds1_bar" android:layout_width="40dp" android:layout_height="5dp" android:layout_marginTop="4dp">
+                <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/dev_bar" android:tint="@color/agenda_card" />
+                <ImageView android:id="@+id/ds1_bar_fill" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:tint="@color/agenda_on_card" />
+                <ImageView android:id="@+id/ds1_bar_low" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:tint="@color/dev_low" android:visibility="gone" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- One device: two rows (this phone, then the device), each stacked so names show in full. -->
+        <LinearLayout android:id="@+id/ds2" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:paddingStart="10dp" android:paddingTop="6dp" android:paddingEnd="10dp" android:paddingBottom="6dp" android:visibility="gone">
+            <LinearLayout android:id="@+id/dt1" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                <FrameLayout android:id="@+id/dt1_box" android:layout_width="70dp" android:layout_height="30dp">
+                    <ImageView android:id="@+id/dt1_draw_main" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_card" />
+                    <ImageView android:id="@+id/dt1_draw_detail" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_badge" />
+                    <ImageView android:id="@+id/dt1_draw_top" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_card" />
+                    <ImageView android:id="@+id/dt1_icon" android:layout_width="20dp" android:layout_height="20dp" android:layout_gravity="center" android:tint="@color/agenda_on_card" android:visibility="gone" />
+                </FrameLayout>
+                <FrameLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp">
+                    <TextView android:id="@+id/dt1_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans" android:textColor="@color/agenda_on_card" android:textFontWeight="500" android:textSize="13dp" android:maxLines="1" android:ellipsize="end"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                    <TextView android:id="@+id/dt1_name_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans" android:textColor="@color/dev_low" android:textFontWeight="500" android:textSize="13dp" android:maxLines="1" android:ellipsize="end" android:visibility="gone"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                </FrameLayout>
+                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:gravity="center_vertical" android:orientation="horizontal">
+                    <FrameLayout android:id="@+id/dt1_bar" android:layout_width="56dp" android:layout_height="6dp" >
+                        <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/dev_bar" android:tint="@color/agenda_card" />
+                        <ImageView android:id="@+id/dt1_bar_fill" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:tint="@color/agenda_on_card" />
+                        <ImageView android:id="@+id/dt1_bar_low" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:tint="@color/dev_low" android:visibility="gone" />
+                    </FrameLayout>
+                    <FrameLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="6dp">
+                        <TextView android:id="@+id/dt1_sub" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/agenda_on_card_var" android:textSize="11dp" android:maxLines="1"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                        <TextView android:id="@+id/dt1_sub_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/dev_low" android:textSize="11dp" android:maxLines="1" android:visibility="gone"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                    </FrameLayout>
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/dt2" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                <FrameLayout android:id="@+id/dt2_box" android:layout_width="70dp" android:layout_height="30dp">
+                    <ImageView android:id="@+id/dt2_draw_main" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_card" />
+                    <ImageView android:id="@+id/dt2_draw_detail" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_badge" />
+                    <ImageView android:id="@+id/dt2_draw_top" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_card" />
+                    <ImageView android:id="@+id/dt2_icon" android:layout_width="20dp" android:layout_height="20dp" android:layout_gravity="center" android:tint="@color/agenda_on_card" android:visibility="gone" />
+                </FrameLayout>
+                <FrameLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp">
+                    <TextView android:id="@+id/dt2_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans" android:textColor="@color/agenda_on_card" android:textFontWeight="500" android:textSize="13dp" android:maxLines="1" android:ellipsize="end"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                    <TextView android:id="@+id/dt2_name_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans" android:textColor="@color/dev_low" android:textFontWeight="500" android:textSize="13dp" android:maxLines="1" android:ellipsize="end" android:visibility="gone"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                </FrameLayout>
+                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:gravity="center_vertical" android:orientation="horizontal">
+                    <FrameLayout android:id="@+id/dt2_bar" android:layout_width="56dp" android:layout_height="6dp" >
+                        <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/dev_bar" android:tint="@color/agenda_card" />
+                        <ImageView android:id="@+id/dt2_bar_fill" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:tint="@color/agenda_on_card" />
+                        <ImageView android:id="@+id/dt2_bar_low" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:tint="@color/dev_low" android:visibility="gone" />
+                    </FrameLayout>
+                    <FrameLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="6dp">
+                        <TextView android:id="@+id/dt2_sub" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/agenda_on_card_var" android:textSize="11dp" android:maxLines="1"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                        <TextView android:id="@+id/dt2_sub_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/dev_low" android:textSize="11dp" android:maxLines="1" android:visibility="gone"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                    </FrameLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Two or three devices: three or four rows, drawing on the left, name (up to two lines) and
+             level beside it. -->
+        <LinearLayout android:id="@+id/ds3" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:paddingStart="10dp" android:paddingTop="6dp" android:paddingEnd="10dp" android:paddingBottom="6dp" android:visibility="gone">
+            <LinearLayout android:id="@+id/dl1" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
+                <FrameLayout android:id="@+id/dl1_box" android:layout_width="30dp" android:layout_height="22dp">
+                    <ImageView android:id="@+id/dl1_draw_main" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_card" />
+                    <ImageView android:id="@+id/dl1_draw_detail" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_badge" />
+                    <ImageView android:id="@+id/dl1_draw_top" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_card" />
+                    <ImageView android:id="@+id/dl1_icon" android:layout_width="20dp" android:layout_height="20dp" android:layout_gravity="center" android:tint="@color/agenda_on_card" android:visibility="gone" />
+                </FrameLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="10dp" android:orientation="vertical">
+                    <FrameLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+                        <TextView android:id="@+id/dl1_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans" android:textColor="@color/agenda_on_card" android:textFontWeight="500" android:textSize="11.5dp" android:maxLines="2" android:ellipsize="end"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                        <TextView android:id="@+id/dl1_name_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans" android:textColor="@color/dev_low" android:textFontWeight="500" android:textSize="11.5dp" android:maxLines="2" android:ellipsize="end" android:visibility="gone"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                    </FrameLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:gravity="center_vertical" android:orientation="horizontal">
+                        <FrameLayout android:id="@+id/dl1_bar" android:layout_width="30dp" android:layout_height="5dp" >
+                            <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/dev_bar" android:tint="@color/agenda_card" />
+                            <ImageView android:id="@+id/dl1_bar_fill" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:tint="@color/agenda_on_card" />
+                            <ImageView android:id="@+id/dl1_bar_low" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:tint="@color/dev_low" android:visibility="gone" />
+                        </FrameLayout>
+                        <FrameLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="6dp">
+                            <TextView android:id="@+id/dl1_sub" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/agenda_on_card_var" android:textSize="10dp" android:maxLines="1" android:layout_gravity="end" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                            <TextView android:id="@+id/dl1_sub_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/dev_low" android:textSize="10dp" android:maxLines="1" android:visibility="gone" android:layout_gravity="end" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                        </FrameLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/dl2" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
+                <FrameLayout android:id="@+id/dl2_box" android:layout_width="30dp" android:layout_height="22dp">
+                    <ImageView android:id="@+id/dl2_draw_main" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_card" />
+                    <ImageView android:id="@+id/dl2_draw_detail" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_badge" />
+                    <ImageView android:id="@+id/dl2_draw_top" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_card" />
+                    <ImageView android:id="@+id/dl2_icon" android:layout_width="20dp" android:layout_height="20dp" android:layout_gravity="center" android:tint="@color/agenda_on_card" android:visibility="gone" />
+                </FrameLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="10dp" android:orientation="vertical">
+                    <FrameLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+                        <TextView android:id="@+id/dl2_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans" android:textColor="@color/agenda_on_card" android:textFontWeight="500" android:textSize="11.5dp" android:maxLines="2" android:ellipsize="end"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                        <TextView android:id="@+id/dl2_name_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans" android:textColor="@color/dev_low" android:textFontWeight="500" android:textSize="11.5dp" android:maxLines="2" android:ellipsize="end" android:visibility="gone"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                    </FrameLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:gravity="center_vertical" android:orientation="horizontal">
+                        <FrameLayout android:id="@+id/dl2_bar" android:layout_width="30dp" android:layout_height="5dp" >
+                            <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/dev_bar" android:tint="@color/agenda_card" />
+                            <ImageView android:id="@+id/dl2_bar_fill" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:tint="@color/agenda_on_card" />
+                            <ImageView android:id="@+id/dl2_bar_low" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:tint="@color/dev_low" android:visibility="gone" />
+                        </FrameLayout>
+                        <FrameLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="6dp">
+                            <TextView android:id="@+id/dl2_sub" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/agenda_on_card_var" android:textSize="10dp" android:maxLines="1" android:layout_gravity="end" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                            <TextView android:id="@+id/dl2_sub_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/dev_low" android:textSize="10dp" android:maxLines="1" android:visibility="gone" android:layout_gravity="end" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                        </FrameLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/dl3" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
+                <FrameLayout android:id="@+id/dl3_box" android:layout_width="30dp" android:layout_height="22dp">
+                    <ImageView android:id="@+id/dl3_draw_main" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_card" />
+                    <ImageView android:id="@+id/dl3_draw_detail" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_badge" />
+                    <ImageView android:id="@+id/dl3_draw_top" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_card" />
+                    <ImageView android:id="@+id/dl3_icon" android:layout_width="20dp" android:layout_height="20dp" android:layout_gravity="center" android:tint="@color/agenda_on_card" android:visibility="gone" />
+                </FrameLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="10dp" android:orientation="vertical">
+                    <FrameLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+                        <TextView android:id="@+id/dl3_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans" android:textColor="@color/agenda_on_card" android:textFontWeight="500" android:textSize="11.5dp" android:maxLines="2" android:ellipsize="end"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                        <TextView android:id="@+id/dl3_name_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans" android:textColor="@color/dev_low" android:textFontWeight="500" android:textSize="11.5dp" android:maxLines="2" android:ellipsize="end" android:visibility="gone"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                    </FrameLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:gravity="center_vertical" android:orientation="horizontal">
+                        <FrameLayout android:id="@+id/dl3_bar" android:layout_width="30dp" android:layout_height="5dp" >
+                            <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/dev_bar" android:tint="@color/agenda_card" />
+                            <ImageView android:id="@+id/dl3_bar_fill" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:tint="@color/agenda_on_card" />
+                            <ImageView android:id="@+id/dl3_bar_low" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:tint="@color/dev_low" android:visibility="gone" />
+                        </FrameLayout>
+                        <FrameLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="6dp">
+                            <TextView android:id="@+id/dl3_sub" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/agenda_on_card_var" android:textSize="10dp" android:maxLines="1" android:layout_gravity="end" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                            <TextView android:id="@+id/dl3_sub_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/dev_low" android:textSize="10dp" android:maxLines="1" android:visibility="gone" android:layout_gravity="end" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                        </FrameLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/dl4" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
+                <FrameLayout android:id="@+id/dl4_box" android:layout_width="30dp" android:layout_height="22dp">
+                    <ImageView android:id="@+id/dl4_draw_main" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_card" />
+                    <ImageView android:id="@+id/dl4_draw_detail" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_badge" />
+                    <ImageView android:id="@+id/dl4_draw_top" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:scaleType="fitCenter" android:tint="@color/agenda_card" />
+                    <ImageView android:id="@+id/dl4_icon" android:layout_width="20dp" android:layout_height="20dp" android:layout_gravity="center" android:tint="@color/agenda_on_card" android:visibility="gone" />
+                </FrameLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="10dp" android:orientation="vertical">
+                    <FrameLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+                        <TextView android:id="@+id/dl4_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans" android:textColor="@color/agenda_on_card" android:textFontWeight="500" android:textSize="11.5dp" android:maxLines="2" android:ellipsize="end"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                        <TextView android:id="@+id/dl4_name_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans" android:textColor="@color/dev_low" android:textFontWeight="500" android:textSize="11.5dp" android:maxLines="2" android:ellipsize="end" android:visibility="gone"  android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                    </FrameLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:gravity="center_vertical" android:orientation="horizontal">
+                        <FrameLayout android:id="@+id/dl4_bar" android:layout_width="30dp" android:layout_height="5dp" >
+                            <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/dev_bar" android:tint="@color/agenda_card" />
+                            <ImageView android:id="@+id/dl4_bar_fill" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:tint="@color/agenda_on_card" />
+                            <ImageView android:id="@+id/dl4_bar_low" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:tint="@color/dev_low" android:visibility="gone" />
+                        </FrameLayout>
+                        <FrameLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="6dp">
+                            <TextView android:id="@+id/dl4_sub" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/agenda_on_card_var" android:textSize="10dp" android:maxLines="1" android:layout_gravity="end" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                            <TextView android:id="@+id/dl4_sub_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/dev_low" android:textSize="10dp" android:maxLines="1" android:visibility="gone" android:layout_gravity="end" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                        </FrameLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+</FrameLayout>

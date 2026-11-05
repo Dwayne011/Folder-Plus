@@ -197,6 +197,18 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_devices" />
         </receiver>
+        <!-- The same widget's 2×2 entry in the widget list (approved mockup). -->
+        <receiver
+            android:name=".devices.DevicesWidgetProvider2x2"
+            android:exported="true"
+            android:label="@string/devices_widget_label_2x2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_devices_2x2" />
+        </receiver>
         <!-- Bluetooth events and start-up for the devices widget. Off until a devices widget is
              placed (WidgetListeners). Exported: the Bluetooth broadcasts come from the Bluetooth
              app's own uid, and protected system broadcasts can only be sent by the system. -->
