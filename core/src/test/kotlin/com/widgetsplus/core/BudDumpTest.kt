@@ -130,6 +130,29 @@ class BudDumpTest {
         assertEquals(mapOf("AA:02" to BudLevels(null, 15, null)), BudDump.parse(dump))
     }
 
+    /**
+     * The Pixel Buds' block exactly as a Pixel 11 Pro printed it (Android 17 DP11.261016.004),
+     * with trailing spaces as printed; key 16 (a link holding the full address) left out. Rows
+     * aren't in key order. Another table follows the device blocks with the same indent.
+     */
+    @Test fun readsTheRealPixelBudsBlock() {
+        val rows = listOf(
+            "26   true", "17   Untethered Headset", "1    G1", "0    Google", "3    FAST_PAIR_02FC97",
+            "4    com.google.android.apps.wearables.maestro.companion", "21   15", "22   15", "23   19",
+            "6    true", "2    Revision 10", "10   100", "13   false", "11   100", "14   false", "12   49", "15   false",
+        ).joinToString("\n") { "      $it        " }
+        val dump = "  Device: XX:XX:XX:XX:C3:2B [Persist on Disk] {\n" +
+            "    connection_counter: 436\n" +
+            "    Custom Metadata:\n" +
+            "      Key  Value     \n" +
+            "      ---- ----------\n" +
+            rows + "\n" +
+            "  }\n" +
+            "      1         NORMAL   0      0\n" +
+            "      10        NORMAL   0      0\n"
+        assertEquals(mapOf("C3:2B" to BudLevels(100, 100, 49)), BudDump.parse(dump))
+    }
+
     @Test fun relevantLinesAreEnoughToParse() {
         val kept = android17.lineSequence().filter(BudDump::isRelevant).joinToString("\n")
         assertEquals(BudDump.parse(android17), BudDump.parse(kept))
