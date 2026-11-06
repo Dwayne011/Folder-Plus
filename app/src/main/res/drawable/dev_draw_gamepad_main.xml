@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Connected devices widget: gamepad drawing, main tone (white; tinted when the layers are combined). Generated from the approved mockup. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="80dp" android:height="48dp"
+    android:viewportWidth="80" android:viewportHeight="48">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M18.5,6h43a12.5,12.5 0 0,1 12.5,12.5v0a12.5,12.5 0 0,1 -12.5,12.5h-43a12.5,12.5 0 0,1 -12.5,-12.5v0a12.5,12.5 0 0,1 12.5,-12.5z" />
+    <group android:pivotX="18" android:pivotY="31" android:rotation="25">
+        <path android:fillColor="#FFFFFFFF" android:pathData="M7,31a11,13 0 1,0 22,0a11,13 0 1,0 -22,0z" />
+    </group>
+    <group android:pivotX="62" android:pivotY="31" android:rotation="-25">
+        <path android:fillColor="#FFFFFFFF" android:pathData="M51,31a11,13 0 1,0 22,0a11,13 0 1,0 -22,0z" />
+    </group>
+</vector>

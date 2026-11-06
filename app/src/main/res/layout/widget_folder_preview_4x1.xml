@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget-picker preview of the 4×1 folder widget, laid out like the real widget at this size
+     (big icons in one row): the see-through plate with its hairline, the panel, sample app icons and a "+N" tile.
+     Colours come from the widget's colour resources, so the preview follows light and dark mode. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="UseAppTint,ContentDescription,SpUsage,UnusedAttribute,HardcodedText">
+    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:alpha="0.58" android:scaleType="fitXY" android:src="@drawable/agenda_shape_plate" android:tint="@color/agenda_plate" />
+    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:alpha="0.16" android:scaleType="fitXY" android:src="@drawable/agenda_hairline" />
+    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent" android:layout_margin="8dp">
+        <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/agenda_shape_group" android:tint="@color/agenda_group" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:orientation="vertical" android:padding="6dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:baselineAligned="false" android:orientation="horizontal">
+                <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
+                    <ImageView android:layout_width="46dp" android:layout_height="46dp" android:layout_gravity="center" android:scaleType="fitCenter" android:src="@drawable/preview_app_1" />
+                </FrameLayout>
+                <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
+                    <ImageView android:layout_width="46dp" android:layout_height="46dp" android:layout_gravity="center" android:scaleType="fitCenter" android:src="@drawable/preview_app_2" />
+                </FrameLayout>
+                <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
+                    <ImageView android:layout_width="46dp" android:layout_height="46dp" android:layout_gravity="center" android:scaleType="fitCenter" android:src="@drawable/preview_app_3" />
+                </FrameLayout>
+                <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
+                    <ImageView android:layout_width="46dp" android:layout_height="46dp" android:layout_gravity="center" android:scaleType="fitCenter" android:src="@drawable/preview_app_4" />
+                </FrameLayout>
+                <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
+                    <FrameLayout android:layout_width="46dp" android:layout_height="46dp" android:layout_gravity="center">
+                        <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter" android:src="@drawable/folder_circle" android:tint="@color/agenda_card" />
+                        <TextView android:layout_width="match_parent" android:layout_height="match_parent" android:fontFamily="google-sans" android:gravity="center" android:includeFontPadding="false" android:maxLines="1" android:text="+8" android:textColor="@color/agenda_on_card" android:textFontWeight="700" android:textSize="16dp" android:textStyle="bold" />
+                    </FrameLayout>
+                </FrameLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+</FrameLayout>

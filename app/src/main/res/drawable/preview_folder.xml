@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget-picker image for older launchers: the folder widget in Agenda style with a 2x2 mosaic. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp" android:height="96dp"
+    android:viewportWidth="96" android:viewportHeight="96">
+    <path android:fillColor="@color/agenda_plate" android:fillAlpha="0.58" android:pathData="M22,0h52a22,22 0 0,1 22,22v52a22,22 0 0,1 -22,22h-52a22,22 0 0,1 -22,-22v-52a22,22 0 0,1 22,-22z" />
+    <path android:fillColor="@color/agenda_group" android:pathData="M22,8h52a14,14 0 0,1 14,14v52a14,14 0 0,1 -14,14h-52a14,14 0 0,1 -14,-14v-52a14,14 0 0,1 14,-14z" />
+    <path android:fillColor="@color/agenda_card" android:pathData="M18,34a15,15 0 1,0 30,0a15,15 0 1,0 -30,0z M48,62a15,15 0 1,0 30,0a15,15 0 1,0 -30,0z" />
+    <path android:fillColor="@color/agenda_badge" android:pathData="M48,34a15,15 0 1,0 30,0a15,15 0 1,0 -30,0z M18,62a15,15 0 1,0 30,0a15,15 0 1,0 -30,0z" />
+</vector>

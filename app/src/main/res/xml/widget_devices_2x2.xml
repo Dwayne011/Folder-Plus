@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The connected devices widget at 2×2 (approved mockup); any size narrower than 240dp shows the
+     2×2 arrangement, wider sizes the full widget. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:configure="com.widgetsplus.devices.DevicesSetupActivity"
+    android:description="@string/devices_widget_description"
+    android:initialLayout="@layout/widget_devices_small"
+    android:minWidth="110dp"
+    android:minHeight="110dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="110dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
+    android:previewImage="@drawable/preview_devices"
+    android:previewLayout="@layout/widget_devices_small_preview"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen"
+    android:widgetFeatures="reconfigurable"
+    tools:targetApi="s" />

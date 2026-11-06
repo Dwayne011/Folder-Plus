@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "+N" in a single-cell widget's 2x2 mini mosaic. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:padding="2dp"
+    tools:ignore="UseAppTint,SpUsage,UnusedAttribute">
+    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitCenter" android:src="@drawable/folder_circle" android:tint="@color/agenda_card" />
+    <TextView android:id="@+id/cell_more_text" android:layout_width="match_parent" android:layout_height="match_parent" android:fontFamily="google-sans" android:gravity="center" android:maxLines="1" android:textColor="@color/agenda_on_card" android:textFontWeight="700" android:textSize="9dp" android:textStyle="bold" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+</FrameLayout>

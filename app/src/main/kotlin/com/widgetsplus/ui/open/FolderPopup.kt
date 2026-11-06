@@ -1,0 +1,403 @@
+package com.widgetsplus.ui.open
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridItemInfo
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Widgets
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
+import com.widgetsplus.R
+import com.widgetsplus.apps.LauncherApp
+import com.widgetsplus.core.model.AppRef
+import com.widgetsplus.core.model.Category
+import com.widgetsplus.core.model.Folder
+import com.widgetsplus.core.model.FolderItem
+import com.widgetsplus.core.model.FolderTabContents
+import com.widgetsplus.core.model.TextSize
+import com.widgetsplus.ui.common.AppIconImage
+import kotlin.math.ceil
+import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
+
+/** One swipeable page of the popup. */
+private data class Tab(val key: String, val title: String, val items: List<FolderItem>, val category: Category? = null)
+
+/** Pages in the open folder's looping pager; plenty to swipe through in either direction. */
+private const val LOOP_PAGES = 100_000
+
+/** Room under the apps for the plus pill (32dp and its 10dp margin), so it never covers one. */
+private const val ADD_PILL_SPACE_DP = 44
+
+/**
+ * Scrim + centred card in the agenda widget's style: its see-through plate (the Frosting setting
+ * sets how see-through) with a hairline, the folder's name top left when it has one, the tabs as
+ * the agenda's pills, and a swipeable app grid per tab on the agenda's pale panel.
+ */
+@Composable
+fun FolderPopup(
+    folder: Folder,
+    categories: List<Category>,
+    items: List<FolderItem>,
+    labelOf: (AppRef) -> String,
+    onLaunch: (FolderItem) -> Unit,
+    onOpenSettings: () -> Unit,
+    onDismiss: () -> Unit,
+    onShowWidget: (() -> Unit)? = null,
+    frosting: Int = Folder.DEFAULT_FROSTING,
+    /** A tab's apps in their new order after a press-and-hold drag; the tab's category, if any. */
+    onReorder: (category: Category?, ordered: List<FolderItem>) -> Unit = { _, _ -> },
+    /** The tab to open on ([FolderTabContents] key), e.g. the category the widget was showing. */
+    initialTab: String? = null,
+    /** The phone's apps, for the plus pill's picker (approved mockup); those in the folder are left out. */
+    installedApps: List<LauncherApp> = emptyList(),
+    /** Adds apps to a tab's category (null: All or Other, so no category). Null hides the plus pill. */
+    onAddApps: ((category: Category?, apps: List<AppRef>) -> Unit)? = null,
+) {
+    val allLabel = stringResource(R.string.category_all)
+    val otherLabel = stringResource(R.string.category_other)
+    val tabs = remember(folder, categories, items, allLabel, otherLabel) {
+        buildTabs(folder, categories, items, labelOf, allLabel, otherLabel)
+    }
+    // With more than one tab the tabs loop: past the last comes the first again, and before the
+    // first, the last. The pager then has LOOP_PAGES pages, starts in the middle on the first tab,
+    // and page mod the number of tabs is the tab it shows.
+    val loops = tabs.size > 1
+    val startTab = tabs.indexOfFirst { it.key == initialTab }.coerceAtLeast(0)
+    val pagerState = rememberPagerState(
+        initialPage = if (loops) LOOP_PAGES / 2 - (LOOP_PAGES / 2) % tabs.size + startTab else startTab,
+        pageCount = { if (tabs.size > 1) LOOP_PAGES else tabs.size },
+    )
+    fun tabIndex(page: Int) = if (tabs.size > 1) page.mod(tabs.size) else page
+    // While an app is being dragged, swipes mustn't change the tab.
+    var dragging by remember { mutableStateOf(false) }
+    // The tab (key) the plus pill's picker is adding to; null while the folder shows.
+    var addingTo by rememberSaveable { mutableStateOf<String?>(null) }
+    val pillSpace = if (onAddApps != null) ADD_PILL_SPACE_DP else 0
+    val scope = rememberCoroutineScope()
+    val onPlate = colorResource(R.color.agenda_on_plate)
+    val onCard = colorResource(R.color.agenda_on_card)
+    val badge = colorResource(R.color.agenda_badge)
+    // On the badge colour (the selected tab) text stays dark, in dark mode too.
+    val onBadge = colorResource(R.color.agenda_on_badge)
+
+    // The folder's own app name size (Appearance); 1.0 at 100%.
+    val labelScale = TextSize.scale(folder.appNameSize)
+
+    // Tall enough for the fullest page (4 columns), capped so the card stays a popup. A row is
+    // 92dp at 100%: icon and padding, plus two 15sp lines of name, which grow with the name size.
+    val pagerHeight = remember(tabs, labelScale) {
+        val maxCount = tabs.maxOfOrNull { it.items.size } ?: 0
+        val rows = ceil(maxCount / 4f).toInt().coerceAtLeast(1)
+        val rowDp = 62f + 30f * labelScale
+        (rows * rowDp + 16f).roundToInt().coerceIn(108, 440).dp + pillSpace.dp
+    }
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = scrimAlpha(frosting)))
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDismiss),
+        contentAlignment = Alignment.Center,
+    ) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = popupContainerColor(frosting),
+            contentColor = onPlate,
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f)),
+            modifier = Modifier
+                .padding(16.dp)
+                .widthIn(max = 420.dp)
+                .fillMaxWidth()
+                // Swallow clicks so they don't reach the scrim.
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = {}),
+        ) {
+            val addingTab = addingTo?.let { key -> tabs.firstOrNull { it.key == key } }
+            if (addingTab != null && onAddApps != null) {
+                val inFolder = remember(items) { items.map { it.app }.toSet() }
+                Column(Modifier.padding(8.dp)) {
+                    AddToTabPicker(
+                        tabTitle = addingTab.title,
+                        candidates = installedApps.filter { it.ref !in inFolder },
+                        onAdd = { apps ->
+                            onAddApps(addingTab.category, apps)
+                            addingTo = null
+                        },
+                        onBack = { addingTo = null },
+                    )
+                }
+            } else Column(Modifier.padding(8.dp)) {
+                if (folder.name.isNotBlank()) {
+                    Text(
+                        folder.name,
+                        color = onPlate,
+                        fontSize = 16.sp,
+                        lineHeight = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 8.dp, bottom = 4.dp),
+                    )
+                }
+                // One compact row: the tabs as pills on the left, actions on the right.
+                Row(Modifier.fillMaxWidth().padding(start = 4.dp, top = 4.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (tabs.size > 1) {
+                        Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            tabs.forEachIndexed { index, tab ->
+                                val selected = tabIndex(pagerState.currentPage) == index
+                                Box(
+                                    Modifier
+                                        .height(32.dp)
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .then(
+                                            if (selected) Modifier.background(badge)
+                                            else Modifier.border(1.dp, onPlate.copy(alpha = 0.35f), RoundedCornerShape(16.dp)),
+                                        )
+                                        .selectable(selected = selected, role = Role.Tab, onClick = {
+                                            // Straight to that tab, the way the tabs are laid out.
+                                            val current = pagerState.currentPage
+                                            scope.launch { pagerState.animateScrollToPage(current + index - tabIndex(current)) }
+                                        })
+                                        .padding(horizontal = 14.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(tab.title, color = if (selected) onBadge else onPlate, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+                                }
+                            }
+                        }
+                    } else {
+                        Spacer(Modifier.weight(1f))
+                    }
+                    if (onShowWidget != null) {
+                        IconButton(onClick = onShowWidget) { Icon(Icons.Default.Widgets, contentDescription = stringResource(R.string.show_widget), tint = onPlate) }
+                    }
+                    IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings), tint = onPlate) }
+                }
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(colorResource(R.color.agenda_group)),
+                ) {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxWidth().height(pagerHeight),
+                        verticalAlignment = Alignment.Top,
+                        userScrollEnabled = !dragging,
+                    ) { page ->
+                        val tab = tabs[tabIndex(page)]
+                        val shown = tab.items
+                        if (shown.isEmpty()) {
+                            Text(
+                                stringResource(if (onAddApps != null) R.string.tab_empty else R.string.folder_empty),
+                                textAlign = TextAlign.Center,
+                                color = colorResource(R.color.agenda_on_card_var),
+                                modifier = Modifier.fillMaxWidth().padding(24.dp),
+                            )
+                        } else {
+                            ReorderableAppGrid(
+                                items = shown,
+                                labelOf = labelOf,
+                                labelScale = labelScale,
+                                textColor = onCard,
+                                onLaunch = onLaunch,
+                                onDragging = { dragging = it },
+                                onReorder = { onReorder(tab.category, it) },
+                                bottomSpace = pillSpace,
+                            )
+                        }
+                    }
+                    if (onAddApps != null) {
+                        val current = tabs[tabIndex(pagerState.currentPage)]
+                        AddPill(
+                            tabTitle = current.title,
+                            onClick = { addingTo = current.key },
+                            modifier = Modifier.align(Alignment.BottomEnd).padding(10.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Pages in the order set on the Categories page: "All" (unless hidden) wherever it was placed,
+ * one per category, and "Other" for uncategorised apps (last) when "All" is hidden. Each page is
+ * sorted by the category's override or the folder's sort mode.
+ */
+private fun buildTabs(
+    folder: Folder,
+    categories: List<Category>,
+    items: List<FolderItem>,
+    labelOf: (AppRef) -> String,
+    allLabel: String,
+    otherLabel: String,
+): List<Tab> = FolderTabContents.build(folder, categories, items, labelOf).map { content ->
+    val title = when (content.key) {
+        FolderTabContents.KEY_ALL -> allLabel
+        FolderTabContents.KEY_OTHER -> otherLabel
+        else -> content.category?.name.orEmpty()
+    }
+    Tab(content.key, title, content.items, content.category)
+}
+
+/**
+ * The apps of one tab, four to a row. Tap an app to open it; press and hold one to pick it up,
+ * drag it to a new place (the others move aside), and let go to save the new order.
+ */
+@Composable
+private fun ReorderableAppGrid(
+    items: List<FolderItem>,
+    labelOf: (AppRef) -> String,
+    labelScale: Float,
+    textColor: Color,
+    onLaunch: (FolderItem) -> Unit,
+    onDragging: (Boolean) -> Unit,
+    onReorder: (List<FolderItem>) -> Unit,
+    /** Room under the last row, in dp (for the plus pill). */
+    bottomSpace: Int = 0,
+) {
+    val gridState = rememberLazyGridState()
+    val haptics = LocalHapticFeedback.current
+    var working by remember(items) { mutableStateOf(items) }
+    var draggingId by remember { mutableStateOf<Long?>(null) }
+    var dragOffset by remember { mutableStateOf(Offset.Zero) }
+
+    fun itemAt(point: Offset): LazyGridItemInfo? = gridState.layoutInfo.visibleItemsInfo.firstOrNull { info ->
+        point.x >= info.offset.x && point.x < info.offset.x + info.size.width &&
+            point.y >= info.offset.y && point.y < info.offset.y + info.size.height
+    }
+
+    fun endDrag(commit: Boolean) {
+        if (draggingId == null) return
+        if (commit && working.map { it.id } != items.map { it.id }) onReorder(working) else if (!commit) working = items
+        draggingId = null
+        dragOffset = Offset.Zero
+        onDragging(false)
+    }
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(4),
+        state = gridState,
+        contentPadding = PaddingValues(bottom = bottomSpace.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 4.dp, vertical = 8.dp)
+            .pointerInput(items) {
+                detectDragGesturesAfterLongPress(
+                    onDragStart = { start ->
+                        val hit = itemAt(start) ?: return@detectDragGesturesAfterLongPress
+                        draggingId = hit.key as? Long
+                        dragOffset = Offset.Zero
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onDragging(true)
+                    },
+                    onDrag = { change, amount ->
+                        val id = draggingId ?: return@detectDragGesturesAfterLongPress
+                        change.consume()
+                        dragOffset += amount
+                        val info = gridState.layoutInfo.visibleItemsInfo.firstOrNull { it.key == id } ?: return@detectDragGesturesAfterLongPress
+                        val centre = Offset(info.offset.x + info.size.width / 2f, info.offset.y + info.size.height / 2f) + dragOffset
+                        val target = itemAt(centre)?.takeIf { it.key != id } ?: return@detectDragGesturesAfterLongPress
+                        val from = working.indexOfFirst { it.id == id }
+                        val to = working.indexOfFirst { it.id == target.key }
+                        if (from < 0 || to < 0) return@detectDragGesturesAfterLongPress
+                        working = working.toMutableList().apply { add(to, removeAt(from)) }
+                        // The app now sits in the target's place: keep it under the finger.
+                        dragOffset += Offset((info.offset.x - target.offset.x).toFloat(), (info.offset.y - target.offset.y).toFloat())
+                    },
+                    onDragEnd = { endDrag(commit = true) },
+                    onDragCancel = { endDrag(commit = false) },
+                )
+            },
+    ) {
+        items(working, key = { it.id }) { item ->
+            val lifted = item.id == draggingId
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .then(if (lifted) Modifier else Modifier.animateItem())
+                    .zIndex(if (lifted) 1f else 0f)
+                    .graphicsLayer {
+                        if (lifted) {
+                            translationX = dragOffset.x
+                            translationY = dragOffset.y
+                            scaleX = 1.12f
+                            scaleY = 1.12f
+                        }
+                    }
+                    .clip(RoundedCornerShape(16.dp))
+                    // A press-and-hold that ends without moving must not open the app.
+                    .clickable { if (draggingId == null) onLaunch(item) }
+                    .padding(vertical = 8.dp, horizontal = 2.dp),
+            ) {
+                AppIconImage(app = item.app, size = 48.dp)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    labelOf(item.app),
+                    color = textColor,
+                    fontSize = (12f * labelScale).sp,
+                    lineHeight = (15f * labelScale).sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+    }
+}
