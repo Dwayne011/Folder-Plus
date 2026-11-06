@@ -148,11 +148,22 @@ open class DevicesWidgetProvider : AppWidgetProvider() {
         private fun snapshot(context: Context): Snapshot {
             if (!BluetoothDevices.hasPermission(context)) return Snapshot(false, false, emptyList(), 0)
             val on = BluetoothDevices.isOn(context)
-            val devices = if (on) BluetoothDevices.connectedWithBattery(context).take(3) else emptyList()
-            // The last levels read; a fresh read runs in the background and redraws if they changed.
+            val connected = if (on) BluetoothDevices.connected(context) else emptyList()
+            // Earbuds' left, right and case levels: the last ones read; a fresh read runs in the
+            // background and redraws if they changed.
             val cached = BudBattery.cached(context)
-            val buds = devices.mapNotNull { d -> BudBattery.forDevice(cached, d.address)?.let { d.address to it } }.toMap()
-            if (devices.isNotEmpty()) BudBattery.refreshIfStale(context) { updateAll(it) }
+            val buds = connected.mapNotNull { d -> BudBattery.forDevice(cached, d.address)?.let { d.address to it } }.toMap()
+            if (connected.isNotEmpty()) BudBattery.refreshIfStale(context) { updateAll(it) }
+            // A connected device shows when Android shares its level, or (earbuds) when their
+            // left, right and case levels are known, as Google's battery widget does; Pixel Buds
+            // often don't share a single level. Out of range (disconnected), nothing shows.
+            val devices = connected.mapNotNull { d ->
+                when {
+                    d.battery in 0..100 -> d
+                    d.address in buds -> d.copy(battery = buds.getValue(d.address).lowerBud ?: return@mapNotNull null)
+                    else -> null
+                }
+            }.take(3)
             return Snapshot(true, on, devices, BluetoothDevices.phoneLevel(context), buds)
         }
 

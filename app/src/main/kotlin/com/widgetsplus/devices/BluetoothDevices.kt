@@ -45,8 +45,14 @@ object BluetoothDevices {
     }
 
     /** Connected devices that report a battery level, in display order. */
+    fun connectedWithBattery(context: Context): List<ConnectedDevice> = connected(context).filter { it.battery in 0..100 }
+
+    /**
+     * Every connected device, in display order; [ConnectedDevice.battery] is -1 when Android
+     * doesn't know its level (earbuds may still have left, right and case levels, see [BudBattery]).
+     */
     @SuppressLint("MissingPermission") // checked by hasPermission()
-    fun connectedWithBattery(context: Context): List<ConnectedDevice> {
+    fun connected(context: Context): List<ConnectedDevice> {
         if (!hasPermission(context)) return emptyList()
         val adapter = adapter(context) ?: return emptyList()
         val bonded = try {
@@ -57,7 +63,7 @@ object BluetoothDevices {
         }
         val devices = bonded.filter { isConnected(it) }.map { d ->
             ConnectedDevice(d.address, displayName(d), kindOf(context, d), batteryLevel(context, d))
-        }.filter { it.battery in 0..100 }
+        }
         return devices.sortedWith(compareBy<ConnectedDevice> { it.kind.ordinal }.thenBy { it.name.lowercase(Locale.ROOT) })
     }
 
