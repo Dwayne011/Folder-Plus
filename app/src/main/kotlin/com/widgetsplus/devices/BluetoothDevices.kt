@@ -26,8 +26,8 @@ data class ConnectedDevice(val address: String, val name: String, val kind: Devi
  * system API: hidden from the SDK but allowed for every app on Android 12 to 16 (hidden-API flag
  * "sdk,system-api" from Android 13, "unsupported" on 12) and guarded only by BLUETOOTH_CONNECT.
  * The same level also arrives with the BATTERY_LEVEL_CHANGED broadcast, which is cached as a
- * fallback. Separate earbud left/right/case levels need a privileged permission, so they are not
- * available to this app.
+ * fallback. Earbuds' separate left, right and case levels come from elsewhere ([BudBattery]),
+ * and only when this app has been given access to them.
  */
 object BluetoothDevices {
 
