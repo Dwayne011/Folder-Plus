@@ -151,6 +151,15 @@
     <string name="devices_bluetooth_settings">Bluetooth settings</string>
     <string name="devices_bluetooth_settings_hint">Connect or forget devices</string>
     <string name="devices_types_section">Device types</string>
+    <!-- Earbuds' levels on the widget: "L 72 · R 70 · Case 40", or "L72 R70 C40" where it's narrow. -->
+    <string name="buds_left">L</string>
+    <string name="buds_right">R</string>
+    <string name="buds_case">Case</string>
+    <string name="buds_case_short">C</string>
+    <string name="buds_separator" translatable="false">·</string>
+    <string name="buds_desc_left">Left bud %d%%</string>
+    <string name="buds_desc_right">right bud %d%%</string>
+    <string name="buds_desc_case">case %d%%</string>
     <string name="devices_buds">Left, right and case levels</string>
     <string name="devices_buds_hint">Use Shizuku to show each earbud and the case</string>
     <string name="devices_buds_on">Left, right and case levels on</string>

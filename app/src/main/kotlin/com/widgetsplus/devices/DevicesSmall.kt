@@ -21,6 +21,8 @@ internal object DevicesSmall {
         val main: Int, val detail: Int, val top: Int, val icon: Int,
         val name: Int, val nameLow: Int, val sub: Int, val subLow: Int,
         val bar: Int, val barFill: Int, val barLow: Int,
+        /** Earbuds' level line and the level text it replaces (not in the single, phone-only layout). */
+        val buds: Int = 0, val lvlText: Int = 0,
     )
 
     private val SINGLE = Ids(
@@ -31,28 +33,34 @@ internal object DevicesSmall {
         Ids(
             R.id.dt1, R.id.dt1_box, R.id.dt1_draw_main, R.id.dt1_draw_detail, R.id.dt1_draw_top, R.id.dt1_icon,
             R.id.dt1_name, R.id.dt1_name_low, R.id.dt1_sub, R.id.dt1_sub_low, R.id.dt1_bar, R.id.dt1_bar_fill, R.id.dt1_bar_low,
+            R.id.dt1_buds, R.id.dt1_lvl_text,
         ),
         Ids(
             R.id.dt2, R.id.dt2_box, R.id.dt2_draw_main, R.id.dt2_draw_detail, R.id.dt2_draw_top, R.id.dt2_icon,
             R.id.dt2_name, R.id.dt2_name_low, R.id.dt2_sub, R.id.dt2_sub_low, R.id.dt2_bar, R.id.dt2_bar_fill, R.id.dt2_bar_low,
+            R.id.dt2_buds, R.id.dt2_lvl_text,
         ),
     )
     private val LIST = listOf(
         Ids(
             R.id.dl1, R.id.dl1_box, R.id.dl1_draw_main, R.id.dl1_draw_detail, R.id.dl1_draw_top, R.id.dl1_icon,
             R.id.dl1_name, R.id.dl1_name_low, R.id.dl1_sub, R.id.dl1_sub_low, R.id.dl1_bar, R.id.dl1_bar_fill, R.id.dl1_bar_low,
+            R.id.dl1_buds, R.id.dl1_lvl_text,
         ),
         Ids(
             R.id.dl2, R.id.dl2_box, R.id.dl2_draw_main, R.id.dl2_draw_detail, R.id.dl2_draw_top, R.id.dl2_icon,
             R.id.dl2_name, R.id.dl2_name_low, R.id.dl2_sub, R.id.dl2_sub_low, R.id.dl2_bar, R.id.dl2_bar_fill, R.id.dl2_bar_low,
+            R.id.dl2_buds, R.id.dl2_lvl_text,
         ),
         Ids(
             R.id.dl3, R.id.dl3_box, R.id.dl3_draw_main, R.id.dl3_draw_detail, R.id.dl3_draw_top, R.id.dl3_icon,
             R.id.dl3_name, R.id.dl3_name_low, R.id.dl3_sub, R.id.dl3_sub_low, R.id.dl3_bar, R.id.dl3_bar_fill, R.id.dl3_bar_low,
+            R.id.dl3_buds, R.id.dl3_lvl_text,
         ),
         Ids(
             R.id.dl4, R.id.dl4_box, R.id.dl4_draw_main, R.id.dl4_draw_detail, R.id.dl4_draw_top, R.id.dl4_icon,
             R.id.dl4_name, R.id.dl4_name_low, R.id.dl4_sub, R.id.dl4_sub_low, R.id.dl4_bar, R.id.dl4_bar_fill, R.id.dl4_bar_low,
+            R.id.dl4_buds, R.id.dl4_lvl_text,
         ),
     )
 
@@ -70,6 +78,12 @@ internal object DevicesSmall {
     private const val LIST_FIXED_HEIGHT_DP = 28f + 8f + 2 * 6f
     /** The 2×2 widget's height when the launcher doesn't say. */
     private const val DEFAULT_HEIGHT_DP = 201f
+    /** A list row's level beside its bar: the 6dp gap and 26dp of text. */
+    private const val LEVEL_DP = 6f + 26f
+    /** Earbuds' level line (10dp text). */
+    private const val BUDS_LINE_DP = 12f
+    /** Two rows: earbuds' bar alone, as wide as a bar and its level. */
+    private const val TWO_ROWS_BUDS_BAR_DP = 84f
 
     fun fill(context: Context, v: RemoteViews, columns: List<DeviceColumn>, widthDp: Float, heightDp: Float) {
         val n = columns.size
@@ -79,7 +93,16 @@ internal object DevicesSmall {
         when (n) {
             0 -> Unit
             1 -> slot(context, v, SINGLE, columns[0], 40f, 5f)
-            2 -> TWO.forEachIndexed { i, ids -> slot(context, v, ids, columns[i], 56f, 6f) }
+            2 -> TWO.forEachIndexed { i, ids ->
+                val c = columns[i]
+                val width = (if (widthDp > 0f) widthDp else DEFAULT_WIDTH_DP) - 2 * 8f - 2 * 10f
+                val short = c.buds != null && !BudLine.longFits(context, c.buds, width)
+                if (c.buds != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    v.setViewLayoutWidth(ids.bar, TWO_ROWS_BUDS_BAR_DP, TypedValue.COMPLEX_UNIT_DIP)
+                }
+                val barW = if (c.buds != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) TWO_ROWS_BUDS_BAR_DP else 56f
+                slot(context, v, ids, c, barW, 6f, short, width)
+            }
             else -> {
                 val sized = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
                 val fit = if (n == 3 && sized) THREE_ROWS else FOUR_ROWS
@@ -89,11 +112,13 @@ internal object DevicesSmall {
                 // below; otherwise it ends in "…", so the level is never cut off.
                 val rowH = ((if (heightDp > 0f) heightDp else DEFAULT_HEIGHT_DP) - LIST_FIXED_HEIGHT_DP) / n
                 val twoLines = 2 * 1.2f * fit.name + 3f + 1.2f * fit.sub + 2f
-                val nameLines = if (rowH >= twoLines) 2 else 1
+                // Earbuds with their three levels have a line more: the levels, then the bar.
+                val twoLinesBuds = 2 * 1.2f * fit.name + 3f + BUDS_LINE_DP + 3f + 5f
                 LIST.forEachIndexed { i, ids ->
                     val c = columns.getOrNull(i)
                     v.setViewVisibility(ids.root, if (c == null) View.GONE else View.VISIBLE)
                     if (c == null) return@forEachIndexed
+                    val nameLines = if (rowH >= (if (c.buds != null) twoLinesBuds else twoLines)) 2 else 1
                     listOf(ids.name, ids.nameLow).forEach { v.setInt(it, "setMaxLines", nameLines) }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         val dip = TypedValue.COMPLEX_UNIT_DIP
@@ -101,20 +126,38 @@ internal object DevicesSmall {
                         v.setViewLayoutHeight(ids.box, fit.boxH, dip)
                         listOf(ids.name, ids.nameLow).forEach { v.setTextViewTextSize(it, dip, fit.name) }
                         listOf(ids.sub, ids.subLow).forEach { v.setTextViewTextSize(it, dip, fit.sub) }
-                        v.setViewLayoutWidth(ids.bar, barW, dip)
+                        // Without the level beside it, earbuds' bar takes its place too.
+                        v.setViewLayoutWidth(ids.bar, if (c.buds != null) barW + LEVEL_DP else barW, dip)
                     }
-                    slot(context, v, ids, c, barW, 5f)
+                    // The levels' line has the row's width beside the drawing.
+                    val lineW = width - 2 * 8f - 2 * 10f - (if (sized) fit.boxW else 30f) - 10f
+                    slot(context, v, ids, c, if (c.buds != null && sized) barW + LEVEL_DP else barW, 5f, short = true, lineW = lineW)
                 }
             }
         }
     }
 
-    private fun slot(context: Context, v: RemoteViews, ids: Ids, c: DeviceColumn, barW: Float, barH: Float) {
-        val low = DevicesLevels.isLow(c.level)
+    private fun slot(
+        context: Context, v: RemoteViews, ids: Ids, c: DeviceColumn, barW: Float, barH: Float,
+        short: Boolean = false, lineW: Float = Float.MAX_VALUE,
+    ) {
+        val low = DevicesLevels.isLow(c.shownLevel)
+        val buds = c.buds
+        // With earbuds' three levels, each level turns red on its own and the name stays as it is.
+        val nameLow = low && buds == null
         v.setTextViewText(ids.name, c.name)
         v.setTextViewText(ids.nameLow, c.name)
-        v.setViewVisibility(ids.name, if (low) View.GONE else View.VISIBLE)
-        v.setViewVisibility(ids.nameLow, if (low) View.VISIBLE else View.GONE)
+        v.setViewVisibility(ids.name, if (nameLow) View.GONE else View.VISIBLE)
+        v.setViewVisibility(ids.nameLow, if (nameLow) View.VISIBLE else View.GONE)
+        if (ids.buds != 0) {
+            v.removeAllViews(ids.buds)
+            v.setViewVisibility(ids.buds, if (buds != null) View.VISIBLE else View.GONE)
+            v.setViewVisibility(ids.lvlText, if (buds != null) View.GONE else View.VISIBLE)
+            if (buds != null) {
+                v.addView(ids.buds, BudLine.views(context, buds, short, lineW))
+                v.setContentDescription(ids.buds, BudLine.description(context, buds))
+            }
+        }
         val level = "${c.level}%"
         v.setTextViewText(ids.sub, level)
         v.setTextViewText(ids.subLow, level)
@@ -133,7 +176,7 @@ internal object DevicesSmall {
             v.setViewVisibility(ids.icon, View.VISIBLE)
             v.setImageViewResource(ids.icon, c.icon)
         }
-        val bar = DevicesDraw.bar(context, barW, barH, c.level)
+        val bar = DevicesDraw.bar(context, barW, barH, c.shownLevel)
         v.setImageViewBitmap(if (low) ids.barLow else ids.barFill, bar)
         v.setViewVisibility(ids.barFill, if (low) View.GONE else View.VISIBLE)
         v.setViewVisibility(ids.barLow, if (low) View.VISIBLE else View.GONE)

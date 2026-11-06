@@ -56,6 +56,7 @@
                 <FrameLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp">
                     <TextView android:id="@+id/s1_sub" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/agenda_on_card_var" android:textFontWeight="400" android:textSize="10dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
                     <TextView android:id="@+id/s1_sub_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/dev_low" android:textFontWeight="400" android:textSize="10dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                    <LinearLayout android:id="@+id/s1_buds" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:visibility="gone" />
                 </FrameLayout>
                 <FrameLayout android:id="@+id/s1_bar" android:layout_width="72dp" android:layout_height="5dp" android:layout_marginTop="5dp">
                     <ImageView android:id="@+id/s1_bar_track" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/dev_bar" android:tint="@color/agenda_card" />
@@ -78,6 +79,7 @@
                 <FrameLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp">
                     <TextView android:id="@+id/s2_sub" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/agenda_on_card_var" android:textFontWeight="400" android:textSize="10dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
                     <TextView android:id="@+id/s2_sub_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/dev_low" android:textFontWeight="400" android:textSize="10dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                    <LinearLayout android:id="@+id/s2_buds" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:visibility="gone" />
                 </FrameLayout>
                 <FrameLayout android:id="@+id/s2_bar" android:layout_width="72dp" android:layout_height="5dp" android:layout_marginTop="5dp">
                     <ImageView android:id="@+id/s2_bar_track" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/dev_bar" android:tint="@color/agenda_card" />
@@ -100,6 +102,7 @@
                 <FrameLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp">
                     <TextView android:id="@+id/s3_sub" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/agenda_on_card_var" android:textFontWeight="400" android:textSize="10dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
                     <TextView android:id="@+id/s3_sub_low" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textColor="@color/dev_low" android:textFontWeight="400" android:textSize="10dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+                    <LinearLayout android:id="@+id/s3_buds" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:visibility="gone" />
                 </FrameLayout>
                 <FrameLayout android:id="@+id/s3_bar" android:layout_width="72dp" android:layout_height="5dp" android:layout_marginTop="5dp">
                     <ImageView android:id="@+id/s3_bar_track" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/dev_bar" android:tint="@color/agenda_card" />

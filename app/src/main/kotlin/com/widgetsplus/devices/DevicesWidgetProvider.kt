@@ -15,6 +15,7 @@ import android.util.SizeF
 import android.view.View
 import android.widget.RemoteViews
 import com.widgetsplus.R
+import com.widgetsplus.core.devices.BudLevels
 import com.widgetsplus.widget.WidgetListeners
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -140,13 +141,19 @@ open class DevicesWidgetProvider : AppWidgetProvider() {
             val on: Boolean,
             val devices: List<ConnectedDevice>,
             val phoneLevel: Int,
+            /** Earbuds' left, right and case levels, by address, when this app has been given access. */
+            val buds: Map<String, BudLevels> = emptyMap(),
         )
 
         private fun snapshot(context: Context): Snapshot {
             if (!BluetoothDevices.hasPermission(context)) return Snapshot(false, false, emptyList(), 0)
             val on = BluetoothDevices.isOn(context)
             val devices = if (on) BluetoothDevices.connectedWithBattery(context).take(3) else emptyList()
-            return Snapshot(true, on, devices, BluetoothDevices.phoneLevel(context))
+            // The last levels read; a fresh read runs in the background and redraws if they changed.
+            val cached = BudBattery.cached(context)
+            val buds = devices.mapNotNull { d -> BudBattery.forDevice(cached, d.address)?.let { d.address to it } }.toMap()
+            if (devices.isNotEmpty()) BudBattery.refreshIfStale(context) { updateAll(it) }
+            return Snapshot(true, on, devices, BluetoothDevices.phoneLevel(context), buds)
         }
 
         /** Narrower than this (2×2, or a big widget resized narrow) shows the 2×2 arrangement. */
@@ -178,6 +185,8 @@ open class DevicesWidgetProvider : AppWidgetProvider() {
          */
         private const val WIDE_COLUMN_FIXED_DP = 52f + 6f + 3f + 12f + 5f + 5f + 28f + 8f + 20f
         private const val WIDE_NAME_LINE_DP = 15.6f
+        /** The wide widget's width when the launcher doesn't say. */
+        private const val WIDE_DEFAULT_WIDTH_DP = 373f
 
         private fun build(context: Context, snap: Snapshot, widthDp: Float, heightDp: Float, addedSmall: Boolean): RemoteViews {
             val small = if (widthDp > 0f) widthDp < SMALL_MAX_WIDTH_DP else addedSmall
@@ -220,7 +229,7 @@ open class DevicesWidgetProvider : AppWidgetProvider() {
                 ),
             )
             val phone = DeviceColumn(context.getString(R.string.devices_this_phone), snap.phoneLevel, DeviceDrawing.PHONE, 0)
-            val devices = snap.devices.map { DeviceColumn(it.name, it.battery, DevicesDraw.drawingFor(it.kind), DevicesDraw.iconFor(it.kind)) }
+            val devices = snap.devices.map { DeviceColumn(it.name, it.battery, DevicesDraw.drawingFor(it.kind), DevicesDraw.iconFor(it.kind), snap.buds[it.address]) }
             if (small) {
                 // This phone first, then each device (approved 2×2 mockup).
                 DevicesSmall.fill(context, v, listOf(phone) + devices, widthDp, heightDp)
@@ -229,7 +238,9 @@ open class DevicesWidgetProvider : AppWidgetProvider() {
             v.setViewVisibility(R.id.dev_row, View.VISIBLE)
             // Three or two devices; one device beside this phone; or this phone alone.
             val columns = if (devices.size <= 1) devices + phone else devices
-            SLOTS.forEachIndexed { i, ids -> fill(context, v, ids, columns.getOrNull(i)) }
+            // Each column's width, for whether earbuds' long line fits (else "L72 R70 C40").
+            val columnDp = ((if (widthDp > 0f) widthDp else WIDE_DEFAULT_WIDTH_DP) - 16f) / columns.size - 8f
+            SLOTS.forEachIndexed { i, ids -> fill(context, v, ids, columns.getOrNull(i), columnDp) }
             // A name too long for its column takes a second line when the widget is tall enough
             // (it would otherwise end in "…" in narrow columns); otherwise it stays on one line.
             val nameLines = if (heightDp >= WIDE_COLUMN_FIXED_DP + 2 * WIDE_NAME_LINE_DP) 2 else 1
@@ -243,7 +254,7 @@ open class DevicesWidgetProvider : AppWidgetProvider() {
             val root: Int,
             val drawMain: Int, val drawDetail: Int, val drawTop: Int,
             val ringTrack: Int, val ringFill: Int, val ringLow: Int, val icon: Int,
-            val name: Int, val sub: Int, val subLow: Int,
+            val name: Int, val sub: Int, val subLow: Int, val buds: Int,
             val bar: Int, val barFill: Int, val barLow: Int,
         )
 
@@ -251,30 +262,42 @@ open class DevicesWidgetProvider : AppWidgetProvider() {
             SlotIds(
                 R.id.s1, R.id.s1_draw_main, R.id.s1_draw_detail, R.id.s1_draw_top,
                 R.id.s1_ring_track, R.id.s1_ring_fill, R.id.s1_ring_low, R.id.s1_icon,
-                R.id.s1_name, R.id.s1_sub, R.id.s1_sub_low, R.id.s1_bar, R.id.s1_bar_fill, R.id.s1_bar_low,
+                R.id.s1_name, R.id.s1_sub, R.id.s1_sub_low, R.id.s1_buds, R.id.s1_bar, R.id.s1_bar_fill, R.id.s1_bar_low,
             ),
             SlotIds(
                 R.id.s2, R.id.s2_draw_main, R.id.s2_draw_detail, R.id.s2_draw_top,
                 R.id.s2_ring_track, R.id.s2_ring_fill, R.id.s2_ring_low, R.id.s2_icon,
-                R.id.s2_name, R.id.s2_sub, R.id.s2_sub_low, R.id.s2_bar, R.id.s2_bar_fill, R.id.s2_bar_low,
+                R.id.s2_name, R.id.s2_sub, R.id.s2_sub_low, R.id.s2_buds, R.id.s2_bar, R.id.s2_bar_fill, R.id.s2_bar_low,
             ),
             SlotIds(
                 R.id.s3, R.id.s3_draw_main, R.id.s3_draw_detail, R.id.s3_draw_top,
                 R.id.s3_ring_track, R.id.s3_ring_fill, R.id.s3_ring_low, R.id.s3_icon,
-                R.id.s3_name, R.id.s3_sub, R.id.s3_sub_low, R.id.s3_bar, R.id.s3_bar_fill, R.id.s3_bar_low,
+                R.id.s3_name, R.id.s3_sub, R.id.s3_sub_low, R.id.s3_buds, R.id.s3_bar, R.id.s3_bar_fill, R.id.s3_bar_low,
             ),
         )
 
-        private fun fill(context: Context, v: RemoteViews, s: SlotIds, c: DeviceColumn?) {
+        private fun fill(context: Context, v: RemoteViews, s: SlotIds, c: DeviceColumn?, columnDp: Float) {
             v.setViewVisibility(s.root, if (c == null) View.GONE else View.VISIBLE)
             if (c == null) return
-            val low = DevicesLevels.isLow(c.level)
+            val low = DevicesLevels.isLow(c.shownLevel)
             v.setTextViewText(s.name, c.name)
-            val level = "${c.level}%"
-            v.setTextViewText(s.sub, level)
-            v.setTextViewText(s.subLow, level)
-            v.setViewVisibility(s.sub, if (low) View.GONE else View.VISIBLE)
-            v.setViewVisibility(s.subLow, if (low) View.VISIBLE else View.GONE)
+            val buds = c.buds
+            v.removeAllViews(s.buds)
+            if (buds != null) {
+                // Earbuds' left, right and case on one line instead of the level.
+                v.addView(s.buds, BudLine.views(context, buds, short = !BudLine.longFits(context, buds, columnDp), maxWidthDp = columnDp))
+                v.setContentDescription(s.buds, BudLine.description(context, buds))
+                v.setViewVisibility(s.buds, View.VISIBLE)
+                v.setViewVisibility(s.sub, View.GONE)
+                v.setViewVisibility(s.subLow, View.GONE)
+            } else {
+                v.setViewVisibility(s.buds, View.GONE)
+                val level = "${c.level}%"
+                v.setTextViewText(s.sub, level)
+                v.setTextViewText(s.subLow, level)
+                v.setViewVisibility(s.sub, if (low) View.GONE else View.VISIBLE)
+                v.setViewVisibility(s.subLow, if (low) View.VISIBLE else View.GONE)
+            }
             val drawing = c.drawing
             if (drawing != null) {
                 listOf(s.drawMain to drawing.main, s.drawDetail to drawing.detail, s.drawTop to drawing.top).forEach { (id, res) ->
@@ -283,7 +306,7 @@ open class DevicesWidgetProvider : AppWidgetProvider() {
                 }
                 listOf(s.ringTrack, s.ringFill, s.ringLow, s.icon).forEach { v.setViewVisibility(it, View.GONE) }
                 v.setViewVisibility(s.bar, View.VISIBLE)
-                val bar = DevicesDraw.bar(context, 72f, 5f, c.level)
+                val bar = DevicesDraw.bar(context, 72f, 5f, c.shownLevel)
                 v.setImageViewBitmap(if (low) s.barLow else s.barFill, bar)
                 v.setViewVisibility(s.barFill, if (low) View.GONE else View.VISIBLE)
                 v.setViewVisibility(s.barLow, if (low) View.VISIBLE else View.GONE)
@@ -291,7 +314,7 @@ open class DevicesWidgetProvider : AppWidgetProvider() {
                 listOf(s.drawMain, s.drawDetail, s.drawTop).forEach { v.setViewVisibility(it, View.GONE) }
                 v.setViewVisibility(s.ringTrack, View.VISIBLE)
                 v.setImageViewBitmap(s.ringTrack, DevicesDraw.ring(context, 52f, 5f, 100))
-                val arc = DevicesDraw.ring(context, 52f, 5f, c.level)
+                val arc = DevicesDraw.ring(context, 52f, 5f, c.shownLevel)
                 v.setImageViewBitmap(if (low) s.ringLow else s.ringFill, arc)
                 v.setViewVisibility(s.ringFill, if (low) View.GONE else View.VISIBLE)
                 v.setViewVisibility(s.ringLow, if (low) View.VISIBLE else View.GONE)
