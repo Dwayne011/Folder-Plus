@@ -62,6 +62,79 @@ class BudDumpTest {
         assertNull(BudLevels(null, null, 40).lowerBud)
     }
 
+    /**
+     * Android 17's form, laid out as printed on a Pixel 11 Pro (DP11.261016.004). The earbuds'
+     * rows are examples, numbered as AOSP's METADATA_* keys (0 maker, 1 model, 6 untethered,
+     * 10 to 12 battery, 13 to 15 charging).
+     */
+    private val android17 = """
+        Bluetooth Status
+          enabled: true
+        ScanMode: SCAN_MODE_CONNECTABLE
+        Enabled Profile Services:
+          A2DP
+          11-06 19:54:43.379 XX:XX:XX:XX:C3:2B: Custom metadata changed for 12
+          Device: XX:XX:XX:XX:71:57 [Persist on Disk] {
+            connection_counter: 6
+            Permissions:
+              phonebook: true
+            Custom Metadata:
+              Key  Value
+              ---- ----------
+              25   <DEVICE_SETTINGS_CONFIG_PACKAGE_NAME>com.google.android.gms</DEVICE_SETTINGS_CONFIG_PACKAGE_NAME>
+          }
+          Device: XX:XX:XX:XX:C3:2B [Persist on Disk] {
+            connection_counter: 436
+            Profile Connection Policies:
+              a2dp: ALLOWED
+              battery: ALLOWED
+            Permissions:
+            A2DP Settings:
+            Custom Metadata:
+              Key  Value
+              ---- ----------
+              0    Google
+              1    Pixel Buds Pro 2
+              6    true
+              10   72
+              11   70
+              12   40
+              13   false
+              14   false
+              15   true
+          }
+    """.trimIndent()
+
+    @Test fun readsAndroid17Table() {
+        assertEquals(mapOf("C3:2B" to BudLevels(72, 70, 40)), BudDump.parse(android17))
+    }
+
+    @Test fun android17RowsOutsideTheTableAreIgnored() {
+        val dump = """
+              Device: XX:XX:XX:XX:AA:01 [Persist on Disk] {
+                Some Table:
+                  10   55
+                  11   66
+                Custom Metadata:
+                  Key  Value
+                  ---- -----
+                  12   30
+              }
+              Device: XX:XX:XX:XX:AA:02 [Persist on Disk] {
+                Custom Metadata:
+                  10   -1
+                  11   15
+              }
+        """.trimIndent()
+        // AA:01 has only a case level (the 10 and 11 above aren't in its metadata table).
+        assertEquals(mapOf("AA:02" to BudLevels(null, 15, null)), BudDump.parse(dump))
+    }
+
+    @Test fun relevantLinesAreEnoughToParse() {
+        val kept = android17.lineSequence().filter(BudDump::isRelevant).joinToString("\n")
+        assertEquals(BudDump.parse(android17), BudDump.parse(kept))
+    }
+
     @Test fun emptyDumpWithoutPermission() {
         assertTrue(BudDump.parse("").isEmpty())
     }

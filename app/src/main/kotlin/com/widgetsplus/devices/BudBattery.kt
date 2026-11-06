@@ -103,11 +103,11 @@ object BudBattery {
         } ?: return null
         val (readEnd, writeEnd) = ParcelFileDescriptor.createPipe().let { it[0] to it[1] }
         val lines = StringBuilder()
-        // The dump can be long, so it's read while it's written; only the metadata lines are kept.
+        // The dump can be long, so it's read while it's written; only lines that can matter are kept.
         val reader = thread(name = "bud-levels", isDaemon = true) {
             try {
                 ParcelFileDescriptor.AutoCloseInputStream(readEnd).bufferedReader().useLines { all ->
-                    all.filter { "untethered_" in it }.forEach { synchronized(lines) { lines.appendLine(it) } }
+                    all.filter(BudDump::isRelevant).forEach { synchronized(lines) { lines.appendLine(it) } }
                 }
             } catch (e: Exception) {
                 // Closed below after a timeout, or the service stopped writing.
