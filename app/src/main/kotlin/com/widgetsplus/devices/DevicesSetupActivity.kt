@@ -4,9 +4,11 @@ import android.Manifest
 import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -41,11 +43,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -61,6 +65,10 @@ import com.widgetsplus.ui.common.SectionTitle
 import com.widgetsplus.ui.common.SettingRow
 import com.widgetsplus.ui.common.SettingsGroup
 import com.widgetsplus.ui.theme.WidgetsPlusTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import rikka.shizuku.Shizuku
 
 /**
  * Setup for the connected devices widget: asks for the "Nearby devices" permission it needs to
@@ -68,6 +76,10 @@ import com.widgetsplus.ui.theme.WidgetsPlusTheme
  * when the widget is added and from the widget's long-press settings.
  */
 class DevicesSetupActivity : ComponentActivity() {
+
+    private companion object {
+        const val SHIZUKU_REQUEST = 41
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,6 +102,8 @@ class DevicesSetupActivity : ComponentActivity() {
     @Composable
     private fun SetupScreen(askNow: Boolean, onBack: () -> Unit) {
         var granted by remember { mutableStateOf(BluetoothDevices.hasPermission(this)) }
+        // Shizuku's row only appears when Shizuku is installed.
+        val shizukuInstalled = remember { BudAccess.isInstalled(this, BudAccess.SHIZUKU) }
         val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
             granted = ok
             DevicesWidgetProvider.updateAll(this)
@@ -116,7 +130,7 @@ class DevicesSetupActivity : ComponentActivity() {
                     modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp),
                 )
                 SectionTitle(stringResource(R.string.devices_widget_label))
-                SettingsGroup(rows = listOf(
+                SettingsGroup(rows = listOfNotNull<@Composable () -> Unit>(
                     {
                         SettingRow(
                             title = stringResource(if (granted) R.string.devices_granted else R.string.devices_allow),
@@ -133,10 +147,72 @@ class DevicesSetupActivity : ComponentActivity() {
                             onClick = { startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) },
                         )
                     },
+                    if (shizukuInstalled) ({ BudLevelsRow() }) else null,
                 ))
                 DeviceTypes(granted)
                 Spacer(Modifier.height(16.dp))
             }
+        }
+    }
+
+    /**
+     * Earbuds' left, right and case levels through Shizuku: tapping shows Shizuku's own one-time
+     * "Allow" pop-up, then grants this app the access it needs. Once on (through Shizuku or At a
+     * Glance Plus) the row only says so.
+     */
+    @Composable
+    private fun BudLevelsRow() {
+        var on by remember { mutableStateOf(BudBattery.hasAccess(this)) }
+        var working by remember { mutableStateOf(false) }
+        val scope = rememberCoroutineScope()
+
+        fun grant() {
+            working = true
+            scope.launch {
+                val ok = withContext(Dispatchers.IO) { BudAccess.grantWithShizuku(this@DevicesSetupActivity) }
+                working = false
+                on = ok
+                if (ok) {
+                    DevicesWidgetProvider.updateAll(this@DevicesSetupActivity)
+                } else {
+                    Toast.makeText(this@DevicesSetupActivity, R.string.devices_buds_failed, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+
+        DisposableEffect(Unit) {
+            val listener = Shizuku.OnRequestPermissionResultListener { code, result ->
+                if (code == SHIZUKU_REQUEST && result == PackageManager.PERMISSION_GRANTED) grant()
+            }
+            runCatching { Shizuku.addRequestPermissionResultListener(listener) }
+            onDispose { runCatching { Shizuku.removeRequestPermissionResultListener(listener) } }
+        }
+
+        if (on) {
+            SettingRow(
+                title = stringResource(R.string.devices_buds_on),
+                subtitle = when {
+                    BudAccess.grantedViaShizuku(this) -> stringResource(R.string.devices_buds_via_shizuku)
+                    BudAccess.isInstalled(this, BudAccess.AT_A_GLANCE) -> stringResource(R.string.devices_buds_via_glance)
+                    else -> null
+                },
+                leading = { RowIcon(Icons.Default.Check) },
+            )
+        } else {
+            SettingRow(
+                title = stringResource(R.string.devices_buds),
+                subtitle = stringResource(R.string.devices_buds_hint),
+                leading = { RowIcon(Icons.Default.Earbuds) },
+                enabled = !working,
+                onClick = {
+                    when {
+                        !BudAccess.shizukuRunning() ->
+                            Toast.makeText(this, R.string.devices_buds_start_shizuku, Toast.LENGTH_LONG).show()
+                        BudAccess.shizukuAllowed() -> grant()
+                        else -> runCatching { Shizuku.requestPermission(SHIZUKU_REQUEST) }
+                    }
+                },
+            )
         }
     }
 

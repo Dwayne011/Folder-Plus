@@ -151,6 +151,13 @@
     <string name="devices_bluetooth_settings">Bluetooth settings</string>
     <string name="devices_bluetooth_settings_hint">Connect or forget devices</string>
     <string name="devices_types_section">Device types</string>
+    <string name="devices_buds">Left, right and case levels</string>
+    <string name="devices_buds_hint">Use Shizuku to show each earbud and the case</string>
+    <string name="devices_buds_on">Left, right and case levels on</string>
+    <string name="devices_buds_via_shizuku">Using Shizuku</string>
+    <string name="devices_buds_via_glance">Through At a Glance Plus</string>
+    <string name="devices_buds_start_shizuku">Start Shizuku first, then tap here again</string>
+    <string name="devices_buds_failed">Shizuku couldn\'t turn this on</string>
     <string name="devices_types_hint">The widget works out what each device is from its name and Bluetooth type. If it gets one wrong, tap it to choose; your choice is kept for that device.</string>
     <string name="devices_types_none">Your paired devices appear here once Nearby devices is allowed.</string>
     <string name="devices_kind_automatic">Automatic (%1$s)</string>
