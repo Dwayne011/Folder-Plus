@@ -10,6 +10,7 @@ import kotlin.math.ceil
  * size. Above 100% a title too long for one line gets a second line; at any size a location too
  * long for one line gets a second line. A row with a second line is as tall as its text (measured
  * from the font) plus [TALL_ROW_PADDING_DP] above and below, so the text sits evenly inside it.
+ * All-day events are slim 24dp strips ([allDayRowDp]), so more of the day's timed events fit.
  */
 object AgendaRows {
     const val MAX_ROWS = 5
@@ -44,6 +45,11 @@ object AgendaRows {
         if (!hasSecondLine) baseRowDp(scale) else maxOf(baseRowDp(scale), up(textDp + 2 * TALL_ROW_PADDING_DP))
 
     fun chipDp(scale: Float): Float = CHIP_DP * scale
+
+    /** An all-day event's slim strip (approved option A): 24dp at 100%, growing with the text. */
+    const val ALL_DAY_ROW_DP = 24f
+
+    fun allDayRowDp(scale: Float): Float = up(ALL_DAY_ROW_DP * scale)
 
     /**
      * How many of the rows (heights in order) fit on a card [cardHeightDp] tall, keeping room for

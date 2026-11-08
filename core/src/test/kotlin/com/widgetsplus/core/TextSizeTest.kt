@@ -83,4 +83,19 @@ class TextSizeTest {
         // No chip needed when every event fits.
         assertEquals(2, AgendaRows.fit(12f + 44f + 6f + 44f, listOf(44f, 44f), 2, 1f))
     }
+
+    @Test fun allDayStrips() {
+        assertEquals(24f, AgendaRows.allDayRowDp(1f))
+        assertEquals(34f, AgendaRows.allDayRowDp(1.4f))
+        assertEquals(20f, AgendaRows.allDayRowDp(0.8f))
+    }
+
+    @Test fun slimAllDayStripsLeaveRoomForTimedEvents() {
+        // A 5x2 card (185dp): two all-day strips and two timed rows all fit, where two full
+        // all-day rows left room for one timed row and "+1 more".
+        assertEquals(4, AgendaRows.fit(185f, listOf(24f, 24f, 44f, 44f), 4, 1f))
+        assertEquals(3, AgendaRows.fit(185f, listOf(44f, 44f, 44f, 44f), 4, 1f))
+        // Three all-day and three timed: three strips and one timed row, then "+2 more".
+        assertEquals(4, AgendaRows.fit(185f, listOf(24f, 24f, 24f, 44f, 44f), 6, 1f))
+    }
 }

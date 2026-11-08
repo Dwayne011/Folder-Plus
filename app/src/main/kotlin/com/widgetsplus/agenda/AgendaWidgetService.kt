@@ -52,14 +52,33 @@ class AgendaRemoteViewsFactory(
     private val locationPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = font("google-sans-text", 500) }
     private val dayNumberPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = font("google-sans", 700); letterSpacing = -0.02f }
 
-    private class Slot(val root: Int, val bg: Int, val badge: Int, val icon: Int, val whenText: Int, val title: Int, val loc: Int, val dot: Int)
+    private class Slot(
+        val root: Int, val bg: Int, val badge: Int, val icon: Int, val whenText: Int, val title: Int, val loc: Int, val dot: Int,
+        /** The full row's content, and the all-day strip shown instead of it. */
+        val full: Int, val slim: Int, val slimTitle: Int, val slimTag: Int,
+    )
 
     private val slots = listOf(
-        Slot(R.id.ev1, R.id.ev1_bg, R.id.ev1_badge, R.id.ev1_icon, R.id.ev1_when, R.id.ev1_title, R.id.ev1_loc, R.id.ev1_dot),
-        Slot(R.id.ev2, R.id.ev2_bg, R.id.ev2_badge, R.id.ev2_icon, R.id.ev2_when, R.id.ev2_title, R.id.ev2_loc, R.id.ev2_dot),
-        Slot(R.id.ev3, R.id.ev3_bg, R.id.ev3_badge, R.id.ev3_icon, R.id.ev3_when, R.id.ev3_title, R.id.ev3_loc, R.id.ev3_dot),
-        Slot(R.id.ev4, R.id.ev4_bg, R.id.ev4_badge, R.id.ev4_icon, R.id.ev4_when, R.id.ev4_title, R.id.ev4_loc, R.id.ev4_dot),
-        Slot(R.id.ev5, R.id.ev5_bg, R.id.ev5_badge, R.id.ev5_icon, R.id.ev5_when, R.id.ev5_title, R.id.ev5_loc, R.id.ev5_dot),
+        Slot(
+            R.id.ev1, R.id.ev1_bg, R.id.ev1_badge, R.id.ev1_icon, R.id.ev1_when, R.id.ev1_title, R.id.ev1_loc, R.id.ev1_dot,
+            R.id.ev1_full, R.id.ev1_slim, R.id.ev1_slim_title, R.id.ev1_slim_tag,
+        ),
+        Slot(
+            R.id.ev2, R.id.ev2_bg, R.id.ev2_badge, R.id.ev2_icon, R.id.ev2_when, R.id.ev2_title, R.id.ev2_loc, R.id.ev2_dot,
+            R.id.ev2_full, R.id.ev2_slim, R.id.ev2_slim_title, R.id.ev2_slim_tag,
+        ),
+        Slot(
+            R.id.ev3, R.id.ev3_bg, R.id.ev3_badge, R.id.ev3_icon, R.id.ev3_when, R.id.ev3_title, R.id.ev3_loc, R.id.ev3_dot,
+            R.id.ev3_full, R.id.ev3_slim, R.id.ev3_slim_title, R.id.ev3_slim_tag,
+        ),
+        Slot(
+            R.id.ev4, R.id.ev4_bg, R.id.ev4_badge, R.id.ev4_icon, R.id.ev4_when, R.id.ev4_title, R.id.ev4_loc, R.id.ev4_dot,
+            R.id.ev4_full, R.id.ev4_slim, R.id.ev4_slim_title, R.id.ev4_slim_tag,
+        ),
+        Slot(
+            R.id.ev5, R.id.ev5_bg, R.id.ev5_badge, R.id.ev5_icon, R.id.ev5_when, R.id.ev5_title, R.id.ev5_loc, R.id.ev5_dot,
+            R.id.ev5_full, R.id.ev5_slim, R.id.ev5_slim_title, R.id.ev5_slim_tag,
+        ),
     )
 
     override fun onCreate() { palette = AgendaPalette(context) }
@@ -101,7 +120,10 @@ class AgendaRemoteViewsFactory(
         val whenLine = lineDp(whenPaint, 10f)
         val titleLine = lineDp(titlePaint, 12.5f)
         val locationLine = lineDp(locationPaint, 11f)
+        // All-day events are slim strips on the sized stack (approved option A).
+        val slim = candidates.map { sized && it.allDay }
         val rowHeights = candidates.indices.map { i ->
+            if (slim[i]) return@map AgendaRows.allDayRowDp(scale)
             val text = whenLine + (if (twoLines[i]) 2 else 1) * titleLine + locationLines[i] * locationLine
             AgendaRows.rowDp(scale, text, hasSecondLine = twoLines[i] || locationLines[i] == 2)
         }
@@ -177,6 +199,24 @@ class AgendaRemoteViewsFactory(
             // otherwise shows that colour is left off (approved option B).
             val tinted = event.allDay && event.color != 0
             if (tinted) palette.tintCalendar(views, slot.bg, event.color) else palette.tintRes(views, slot.bg, R.color.agenda_card)
+            val fill = AgendaFormat.eventIntent(event)
+            views.setOnClickFillInIntent(slot.root, Intent().setData(fill.data).putExtras(fill.extras ?: android.os.Bundle()))
+            // On the sized stack they are slim strips instead (approved option A): the title and
+            // "ALL DAY", no badge or place. The fallback stack's rows can't change height.
+            views.setViewVisibility(slot.full, if (slim[index]) View.GONE else View.VISIBLE)
+            views.setViewVisibility(slot.slim, if (slim[index]) View.VISIBLE else View.GONE)
+            if (slim[index]) {
+                views.setTextViewText(slot.slimTitle, event.title)
+                palette.textRes(views, slot.slimTitle, R.color.agenda_on_card)
+                palette.textRes(views, slot.slimTag, R.color.agenda_on_card_var)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    views.setTextViewTextSize(slot.slimTitle, TypedValue.COMPLEX_UNIT_DIP, 12f * scale)
+                    views.setTextViewTextSize(slot.slimTag, TypedValue.COMPLEX_UNIT_DIP, 9.5f * scale)
+                    val pad = (10f * scale * density).toInt()
+                    views.setViewPadding(slot.slim, pad, 0, pad, 0)
+                }
+                return@forEachIndexed
+            }
             palette.tintRes(views, slot.badge, R.color.agenda_badge)
             views.setImageViewResource(slot.icon, CalendarAgenda.iconFor(event.title))
             palette.tintRes(views, slot.icon, R.color.agenda_on_badge)
@@ -198,8 +238,6 @@ class AgendaRemoteViewsFactory(
             } else {
                 views.setViewVisibility(slot.loc, View.GONE)
             }
-            val fill = AgendaFormat.eventIntent(event)
-            views.setOnClickFillInIntent(slot.root, Intent().setData(fill.data).putExtras(fill.extras ?: android.os.Bundle()))
         }
 
         val extra = day.events.size - minOf(visibleSlots, day.events.size)

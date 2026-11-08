@@ -61,7 +61,7 @@
             <!-- event row: 44dp, padding 4/8, 32dp badge (radius 10, 18dp icon), 8dp gap, text 10/12.5/11 -->
             <FrameLayout android:id="@+id/ev1" android:layout_width="match_parent" android:layout_height="44dp" android:layout_marginTop="0dp" android:visibility="gone">
                 <ImageView android:id="@+id/ev1_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
-                <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="8dp" android:paddingEnd="8dp">
+                <LinearLayout android:id="@+id/ev1_full" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="8dp" android:paddingEnd="8dp">
                     <FrameLayout android:layout_width="32dp" android:layout_height="32dp">
                         <ImageView android:id="@+id/ev1_badge" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_badge" />
                         <ImageView android:id="@+id/ev1_icon" android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:contentDescription="@null" />
@@ -75,11 +75,16 @@
                         <TextView android:id="@+id/ev1_loc" android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textFontWeight="500" android:textSize="11dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" android:ellipsize="end" android:visibility="gone" />
                     </LinearLayout>
                 </LinearLayout>
+                <!-- all-day event (approved option A): a 24dp strip, title and "ALL DAY", in the calendar's colour -->
+                <LinearLayout android:id="@+id/ev1_slim" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="10dp" android:paddingEnd="10dp" android:visibility="gone">
+                    <TextView android:id="@+id/ev1_slim_title" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textFontWeight="700" android:textStyle="bold" android:textSize="12dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" android:ellipsize="end" />
+                    <TextView android:id="@+id/ev1_slim_tag" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:fontFamily="google-sans-text" android:textFontWeight="500" android:textSize="9.5dp" android:letterSpacing="0.04" android:textAllCaps="true" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" android:text="@string/agenda_all_day" />
+                </LinearLayout>
             </FrameLayout>
             <!-- event row: 44dp, padding 4/8, 32dp badge (radius 10, 18dp icon), 8dp gap, text 10/12.5/11 -->
             <FrameLayout android:id="@+id/ev2" android:layout_width="match_parent" android:layout_height="44dp" android:layout_marginTop="6dp" android:visibility="gone">
                 <ImageView android:id="@+id/ev2_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
-                <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="8dp" android:paddingEnd="8dp">
+                <LinearLayout android:id="@+id/ev2_full" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="8dp" android:paddingEnd="8dp">
                     <FrameLayout android:layout_width="32dp" android:layout_height="32dp">
                         <ImageView android:id="@+id/ev2_badge" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_badge" />
                         <ImageView android:id="@+id/ev2_icon" android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:contentDescription="@null" />
@@ -93,11 +98,16 @@
                         <TextView android:id="@+id/ev2_loc" android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textFontWeight="500" android:textSize="11dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" android:ellipsize="end" android:visibility="gone" />
                     </LinearLayout>
                 </LinearLayout>
+                <!-- all-day event (approved option A): a 24dp strip, title and "ALL DAY", in the calendar's colour -->
+                <LinearLayout android:id="@+id/ev2_slim" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="10dp" android:paddingEnd="10dp" android:visibility="gone">
+                    <TextView android:id="@+id/ev2_slim_title" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textFontWeight="700" android:textStyle="bold" android:textSize="12dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" android:ellipsize="end" />
+                    <TextView android:id="@+id/ev2_slim_tag" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:fontFamily="google-sans-text" android:textFontWeight="500" android:textSize="9.5dp" android:letterSpacing="0.04" android:textAllCaps="true" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" android:text="@string/agenda_all_day" />
+                </LinearLayout>
             </FrameLayout>
             <!-- event row: 44dp, padding 4/8, 32dp badge (radius 10, 18dp icon), 8dp gap, text 10/12.5/11 -->
             <FrameLayout android:id="@+id/ev3" android:layout_width="match_parent" android:layout_height="44dp" android:layout_marginTop="6dp" android:visibility="gone">
                 <ImageView android:id="@+id/ev3_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
-                <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="8dp" android:paddingEnd="8dp">
+                <LinearLayout android:id="@+id/ev3_full" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="8dp" android:paddingEnd="8dp">
                     <FrameLayout android:layout_width="32dp" android:layout_height="32dp">
                         <ImageView android:id="@+id/ev3_badge" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_badge" />
                         <ImageView android:id="@+id/ev3_icon" android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:contentDescription="@null" />
@@ -111,11 +121,16 @@
                         <TextView android:id="@+id/ev3_loc" android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textFontWeight="500" android:textSize="11dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" android:ellipsize="end" android:visibility="gone" />
                     </LinearLayout>
                 </LinearLayout>
+                <!-- all-day event (approved option A): a 24dp strip, title and "ALL DAY", in the calendar's colour -->
+                <LinearLayout android:id="@+id/ev3_slim" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="10dp" android:paddingEnd="10dp" android:visibility="gone">
+                    <TextView android:id="@+id/ev3_slim_title" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textFontWeight="700" android:textStyle="bold" android:textSize="12dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" android:ellipsize="end" />
+                    <TextView android:id="@+id/ev3_slim_tag" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:fontFamily="google-sans-text" android:textFontWeight="500" android:textSize="9.5dp" android:letterSpacing="0.04" android:textAllCaps="true" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" android:text="@string/agenda_all_day" />
+                </LinearLayout>
             </FrameLayout>
             <!-- event row: 44dp, padding 4/8, 32dp badge (radius 10, 18dp icon), 8dp gap, text 10/12.5/11 -->
             <FrameLayout android:id="@+id/ev4" android:layout_width="match_parent" android:layout_height="44dp" android:layout_marginTop="6dp" android:visibility="gone">
                 <ImageView android:id="@+id/ev4_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
-                <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="8dp" android:paddingEnd="8dp">
+                <LinearLayout android:id="@+id/ev4_full" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="8dp" android:paddingEnd="8dp">
                     <FrameLayout android:layout_width="32dp" android:layout_height="32dp">
                         <ImageView android:id="@+id/ev4_badge" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_badge" />
                         <ImageView android:id="@+id/ev4_icon" android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:contentDescription="@null" />
@@ -129,11 +144,16 @@
                         <TextView android:id="@+id/ev4_loc" android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textFontWeight="500" android:textSize="11dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" android:ellipsize="end" android:visibility="gone" />
                     </LinearLayout>
                 </LinearLayout>
+                <!-- all-day event (approved option A): a 24dp strip, title and "ALL DAY", in the calendar's colour -->
+                <LinearLayout android:id="@+id/ev4_slim" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="10dp" android:paddingEnd="10dp" android:visibility="gone">
+                    <TextView android:id="@+id/ev4_slim_title" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textFontWeight="700" android:textStyle="bold" android:textSize="12dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" android:ellipsize="end" />
+                    <TextView android:id="@+id/ev4_slim_tag" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:fontFamily="google-sans-text" android:textFontWeight="500" android:textSize="9.5dp" android:letterSpacing="0.04" android:textAllCaps="true" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" android:text="@string/agenda_all_day" />
+                </LinearLayout>
             </FrameLayout>
             <!-- event row: 44dp, padding 4/8, 32dp badge (radius 10, 18dp icon), 8dp gap, text 10/12.5/11 -->
             <FrameLayout android:id="@+id/ev5" android:layout_width="match_parent" android:layout_height="44dp" android:layout_marginTop="6dp" android:visibility="gone">
                 <ImageView android:id="@+id/ev5_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_card" />
-                <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="8dp" android:paddingEnd="8dp">
+                <LinearLayout android:id="@+id/ev5_full" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="8dp" android:paddingEnd="8dp">
                     <FrameLayout android:layout_width="32dp" android:layout_height="32dp">
                         <ImageView android:id="@+id/ev5_badge" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_badge" />
                         <ImageView android:id="@+id/ev5_icon" android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:contentDescription="@null" />
@@ -146,6 +166,11 @@
                         <TextView android:id="@+id/ev5_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textFontWeight="700" android:textStyle="bold" android:textSize="12.5dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" android:ellipsize="end" />
                         <TextView android:id="@+id/ev5_loc" android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textFontWeight="500" android:textSize="11dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" android:ellipsize="end" android:visibility="gone" />
                     </LinearLayout>
+                </LinearLayout>
+                <!-- all-day event (approved option A): a 24dp strip, title and "ALL DAY", in the calendar's colour -->
+                <LinearLayout android:id="@+id/ev5_slim" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="10dp" android:paddingEnd="10dp" android:visibility="gone">
+                    <TextView android:id="@+id/ev5_slim_title" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:fontFamily="google-sans-text" android:textFontWeight="700" android:textStyle="bold" android:textSize="12dp" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" android:ellipsize="end" />
+                    <TextView android:id="@+id/ev5_slim_tag" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:fontFamily="google-sans-text" android:textFontWeight="500" android:textSize="9.5dp" android:letterSpacing="0.04" android:textAllCaps="true" android:maxLines="1" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" android:text="@string/agenda_all_day" />
                 </LinearLayout>
             </FrameLayout>
 
