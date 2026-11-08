@@ -9,6 +9,7 @@ import android.widget.RemoteViews
 import androidx.annotation.RequiresApi
 import com.widgetsplus.R
 import com.widgetsplus.apps.InstalledApps
+import com.widgetsplus.apps.ShapedIcons
 import com.widgetsplus.core.model.Folder
 import com.widgetsplus.core.model.FolderItem
 import com.widgetsplus.core.model.FolderTabContents
@@ -118,7 +119,7 @@ internal class FolderCards(
 
     private fun appCell(tab: TabContent, item: FolderItem, iconPx: Int, plan: MosaicPlan): RemoteViews {
         val cell = RemoteViews(context.packageName, R.layout.widget_folder_cell)
-        apps.icon(item.app, iconPx)?.let { cell.setImageViewBitmap(R.id.cell_icon, it) }
+        apps.icon(item.app, iconPx, folder.iconShape)?.let { cell.setImageViewBitmap(R.id.cell_icon, it) }
         cell.setContentDescription(R.id.cell_icon, apps.label(item.app))
         FolderCellSize.apply(cell, plan)
         cell.setOnClickFillInIntent(
@@ -134,6 +135,7 @@ internal class FolderCards(
         val cell = RemoteViews(context.packageName, R.layout.widget_folder_cell_more)
         cell.setTextViewText(R.id.cell_more_text, "+${plan.more}")
         cell.setContentDescription(R.id.cell_more_text, context.resources.getQuantityString(R.plurals.widget_more_apps, plan.more, plan.more))
+        cell.setImageViewResource(R.id.cell_more_bg, ShapedIcons.moreBackground(folder.iconShape))
         FolderCellSize.applyMore(cell, plan)
         cell.setOnClickFillInIntent(R.id.cell_more, fillIn(tab, openNow = true))
         return cell

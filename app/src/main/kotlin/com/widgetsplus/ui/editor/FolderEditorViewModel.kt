@@ -12,6 +12,7 @@ import com.widgetsplus.core.model.FolderTab
 import com.widgetsplus.core.model.FolderTabs
 import com.widgetsplus.core.model.HostedWidget
 import com.widgetsplus.core.model.LockMode
+import com.widgetsplus.core.model.IconShape
 import com.widgetsplus.core.model.NameAlign
 import com.widgetsplus.core.model.SortMode
 import com.widgetsplus.core.model.TapAction
@@ -74,6 +75,7 @@ class FolderEditorViewModel(private val graph: Graph, val folderId: Long) : View
     fun setAppNameSize(percent: Int) = update { it.copy(appNameSize = TextSize.clamp(percent)) }
     fun setShowCategoryName(on: Boolean) = update { it.copy(showCategoryName = on) }
     fun setCategoryNameAlign(align: NameAlign) = update { it.copy(categoryNameAlign = align) }
+    fun setIconShape(shape: IconShape) = update { it.copy(iconShape = shape) }
 
     /** Stores the widget picked in HostedWidgetPickerActivity, releasing any previous one. */
     fun setHostedWidget(provider: String, appWidgetId: Int) = update { old ->

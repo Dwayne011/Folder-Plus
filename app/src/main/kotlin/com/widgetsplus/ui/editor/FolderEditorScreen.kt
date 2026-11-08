@@ -6,6 +6,8 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,6 +21,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -26,6 +30,7 @@ import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FormatAlignCenter
@@ -61,6 +66,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.asComposePath
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -69,10 +79,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.widgetsplus.R
+import com.widgetsplus.apps.ShapedIcons
 import com.widgetsplus.core.model.AppRef
 import com.widgetsplus.core.model.Category
 import com.widgetsplus.core.model.Folder
 import com.widgetsplus.core.model.FolderIconMode
+import com.widgetsplus.core.model.IconShape
 import com.widgetsplus.core.model.LockMode
 import com.widgetsplus.core.model.NameAlign
 import com.widgetsplus.core.model.SortMode
@@ -405,6 +417,7 @@ fun AppearanceScreen(folderId: Long, onBack: () -> Unit) {
                         onClick = { dialog = DIALOG_ICON },
                     )
                 },
+                { IconShapeRow(selected = current.iconShape, onSelect = vm::setIconShape) },
                 // The widget swipes between categories (bigger than 1x1); this names the one shown.
                 {
                     SwitchRow(
@@ -453,6 +466,70 @@ fun AppearanceScreen(folderId: Long, onBack: () -> Unit) {
         onDeleted = onBack,
     )
 }
+
+/**
+ * The shape of the apps' icons on the folder's home-screen widgets: a choice of four, each drawn
+ * as its outline (approved mockup). The folder keeps its own shape whichever is chosen.
+ */
+@Composable
+private fun IconShapeRow(selected: IconShape, onSelect: (IconShape) -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            RowIcon(Icons.Default.Category)
+            Spacer(Modifier.width(16.dp))
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.icon_shape), style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.icon_shape_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+        Row(Modifier.padding(start = 40.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            IconShape.entries.forEach { shape ->
+                val on = shape == selected
+                val colors = MaterialTheme.colorScheme
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(if (on) colors.primaryContainer else Color.Transparent)
+                        .selectable(selected = on, role = Role.RadioButton, onClick = { onSelect(shape) })
+                        .padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    val tint = if (on) colors.onPrimaryContainer else colors.onSurfaceVariant
+                    if (shape == IconShape.DEFAULT) {
+                        Icon(Icons.Default.Apps, contentDescription = null, tint = tint, modifier = Modifier.size(28.dp))
+                    } else {
+                        Canvas(Modifier.size(28.dp)) {
+                            val stroke = 1.6.dp.toPx()
+                            val outline = ShapedIcons.path(shape, size.minDimension - 2 * stroke).asComposePath()
+                            outline.translate(Offset(stroke, stroke))
+                            drawPath(outline, tint, style = Stroke(width = stroke))
+                        }
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        shape.label(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = tint,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun IconShape.label(): String = stringResource(
+    when (this) {
+        IconShape.DEFAULT -> R.string.icon_shape_default
+        IconShape.CIRCLE -> R.string.icon_shape_circle
+        IconShape.SQUIRCLE -> R.string.icon_shape_squircle
+        IconShape.ROUNDED_SQUARE -> R.string.icon_shape_rounded
+    },
+)
 
 /** Slider row for the popup's translucency/blur; commits when the drag ends. */
 @Composable

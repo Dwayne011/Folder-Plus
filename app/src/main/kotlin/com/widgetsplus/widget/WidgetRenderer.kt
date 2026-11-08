@@ -12,6 +12,7 @@ import android.widget.RemoteViews
 import androidx.annotation.RequiresApi
 import com.widgetsplus.R
 import com.widgetsplus.apps.InstalledApps
+import com.widgetsplus.apps.ShapedIcons
 import com.widgetsplus.core.model.Folder
 import com.widgetsplus.core.model.FolderIconMode
 import com.widgetsplus.core.model.FolderItem
@@ -130,7 +131,7 @@ object WidgetRenderer {
             views.setViewVisibility(R.id.folder_grid, View.GONE)
             views.setViewVisibility(R.id.folder_single, View.VISIBLE)
             val px = (minOf(64f, minOf(MosaicLayout.innerWidth(widthDp), MosaicLayout.innerHeight(heightDp))) * density).roundToInt().coerceAtLeast(1)
-            val icon = folder.defaultApp?.takeIf { folder.iconMode == FolderIconMode.DEFAULT_APP }?.let { apps.icon(it, px) }
+            val icon = folder.defaultApp?.takeIf { folder.iconMode == FolderIconMode.DEFAULT_APP }?.let { apps.icon(it, px, folder.iconShape) }
             // The folder glyph goes as the drawable itself, so the launcher draws it in the
             // phone's light or dark theme.
             if (icon != null) views.setImageViewBitmap(R.id.folder_single, icon)
@@ -249,7 +250,8 @@ object WidgetRenderer {
         context: Context, apps: InstalledApps, appWidgetId: Int, folder: Folder, item: FolderItem, index: Int, plan: MosaicPlan, iconPx: Int,
     ): RemoteViews {
         val cell = RemoteViews(context.packageName, if (plan.compact) R.layout.widget_folder_cell_compact else R.layout.widget_folder_cell)
-        apps.icon(item.app, iconPx)?.let { cell.setImageViewBitmap(R.id.cell_icon, it) }
+        // In the folder's chosen icon shape (Appearance); the folder itself keeps its shape.
+        apps.icon(item.app, iconPx, folder.iconShape)?.let { cell.setImageViewBitmap(R.id.cell_icon, it) }
         cell.setContentDescription(R.id.cell_icon, apps.label(item.app))
         FolderCellSize.apply(cell, plan)
         if (!plan.compact && index < MAX_ICONS) {
@@ -264,6 +266,7 @@ object WidgetRenderer {
         val cell = RemoteViews(context.packageName, if (plan.compact) R.layout.widget_folder_cell_more_compact else R.layout.widget_folder_cell_more)
         cell.setTextViewText(R.id.cell_more_text, "+${plan.more}")
         cell.setContentDescription(R.id.cell_more_text, context.resources.getQuantityString(R.plurals.widget_more_apps, plan.more, plan.more))
+        cell.setImageViewResource(R.id.cell_more_bg, ShapedIcons.moreBackground(folder.iconShape))
         FolderCellSize.applyMore(cell, plan)
         if (plan.compact) {
             // Scale the count with the mini mosaic's tiles.

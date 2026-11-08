@@ -12,8 +12,10 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.toBitmap
 import com.widgetsplus.R
 import com.widgetsplus.apps.InstalledApps
+import com.widgetsplus.apps.ShapedIcons
 import com.widgetsplus.core.model.Folder
 import com.widgetsplus.core.model.FolderIconMode
+import com.widgetsplus.core.model.IconShape
 import com.widgetsplus.core.model.FolderItem
 
 /**
@@ -65,12 +67,12 @@ object IconComposer {
         canvas.drawRoundRect(panel, PANEL_RADIUS * k, PANEL_RADIUS * k, paint)
 
         val single: Bitmap? = when {
-            folder.iconMode == FolderIconMode.DEFAULT_APP -> folder.defaultApp?.let { apps.icon(it, sizePx) } ?: glyph(context, sizePx)
+            folder.iconMode == FolderIconMode.DEFAULT_APP -> folder.defaultApp?.let { apps.icon(it, sizePx, folder.iconShape) } ?: glyph(context, sizePx)
             folder.iconMode == FolderIconMode.GLYPH -> glyph(context, sizePx)
             else -> null
         }
         val icons = if (single == null) {
-            sortedItems.asSequence().filter { apps.isInstalled(it.app) }.mapNotNull { apps.icon(it.app, sizePx / 2) }.take(4).toList()
+            sortedItems.asSequence().filter { apps.isInstalled(it.app) }.mapNotNull { apps.icon(it.app, sizePx / 2, folder.iconShape) }.take(4).toList()
         } else {
             emptyList()
         }
@@ -92,7 +94,7 @@ object IconComposer {
             val box = RectF(left + CELL_PADDING * k, top + CELL_PADDING * k, left + cell - CELL_PADDING * k, top + cell - CELL_PADDING * k)
             when {
                 i < shown -> draw(canvas, icons[i], box, paint)
-                i == shown && count > 4 -> more(context, canvas, box, count - shown)
+                i == shown && count > 4 -> more(context, canvas, box, count - shown, folder.iconShape)
             }
         }
         return bitmap
@@ -103,9 +105,12 @@ object IconComposer {
     }
 
     /** "+N" on the agenda's card colour, like the widget's tile. */
-    private fun more(context: Context, canvas: Canvas, box: RectF, n: Int) {
+    private fun more(context: Context, canvas: Canvas, box: RectF, n: Int, shape: IconShape) {
         val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = ContextCompat.getColor(context, R.color.agenda_card) }
-        canvas.drawOval(box, fill)
+        // In the folder's icon shape, like the apps beside it.
+        val outline = ShapedIcons.path(shape, box.width())
+        outline.offset(box.left, box.top)
+        canvas.drawPath(outline, fill)
         val text = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = ContextCompat.getColor(context, R.color.agenda_on_card)
             textAlign = Paint.Align.CENTER

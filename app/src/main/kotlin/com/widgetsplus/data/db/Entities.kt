@@ -12,6 +12,7 @@ import com.widgetsplus.core.model.FolderIconMode
 import com.widgetsplus.core.model.FolderItem
 import com.widgetsplus.core.model.HostedWidget
 import com.widgetsplus.core.model.LockMode
+import com.widgetsplus.core.model.IconShape
 import com.widgetsplus.core.model.NameAlign
 import com.widgetsplus.core.model.SortMode
 import com.widgetsplus.core.model.TapAction
@@ -45,6 +46,8 @@ data class FolderEntity(
     // Added in schema v7: the category name pill on the widget, and where it sits (0 left, 1 centre, 2 right).
     @ColumnInfo(defaultValue = "0") val showCategoryName: Boolean = false,
     @ColumnInfo(defaultValue = "1") val categoryNameAlign: Int = 1,
+    // Added in schema v8: the apps' icon shape on the widgets (IconShape ordinal, 0 = as Android draws them).
+    @ColumnInfo(defaultValue = "0") val iconShape: Int = 0,
 )
 
 @Entity(
@@ -111,6 +114,7 @@ fun FolderEntity.toModel() = Folder(
     appNameSize = TextSize.clamp(appNameSize),
     showCategoryName = showCategoryName,
     categoryNameAlign = NameAlign.entries.getOrElse(categoryNameAlign) { NameAlign.CENTER },
+    iconShape = IconShape.entries.getOrElse(iconShape) { IconShape.DEFAULT },
 )
 
 fun Folder.toEntity() = FolderEntity(
@@ -133,6 +137,7 @@ fun Folder.toEntity() = FolderEntity(
     appNameSize = appNameSize,
     showCategoryName = showCategoryName,
     categoryNameAlign = categoryNameAlign.ordinal,
+    iconShape = iconShape.ordinal,
 )
 
 fun CategoryEntity.toModel() = Category(id, folderId, name, position, sortMode)

@@ -140,6 +140,8 @@ data class Folder(
     val showCategoryName: Boolean = false,
     /** Where that pill sits on widgets two columns wide or more. */
     val categoryNameAlign: NameAlign = NameAlign.CENTER,
+    /** The shape of the apps' icons on the folder's home-screen widgets (the folder keeps its own shape). */
+    val iconShape: IconShape = IconShape.DEFAULT,
 ) {
     companion object {
         const val DEFAULT_FROSTING = 40
@@ -167,6 +169,12 @@ data class Folder(
 
 /** Where the category name pill sits on a folder widget two columns wide or more. */
 enum class NameAlign { LEFT, CENTER, RIGHT }
+
+/**
+ * The shape of the apps' icons (and "+N") on a folder's home-screen widgets. [DEFAULT] draws each
+ * icon as Android hands it over, as before.
+ */
+enum class IconShape { DEFAULT, CIRCLE, SQUIRCLE, ROUNDED_SQUARE }
 
 data class Category(
     val id: Long = 0,

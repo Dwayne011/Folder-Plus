@@ -221,6 +221,12 @@
     <string name="frosting">Frosting</string>
     <string name="frosting_hint">Translucency and blur of the folder popup</string>
     <string name="app_name_size">App name size</string>
+    <string name="icon_shape">Icon shape</string>
+    <string name="icon_shape_hint">The apps\' icons on this folder\'s home-screen widgets</string>
+    <string name="icon_shape_default">Default</string>
+    <string name="icon_shape_circle">Circle</string>
+    <string name="icon_shape_squircle">Squircle</string>
+    <string name="icon_shape_rounded">Rounded</string>
     <string name="show_category_name">Show category name</string>
     <string name="show_category_name_hint">On the widget, above each category\'s apps. Swipe the widget up or down to change category.</string>
     <string name="name_position">Name position</string>

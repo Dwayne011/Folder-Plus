@@ -7,9 +7,11 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.graphics.drawable.BitmapDrawable
 import android.util.LruCache
 import androidx.core.graphics.drawable.toBitmap
 import com.widgetsplus.core.model.AppRef
+import com.widgetsplus.core.model.IconShape
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -120,16 +122,20 @@ class InstalledApps(context: Context) {
         false
     }
 
-    /** Loads (and caches) the app's or shortcut's icon as a square bitmap. Null if it's gone. */
-    fun icon(ref: AppRef, sizePx: Int = iconSizePx): Bitmap? {
-        val key = "${ref.flatten()}@$sizePx"
+    /**
+     * Loads (and caches) the app's or shortcut's icon as a square bitmap, in [shape] ([ShapedIcons];
+     * [IconShape.DEFAULT] is the icon as Android draws it). Null if it's gone.
+     */
+    fun icon(ref: AppRef, sizePx: Int = iconSizePx, shape: IconShape = IconShape.DEFAULT): Bitmap? {
+        val key = "${ref.flatten()}@$sizePx/${shape.ordinal}"
         iconCache.get(key)?.let { return it }
         val drawable: Drawable = try {
             val id = ref.shortcutId
             if (id != null) {
                 // The shortcut's own icon, or its app's icon when it came without one.
                 ShortcutStore.icon(appContext, id)?.let { stored ->
-                    val bitmap = Bitmap.createScaledBitmap(stored, sizePx, sizePx, true)
+                    val bitmap = if (shape == IconShape.DEFAULT) Bitmap.createScaledBitmap(stored, sizePx, sizePx, true)
+                    else ShapedIcons.render(BitmapDrawable(appContext.resources, stored), sizePx, shape)
                     iconCache.put(key, bitmap)
                     return bitmap
                 }
@@ -140,7 +146,8 @@ class InstalledApps(context: Context) {
         } catch (e: PackageManager.NameNotFoundException) {
             return null
         }
-        val bitmap = drawable.toBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+        val bitmap = if (shape == IconShape.DEFAULT) drawable.toBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+        else ShapedIcons.render(drawable, sizePx, shape)
         iconCache.put(key, bitmap)
         return bitmap
     }
