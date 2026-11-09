@@ -46,6 +46,10 @@ interface CategoryDao {
     @Query("SELECT * FROM categories WHERE folderId = :folderId ORDER BY position, id")
     suspend fun getForFolder(folderId: Long): List<CategoryEntity>
 
+    /** Every category's folder, for counting them per folder in the folder list. */
+    @Query("SELECT folderId FROM categories")
+    fun observeFolderIds(): Flow<List<Long>>
+
     @Query("SELECT COALESCE(MAX(position), -1) + 1 FROM categories WHERE folderId = :folderId")
     suspend fun nextPosition(folderId: Long): Int
 

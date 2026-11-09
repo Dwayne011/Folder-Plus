@@ -8,54 +8,16 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.BlurOn
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.FormatAlignCenter
-import androidx.compose.material.icons.filled.Gesture
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Pin
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.TextFields
-import androidx.compose.material.icons.filled.TouchApp
-import androidx.compose.material.icons.filled.Widgets
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -65,15 +27,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -89,26 +49,33 @@ import com.widgetsplus.core.model.LockMode
 import com.widgetsplus.core.model.NameAlign
 import com.widgetsplus.core.model.SortMode
 import com.widgetsplus.core.model.TapAction
+import com.widgetsplus.core.model.TextSize
 import com.widgetsplus.graph
 import com.widgetsplus.ui.common.AppIconImage
 import com.widgetsplus.ui.common.ConfirmDialog
 import com.widgetsplus.ui.common.FolderIconImage
 import com.widgetsplus.ui.common.Option
-import com.widgetsplus.ui.common.OptionPickerDialog
-import com.widgetsplus.ui.common.RowIcon
-import com.widgetsplus.ui.common.SectionTitle
 import com.widgetsplus.ui.common.SetPinDialog
-import com.widgetsplus.ui.common.SettingRow
-import com.widgetsplus.ui.common.SettingsGroup
-import com.widgetsplus.ui.common.SwitchRow
 import com.widgetsplus.ui.common.TextInputDialog
-import com.widgetsplus.ui.common.TextSizeRow
 import com.widgetsplus.ui.common.displayName
 import com.widgetsplus.ui.common.label
+import com.widgetsplus.ui.frost.FrostChoicePage
+import com.widgetsplus.ui.frost.FrostGroup
+import com.widgetsplus.ui.frost.FrostIcon
+import com.widgetsplus.ui.frost.FrostIcons
+import com.widgetsplus.ui.frost.FrostNote
+import com.widgetsplus.ui.frost.FrostPage
+import com.widgetsplus.ui.frost.FrostRow
+import com.widgetsplus.ui.frost.FrostShapes
+import com.widgetsplus.ui.frost.FrostSliderRow
+import com.widgetsplus.ui.frost.FrostType
+import com.widgetsplus.ui.frost.IconTile
+import com.widgetsplus.ui.frost.LocalFrost
+import com.widgetsplus.ui.frost.Trailing
 import com.widgetsplus.widget.HostedWidgetPickerActivity
 import kotlin.math.roundToInt
 
-/** Which dialog the editor is showing; kept as a string so it survives rotation. */
+/** Which page or dialog the editor is showing; kept as a string so it survives rotation. */
 private const val DIALOG_NONE = ""
 private const val DIALOG_RENAME = "rename"
 private const val DIALOG_DELETE = "delete"
@@ -121,45 +88,11 @@ private const val DIALOG_SORT = "sort"
 private const val DIALOG_LOCK = "lock"
 private const val DIALOG_SET_PIN = "set_pin"
 private const val DIALOG_SET_PIN_THEN_LOCK = "set_pin_then_lock:"
-private const val DIALOG_NEW_CATEGORY = "new_category"
-private const val DIALOG_RENAME_CATEGORY = "rename_category:"
-private const val DIALOG_DELETE_CATEGORY = "delete_category:"
-private const val DIALOG_CATEGORY_SORT = "category_sort:"
-
-/** Shared scaffold for the editor and its sub-pages: large collapsing title, back arrow, optional actions. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-internal fun EditorScaffold(
-    title: String,
-    onBack: () -> Unit,
-    actions: @Composable () -> Unit = {},
-    content: androidx.compose.foundation.lazy.LazyListScope.() -> Unit,
-) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            LargeTopAppBar(
-                title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) }
-                },
-                actions = { actions() },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(bottom = 32.dp),
-            content = content,
-        )
-    }
-}
 
 /**
- * Main folder page: a hero with the two things people do most (put it on the
- * home screen, edit its apps) and one short list. Details live on sub-pages.
+ * A folder's page: its widget as a preview, then its settings in groups (name, apps, sort, taps,
+ * look; lock and PIN; delete). Taps and Appearance have their own pages; sort and lock open a
+ * page of choices.
  */
 @Composable
 fun FolderEditorScreen(
@@ -177,118 +110,69 @@ fun FolderEditorScreen(
     var dialog by rememberSaveable { mutableStateOf(DIALOG_NONE) }
 
     val current = folder ?: return
+    if (editorChoicePage(dialog, current, items.map { it.app }, vm, onClose = { dialog = DIALOG_NONE }, onShow = { dialog = it })) return
 
-    EditorScaffold(
-        title = current.displayName(),
-        onBack = onBack,
-        actions = {
-            IconButton(onClick = { dialog = DIALOG_RENAME }) { Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.rename)) }
-        },
-    ) {
-        item {
-            Column(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                FolderIconImage(folder = current, size = 96.dp)
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    stringResource(R.string.apps_categories_summary, items.size, categories.size),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(16.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    FilledTonalButton(onClick = onManageApps) {
-                        Icon(Icons.Default.Apps, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                        Text(stringResource(R.string.edit_apps))
-                    }
+    FrostPage(title = current.displayName(), overline = stringResource(R.string.folders_title), onBack = onBack) {
+        item(key = "preview") {
+            FrostGroup(stringResource(R.string.preview), listOf {
+                Box(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp), contentAlignment = Alignment.Center) {
+                    FolderIconImage(folder = current, size = 72.dp)
                 }
-            }
+            })
         }
-
-        item { SectionTitle(stringResource(R.string.section_folder)) }
-        item {
-            val chevron: @Composable () -> Unit = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) }
-            val rows = mutableListOf<@Composable () -> Unit>(
+        item(key = "folder") {
+            FrostGroup(stringResource(R.string.section_folder), listOf(
+                { FrostRow(FrostIcons.Edit, stringResource(R.string.name_row), current.displayName(), Trailing.Chevron, onClick = { dialog = DIALOG_RENAME }) },
                 {
-                    SettingRow(
-                        title = stringResource(R.string.apps_and_categories),
-                        subtitle = stringResource(R.string.apps_categories_summary, items.size, categories.size),
-                        leading = { RowIcon(Icons.Default.Apps) },
-                        trailing = chevron,
-                        onClick = onManageApps,
+                    FrostRow(
+                        FrostIcons.Apps, stringResource(R.string.apps_and_categories),
+                        stringResource(R.string.apps_categories_summary, items.size, categories.size),
+                        Trailing.Chevron, onClick = onManageApps,
+                    )
+                },
+                { FrostRow(FrostIcons.Sort, stringResource(R.string.sort_mode), current.sortMode.label(), Trailing.Chevron, onClick = { dialog = DIALOG_SORT }) },
+                {
+                    FrostRow(
+                        FrostIcons.Down, stringResource(R.string.taps),
+                        stringResource(R.string.taps_summary, current.effectiveTapAction.label(), current.effectiveDoubleTapAction.label()),
+                        Trailing.Chevron, onClick = onGestures,
                     )
                 },
                 {
-                    SettingRow(
-                        title = stringResource(R.string.sort_mode),
-                        subtitle = current.sortMode.label(),
-                        leading = { RowIcon(Icons.AutoMirrored.Filled.Sort) },
-                        onClick = { dialog = DIALOG_SORT },
-                    )
-                },
-                {
-                    SettingRow(
-                        title = stringResource(R.string.taps),
-                        subtitle = stringResource(R.string.taps_summary, current.effectiveTapAction.label(), current.effectiveDoubleTapAction.label()),
-                        leading = { RowIcon(Icons.Default.TouchApp) },
-                        trailing = chevron,
-                        onClick = onGestures,
-                    )
-                },
-                {
-                    SettingRow(
-                        title = stringResource(R.string.appearance),
-                        subtitle = current.iconMode.label(),
-                        leading = { RowIcon(Icons.Default.Palette) },
-                        trailing = chevron,
-                        onClick = onAppearance,
-                    )
-                },
-                {
-                    SettingRow(
-                        title = stringResource(R.string.lock_mode),
-                        subtitle = current.lockMode.label(),
-                        leading = { RowIcon(Icons.Default.Lock) },
-                        onClick = { dialog = DIALOG_LOCK },
-                    )
-                },
-            )
-            if (current.lockMode.allowsPin) {
-                rows.add {
-                    SettingRow(
-                        title = stringResource(if (vm.hasPin) R.string.change_pin else R.string.set_pin),
-                        subtitle = stringResource(if (vm.hasPin) R.string.pin_set else R.string.pin_not_set),
-                        leading = { RowIcon(Icons.Default.Pin) },
-                        onClick = { dialog = DIALOG_SET_PIN },
-                    )
-                }
-            }
-            SettingsGroup(rows = rows)
-        }
-
-        item { Spacer(Modifier.height(24.dp)) }
-        item {
-            SettingsGroup(rows = listOf(
-                {
-                    ListItem(
-                        headlineContent = { Text(stringResource(R.string.delete_folder), color = MaterialTheme.colorScheme.error) },
-                        leadingContent = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        modifier = Modifier.clickable { dialog = DIALOG_DELETE },
+                    FrostRow(
+                        FrostIcons.Drop, stringResource(R.string.appearance),
+                        stringResource(R.string.appearance_caption, current.iconMode.label(), current.iconShape.label()),
+                        Trailing.Chevron, onClick = onAppearance,
                     )
                 },
             ))
+        }
+        item(key = "lock") {
+            FrostGroup(stringResource(R.string.lock_mode), buildList<@Composable () -> Unit> {
+                add { FrostRow(FrostIcons.Lock, stringResource(R.string.lock_mode), current.lockMode.label(), Trailing.Chevron, onClick = { dialog = DIALOG_LOCK }) }
+                if (current.lockMode.allowsPin) {
+                    add {
+                        FrostRow(
+                            FrostIcons.Lock, stringResource(R.string.pin_row),
+                            stringResource(if (vm.hasPin) R.string.pin_set else R.string.pin_not_set),
+                            Trailing.Chevron, onClick = { dialog = DIALOG_SET_PIN },
+                        )
+                    }
+                }
+            })
+        }
+        item(key = "delete") {
+            FrostGroup(stringResource(R.string.delete_group), listOf {
+                FrostRow(FrostIcons.Trash, stringResource(R.string.delete_folder), stringResource(R.string.delete_folder_hint), onClick = { dialog = DIALOG_DELETE }, error = true)
+            })
         }
     }
 
     EditorDialogs(
         dialog = dialog,
         folder = current,
-        categories = categories,
-        itemApps = items.map { it.app },
         vm = vm,
         onDismiss = { dialog = DIALOG_NONE },
-        onShow = { dialog = it },
         onDeleted = onBack,
     )
 }
@@ -299,7 +183,6 @@ fun GesturesScreen(folderId: Long, onBack: () -> Unit) {
     val context = LocalContext.current
     val vm: FolderEditorViewModel = viewModel(key = "editor-$folderId") { FolderEditorViewModel(context.graph, folderId) }
     val folder by vm.folder.collectAsStateWithLifecycle()
-    val categories by vm.categories.collectAsStateWithLifecycle()
     val items by vm.items.collectAsStateWithLifecycle()
     var dialog by rememberSaveable { mutableStateOf(DIALOG_NONE) }
     val current = folder ?: return
@@ -314,84 +197,45 @@ fun GesturesScreen(folderId: Long, onBack: () -> Unit) {
         val id = data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 0) ?: 0
         if (result.resultCode == Activity.RESULT_OK && provider != null && id > 0) vm.setHostedWidget(provider, id)
     }
+    if (editorChoicePage(dialog, current, items.map { it.app }, vm, onClose = { dialog = DIALOG_NONE }, onShow = { dialog = it })) return
 
-    EditorScaffold(title = stringResource(R.string.taps), onBack = onBack) {
-        item { SectionTitle(stringResource(R.string.section_behaviour)) }
-        item {
-            SettingsGroup(rows = listOf(
-                {
-                    SettingRow(
-                        title = stringResource(R.string.single_tap),
-                        subtitle = current.tapAction.label(),
-                        leading = { RowIcon(Icons.Default.TouchApp) },
-                        onClick = { dialog = DIALOG_TAP },
-                    )
-                },
-                {
-                    SettingRow(
-                        title = stringResource(R.string.double_tap),
-                        subtitle = current.doubleTapAction.label(),
-                        leading = { RowIcon(Icons.Default.Gesture) },
-                        onClick = { dialog = DIALOG_DOUBLE_TAP },
-                    )
-                },
+    FrostPage(title = stringResource(R.string.taps), overline = current.displayName(), onBack = onBack) {
+        item(key = "behaviour") {
+            FrostGroup(stringResource(R.string.section_behaviour), listOf(
+                { FrostRow(FrostIcons.Down, stringResource(R.string.single_tap), current.tapAction.label(), Trailing.Chevron, onClick = { dialog = DIALOG_TAP }) },
+                { FrostRow(FrostIcons.DoubleDown, stringResource(R.string.double_tap), current.doubleTapAction.label(), Trailing.Chevron, onClick = { dialog = DIALOG_DOUBLE_TAP }) },
+                { FrostNote(stringResource(R.string.double_tap_hint) + "\n" + stringResource(R.string.taps_bigger_hint)) },
             ))
         }
-        item {
-            Text(
-                stringResource(R.string.double_tap_hint) + "\n" + stringResource(R.string.taps_bigger_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp),
-            )
-        }
-        item { SectionTitle(stringResource(R.string.taps_targets)) }
-        item {
+        item(key = "targets") {
             val defaultApp = current.defaultApp
-            SettingsGroup(rows = listOf(
+            FrostGroup(stringResource(R.string.taps_targets), listOf(
                 {
-                    SettingRow(
+                    FrostRow(
+                        icon = FrostIcons.Star,
                         title = stringResource(R.string.default_app),
-                        subtitle = defaultApp?.let { vm.label(it) } ?: stringResource(R.string.default_app_none),
-                        leading = if (defaultApp != null) {
-                            { AppIconImage(app = defaultApp, size = 28.dp) }
-                        } else {
-                            { RowIcon(Icons.Default.Star) }
-                        },
+                        caption = defaultApp?.let { vm.label(it) } ?: stringResource(R.string.default_app_none),
+                        trailing = Trailing.Chevron,
                         onClick = { dialog = DIALOG_DEFAULT },
+                        leading = defaultApp?.let { app -> { AppIconImage(app = app, size = 38.dp) } },
                     )
                 },
                 {
-                    SettingRow(
+                    FrostRow(
+                        icon = FrostIcons.Widget,
                         title = stringResource(R.string.hosted_widget),
-                        subtitle = when {
+                        caption = when {
                             hosted == null -> stringResource(R.string.hosted_widget_none)
                             hostedLabel == null -> stringResource(R.string.hosted_widget_unavailable)
                             else -> hostedLabel
                         },
-                        leading = { RowIcon(Icons.Default.Widgets) },
-                        trailing = if (hosted != null) {
-                            { IconButton(onClick = vm::clearHostedWidget) { Icon(Icons.Default.Close, contentDescription = stringResource(R.string.remove_widget)) } }
-                        } else {
-                            null
-                        },
+                        trailing = if (hosted != null) Trailing.Action(FrostIcons.Close, stringResource(R.string.remove_widget), vm::clearHostedWidget) else Trailing.Chevron,
                         onClick = { widgetPicker.launch(Intent(context, HostedWidgetPickerActivity::class.java)) },
                     )
                 },
             ))
         }
     }
-
-    EditorDialogs(
-        dialog = dialog,
-        folder = current,
-        categories = categories,
-        itemApps = items.map { it.app },
-        vm = vm,
-        onDismiss = { dialog = DIALOG_NONE },
-        onShow = { dialog = it },
-        onDeleted = onBack,
-    )
 }
 
 /** Sub-page: how the home-screen widget and the popup look. */
@@ -400,71 +244,43 @@ fun AppearanceScreen(folderId: Long, onBack: () -> Unit) {
     val context = LocalContext.current
     val vm: FolderEditorViewModel = viewModel(key = "editor-$folderId") { FolderEditorViewModel(context.graph, folderId) }
     val folder by vm.folder.collectAsStateWithLifecycle()
-    val categories by vm.categories.collectAsStateWithLifecycle()
     val items by vm.items.collectAsStateWithLifecycle()
     var dialog by rememberSaveable { mutableStateOf(DIALOG_NONE) }
     val current = folder ?: return
+    if (editorChoicePage(dialog, current, items.map { it.app }, vm, onClose = { dialog = DIALOG_NONE }, onShow = { dialog = it })) return
 
-    EditorScaffold(title = stringResource(R.string.appearance), onBack = onBack) {
-        item { SectionTitle(stringResource(R.string.widget_section)) }
-        item {
-            SettingsGroup(rows = listOf<@Composable () -> Unit>(
-                {
-                    SettingRow(
-                        title = stringResource(R.string.icon_mode),
-                        subtitle = current.iconMode.label(),
-                        leading = { RowIcon(Icons.Default.Image) },
-                        onClick = { dialog = DIALOG_ICON },
-                    )
-                },
-                { IconShapeRow(selected = current.iconShape, onSelect = vm::setIconShape) },
+    FrostPage(title = stringResource(R.string.appearance), overline = current.displayName(), onBack = onBack) {
+        item(key = "widget") {
+            FrostGroup(stringResource(R.string.widget_section), buildList<@Composable () -> Unit> {
+                add { FrostRow(FrostIcons.Image, stringResource(R.string.icon_mode), current.iconMode.label(), Trailing.Chevron, onClick = { dialog = DIALOG_ICON }) }
+                add { IconShapeRow(selected = current.iconShape, onSelect = vm::setIconShape) }
                 // The widget swipes between categories (bigger than 1x1); this names the one shown.
-                {
-                    SwitchRow(
-                        title = stringResource(R.string.show_category_name),
-                        subtitle = stringResource(R.string.show_category_name_hint),
-                        checked = current.showCategoryName,
-                        onCheckedChange = vm::setShowCategoryName,
-                        leading = { RowIcon(Icons.Default.TextFields) },
+                add {
+                    FrostRow(
+                        FrostIcons.Label, stringResource(R.string.show_category_name),
+                        stringResource(if (current.showCategoryName) R.string.show_category_name_on else R.string.show_category_name_off),
+                        Trailing.Toggle(current.showCategoryName, vm::setShowCategoryName),
                     )
-                },
-            ) + if (current.showCategoryName) listOf<@Composable () -> Unit>({
-                SettingRow(
-                    title = stringResource(R.string.name_position),
-                    subtitle = current.categoryNameAlign.label() + " · " + stringResource(R.string.name_position_hint),
-                    leading = { RowIcon(Icons.Default.FormatAlignCenter) },
-                    onClick = { dialog = DIALOG_NAME_ALIGN },
-                )
-            }) else emptyList())
+                }
+                if (current.showCategoryName) {
+                    add {
+                        FrostRow(
+                            FrostIcons.AlignCentre, stringResource(R.string.name_position),
+                            current.categoryNameAlign.label() + " · " + stringResource(R.string.name_position_hint),
+                            Trailing.Chevron, onClick = { dialog = DIALOG_NAME_ALIGN },
+                        )
+                    }
+                }
+            })
         }
-
-        item { SectionTitle(stringResource(R.string.popup_section)) }
-        item {
+        item(key = "popup") {
             // The "All" tab's switch lives on the Categories page, beside the tabs it orders.
-            SettingsGroup(rows = listOf(
+            FrostGroup(stringResource(R.string.popup_section), listOf(
                 { FrostingRow(level = current.frosting, onCommit = vm::setFrosting) },
-                {
-                    TextSizeRow(
-                        title = stringResource(R.string.app_name_size),
-                        subtitle = stringResource(R.string.app_name_size_hint),
-                        percent = current.appNameSize,
-                        onCommit = vm::setAppNameSize,
-                    )
-                },
+                { AppNameSizeRow(percent = current.appNameSize, onCommit = vm::setAppNameSize) },
             ))
         }
     }
-
-    EditorDialogs(
-        dialog = dialog,
-        folder = current,
-        categories = categories,
-        itemApps = items.map { it.app },
-        vm = vm,
-        onDismiss = { dialog = DIALOG_NONE },
-        onShow = { dialog = it },
-        onDeleted = onBack,
-    )
 }
 
 /**
@@ -473,48 +289,45 @@ fun AppearanceScreen(folderId: Long, onBack: () -> Unit) {
  */
 @Composable
 private fun IconShapeRow(selected: IconShape, onSelect: (IconShape) -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RowIcon(Icons.Default.Category)
-            Spacer(Modifier.width(16.dp))
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.icon_shape), style = MaterialTheme.typography.bodyLarge)
-                Text(stringResource(R.string.icon_shape_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    val frost = LocalFrost.current
+    Column(Modifier.fillMaxWidth()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, top = 11.dp, bottom = 4.dp),
+        ) {
+            IconTile(38.dp, frost.tile, FrostShapes.icon) { FrostIcon(FrostIcons.Shapes, frost.textSecondary, size = 18.dp) }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(stringResource(R.string.icon_shape), style = FrostType.body, color = frost.textPrimary)
+                Text(stringResource(R.string.icon_shape_hint), style = FrostType.small, color = frost.textTertiary)
             }
         }
-        Spacer(Modifier.height(10.dp))
-        Row(Modifier.padding(start = 40.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.padding(start = 60.dp, end = 10.dp, top = 2.dp, bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             IconShape.entries.forEach { shape ->
                 val on = shape == selected
-                val colors = MaterialTheme.colorScheme
+                val ink = if (on) frost.textPrimary else frost.textTertiary
                 Column(
                     Modifier
                         .weight(1f)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(if (on) colors.primaryContainer else Color.Transparent)
+                        .clip(FrostShapes.tile)
+                        .then(if (on) Modifier.background(frost.selected).border(1.dp, frost.selectedBorder, FrostShapes.tile) else Modifier)
                         .selectable(selected = on, role = Role.RadioButton, onClick = { onSelect(shape) })
-                        .padding(vertical = 8.dp),
+                        .padding(vertical = 8.dp, horizontal = 2.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    val tint = if (on) colors.onPrimaryContainer else colors.onSurfaceVariant
                     if (shape == IconShape.DEFAULT) {
-                        Icon(Icons.Default.Apps, contentDescription = null, tint = tint, modifier = Modifier.size(28.dp))
+                        FrostIcon(FrostIcons.Apps, ink, size = 22.dp)
                     } else {
-                        Canvas(Modifier.size(28.dp)) {
-                            val stroke = 1.6.dp.toPx()
-                            val outline = ShapedIcons.path(shape, size.minDimension - 2 * stroke).asComposePath()
-                            outline.translate(Offset(stroke, stroke))
-                            drawPath(outline, tint, style = Stroke(width = stroke))
+                        Canvas(Modifier.size(22.dp)) {
+                            val stroke = 2.dp.toPx() * size.minDimension / 24.dp.toPx()
+                            val inset = 3.dp.toPx() * size.minDimension / 24.dp.toPx()
+                            val outline = ShapedIcons.path(shape, size.minDimension - 2 * inset).asComposePath()
+                            outline.translate(Offset(inset, inset))
+                            drawPath(outline, ink, style = Stroke(width = stroke))
                         }
                     }
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        shape.label(),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = tint,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                    Text(shape.label(), style = FrostType.small.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold), color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
@@ -535,39 +348,155 @@ private fun IconShape.label(): String = stringResource(
 @Composable
 private fun FrostingRow(level: Int, onCommit: (Int) -> Unit) {
     var value by remember(level) { mutableFloatStateOf(level.toFloat()) }
-    Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RowIcon(Icons.Default.BlurOn)
-            Spacer(Modifier.width(16.dp))
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.frosting), style = MaterialTheme.typography.bodyLarge)
-                Text(stringResource(R.string.frosting_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Text("${value.roundToInt()}%", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-        }
-        Slider(
-            value = value,
-            onValueChange = { value = it },
-            onValueChangeFinished = { onCommit(value.roundToInt()) },
-            valueRange = 0f..Folder.MAX_FROSTING.toFloat(),
-            steps = 9,
-            modifier = Modifier.padding(start = 40.dp),
+    FrostSliderRow(
+        icon = FrostIcons.Drop,
+        title = stringResource(R.string.frosting),
+        value = "${value.roundToInt()}%",
+        position = value,
+        onChange = { value = it },
+        onChangeFinished = { onCommit(value.roundToInt()) },
+        valueRange = 0f..Folder.MAX_FROSTING.toFloat(),
+        steps = 9,
+    )
+}
+
+/** The size of app names in the open folder, 80% to 140% in 5% steps; commits when the drag ends. */
+@Composable
+private fun AppNameSizeRow(percent: Int, onCommit: (Int) -> Unit) {
+    var value by remember(percent) { mutableFloatStateOf(TextSize.clamp(percent).toFloat()) }
+    FrostSliderRow(
+        icon = FrostIcons.Lines,
+        title = stringResource(R.string.app_name_size),
+        value = "${TextSize.clamp(value.roundToInt())}%",
+        position = value,
+        onChange = { value = it },
+        onChangeFinished = { onCommit(TextSize.clamp(value.roundToInt())) },
+        valueRange = TextSize.MIN.toFloat()..TextSize.MAX.toFloat(),
+        steps = TextSize.SLIDER_STEPS,
+    )
+}
+
+/**
+ * The editor's choices, each a page of options in place of a pop-up list. Shows the one [dialog]
+ * names and returns true, or returns false when [dialog] isn't a choice.
+ */
+@Composable
+private fun editorChoicePage(
+    dialog: String,
+    folder: Folder,
+    itemApps: List<AppRef>,
+    vm: FolderEditorViewModel,
+    onClose: () -> Unit,
+    onShow: (String) -> Unit,
+): Boolean {
+    val context = LocalContext.current
+    val overline = folder.displayName()
+    when (dialog) {
+        DIALOG_SORT -> FrostChoicePage(
+            overline = overline,
+            title = stringResource(R.string.sort_mode),
+            label = stringResource(R.string.sort_apps),
+            options = SortMode.entries.map { Option(it, it.label(), description = if (it == SortMode.MANUAL) stringResource(R.string.sort_manual_hint) else null) },
+            selected = folder.sortMode,
+            onSelect = vm::setSortMode,
+            onBack = onClose,
         )
+
+        DIALOG_ICON -> FrostChoicePage(
+            overline = overline,
+            title = stringResource(R.string.icon_mode),
+            label = stringResource(R.string.icon_mode),
+            options = FolderIconMode.entries.map { Option(it, it.label(), enabled = it != FolderIconMode.DEFAULT_APP || folder.defaultApp != null) },
+            selected = folder.iconMode,
+            onSelect = vm::setIconMode,
+            onBack = onClose,
+        )
+
+        DIALOG_NAME_ALIGN -> FrostChoicePage(
+            overline = overline,
+            title = stringResource(R.string.name_position),
+            label = stringResource(R.string.name_position),
+            options = NameAlign.entries.map { Option(it, it.label()) },
+            selected = folder.categoryNameAlign,
+            onSelect = vm::setCategoryNameAlign,
+            onBack = onClose,
+        )
+
+        DIALOG_DEFAULT -> FrostChoicePage(
+            overline = overline,
+            title = stringResource(R.string.default_app),
+            label = stringResource(R.string.default_app),
+            options = listOf(Option<AppRef?>(null, stringResource(R.string.default_app_none))) +
+                itemApps.map { Option<AppRef?>(it, vm.label(it)) },
+            selected = folder.defaultApp,
+            onSelect = vm::setDefaultApp,
+            onBack = onClose,
+        )
+
+        DIALOG_TAP -> FrostChoicePage(
+            overline = overline,
+            title = stringResource(R.string.single_tap),
+            label = stringResource(R.string.single_tap),
+            options = listOf(TapAction.OPEN_FOLDER, TapAction.LAUNCH_DEFAULT_APP, TapAction.SHOW_WIDGET).map {
+                Option(it, it.label(), enabled = folder.supports(it))
+            },
+            selected = folder.tapAction,
+            onSelect = vm::setTapAction,
+            onBack = onClose,
+        )
+
+        DIALOG_DOUBLE_TAP -> FrostChoicePage(
+            overline = overline,
+            title = stringResource(R.string.double_tap),
+            label = stringResource(R.string.double_tap),
+            options = TapAction.entries.map { Option(it, it.label(), enabled = folder.supports(it)) },
+            selected = folder.doubleTapAction,
+            onSelect = vm::setDoubleTapAction,
+            onBack = onClose,
+        )
+
+        DIALOG_LOCK -> {
+            val biometrics = vm.biometricsAvailable()
+            val unavailable = stringResource(R.string.biometric_unavailable)
+            FrostChoicePage(
+                overline = overline,
+                title = stringResource(R.string.lock_mode),
+                label = stringResource(R.string.lock_mode),
+                options = LockMode.entries.map {
+                    Option(
+                        it, it.label(),
+                        description = if (it.allowsBiometric && !biometrics) unavailable else null,
+                        enabled = !it.allowsBiometric || biometrics || it == LockMode.PIN_OR_BIOMETRIC,
+                    )
+                },
+                selected = folder.lockMode,
+                onSelect = { mode ->
+                    if (mode.allowsPin && !vm.hasPin) {
+                        // Need a PIN first; apply the lock mode once it is set.
+                        onShow(DIALOG_SET_PIN_THEN_LOCK + mode.name)
+                    } else if (mode.allowsBiometric && !mode.allowsPin && !biometrics) {
+                        Toast.makeText(context, unavailable, Toast.LENGTH_SHORT).show()
+                    } else {
+                        vm.setLockMode(mode)
+                    }
+                },
+                onBack = onClose,
+            )
+        }
+
+        else -> return false
     }
+    return true
 }
 
 @Composable
 private fun EditorDialogs(
     dialog: String,
     folder: Folder,
-    categories: List<Category>,
-    itemApps: List<AppRef>,
     vm: FolderEditorViewModel,
     onDismiss: () -> Unit,
-    onShow: (String) -> Unit,
     onDeleted: () -> Unit,
 ) {
-    val context = LocalContext.current
     when {
         dialog == DIALOG_RENAME -> TextInputDialog(
             title = stringResource(R.string.rename),
@@ -587,131 +516,40 @@ private fun EditorDialogs(
             onDismiss = onDismiss,
         )
 
-        dialog == DIALOG_NAME_ALIGN -> OptionPickerDialog(
-            title = stringResource(R.string.name_position),
-            options = NameAlign.entries.map { Option(it, it.label()) },
-            selected = folder.categoryNameAlign,
-            onSelect = vm::setCategoryNameAlign,
-            onDismiss = onDismiss,
-        )
-
-        dialog == DIALOG_ICON -> OptionPickerDialog(
-            title = stringResource(R.string.icon_mode),
-            options = FolderIconMode.entries.map { Option(it, it.label(), enabled = it != FolderIconMode.DEFAULT_APP || folder.defaultApp != null) },
-            selected = folder.iconMode,
-            onSelect = vm::setIconMode,
-            onDismiss = onDismiss,
-        )
-
-        dialog == DIALOG_DEFAULT -> OptionPickerDialog(
-            title = stringResource(R.string.default_app),
-            options = listOf(Option<AppRef?>(null, stringResource(R.string.default_app_none))) +
-                itemApps.map { Option<AppRef?>(it, vm.label(it)) },
-            selected = folder.defaultApp,
-            onSelect = vm::setDefaultApp,
-            onDismiss = onDismiss,
-        )
-
-        dialog == DIALOG_TAP -> OptionPickerDialog(
-            title = stringResource(R.string.single_tap),
-            options = listOf(TapAction.OPEN_FOLDER, TapAction.LAUNCH_DEFAULT_APP, TapAction.SHOW_WIDGET).map {
-                Option(it, it.label(), enabled = folder.supports(it))
-            },
-            selected = folder.tapAction,
-            onSelect = vm::setTapAction,
-            onDismiss = onDismiss,
-        )
-
-        dialog == DIALOG_DOUBLE_TAP -> OptionPickerDialog(
-            title = stringResource(R.string.double_tap),
-            options = TapAction.entries.map { Option(it, it.label(), enabled = folder.supports(it)) },
-            selected = folder.doubleTapAction,
-            onSelect = vm::setDoubleTapAction,
-            onDismiss = onDismiss,
-        )
-
-        dialog == DIALOG_SORT -> OptionPickerDialog(
-            title = stringResource(R.string.sort_mode),
-            options = SortMode.entries.map { Option(it, it.label()) },
-            selected = folder.sortMode,
-            onSelect = vm::setSortMode,
-            onDismiss = onDismiss,
-        )
-
-        dialog == DIALOG_LOCK -> {
-            val biometrics = vm.biometricsAvailable()
-            val unavailable = stringResource(R.string.biometric_unavailable)
-            OptionPickerDialog(
-                title = stringResource(R.string.lock_mode),
-                options = LockMode.entries.map {
-                    Option(
-                        it, it.label(),
-                        description = if (it.allowsBiometric && !biometrics) unavailable else null,
-                        enabled = !it.allowsBiometric || biometrics || it == LockMode.PIN_OR_BIOMETRIC,
-                    )
-                },
-                selected = folder.lockMode,
-                onSelect = { mode ->
-                    if (mode.allowsPin && !vm.hasPin) {
-                        // Need a PIN first; apply the lock mode once it is set.
-                        onShow(DIALOG_SET_PIN_THEN_LOCK + mode.name)
-                    } else if (mode.allowsBiometric && !mode.allowsPin && !biometrics) {
-                        Toast.makeText(context, unavailable, Toast.LENGTH_SHORT).show()
-                    } else {
-                        vm.setLockMode(mode)
-                    }
-                },
-                onDismiss = onDismiss,
-            )
-        }
-
         dialog == DIALOG_SET_PIN -> SetPinDialog(onSet = vm::setPin, onDismiss = onDismiss)
 
         dialog.startsWith(DIALOG_SET_PIN_THEN_LOCK) -> {
             val mode = LockMode.valueOf(dialog.removePrefix(DIALOG_SET_PIN_THEN_LOCK))
             SetPinDialog(onSet = { pin -> vm.setPin(pin); vm.setLockMode(mode) }, onDismiss = onDismiss)
         }
-
-        dialog == DIALOG_NEW_CATEGORY -> TextInputDialog(
-            title = stringResource(R.string.new_category),
-            label = stringResource(R.string.category_name),
-            confirmText = stringResource(R.string.create),
-            onConfirm = vm::addCategory,
-            onDismiss = onDismiss,
-        )
-
-        dialog.startsWith(DIALOG_RENAME_CATEGORY) -> {
-            val category = categories.firstOrNull { it.id == dialog.removePrefix(DIALOG_RENAME_CATEGORY).toLongOrNull() }
-            if (category == null) onDismiss() else TextInputDialog(
-                title = stringResource(R.string.rename),
-                label = stringResource(R.string.category_name),
-                initial = category.name,
-                onConfirm = { vm.renameCategory(category, it) },
-                onDismiss = onDismiss,
-            )
-        }
-
-        dialog.startsWith(DIALOG_DELETE_CATEGORY) -> {
-            val category = categories.firstOrNull { it.id == dialog.removePrefix(DIALOG_DELETE_CATEGORY).toLongOrNull() }
-            if (category == null) onDismiss() else ConfirmDialog(
-                title = stringResource(R.string.delete),
-                text = stringResource(R.string.delete_category_confirm, category.name),
-                confirmText = stringResource(R.string.delete),
-                onConfirm = { vm.deleteCategory(category) },
-                onDismiss = onDismiss,
-            )
-        }
-
-        dialog.startsWith(DIALOG_CATEGORY_SORT) -> {
-            val category = categories.firstOrNull { it.id == dialog.removePrefix(DIALOG_CATEGORY_SORT).toLongOrNull() }
-            if (category == null) onDismiss() else OptionPickerDialog(
-                title = category.name + " · " + stringResource(R.string.sort_mode),
-                options = listOf(Option<SortMode?>(null, stringResource(R.string.sort_inherit, folder.sortMode.label()))) +
-                    SortMode.entries.map { Option<SortMode?>(it, it.label()) },
-                selected = category.sortMode,
-                onSelect = { vm.setCategorySort(category, it) },
-                onDismiss = onDismiss,
-            )
-        }
     }
+}
+
+/** A category's sort, as a page of choices: the folder's own sort, or one of its own. */
+@Composable
+internal fun CategorySortPage(category: Category, folderSort: SortMode, onSelect: (SortMode?) -> Unit, onBack: () -> Unit) {
+    FrostChoicePage(
+        overline = category.name,
+        title = stringResource(R.string.sort_mode),
+        label = stringResource(R.string.sort_apps),
+        options = listOf(Option<SortMode?>(null, stringResource(R.string.sort_inherit, folderSort.label()))) +
+            SortMode.entries.map { Option<SortMode?>(it, it.label(), description = if (it == SortMode.MANUAL) stringResource(R.string.sort_manual_hint) else null) },
+        selected = category.sortMode,
+        onSelect = onSelect,
+        onBack = onBack,
+    )
+}
+
+/** Which category an app (or several) goes into, as a page of choices. */
+@Composable
+internal fun MoveToCategoryPage(overline: String, categories: List<Category>, selected: Long?, onSelect: (Long?) -> Unit, onBack: () -> Unit) {
+    FrostChoicePage(
+        overline = overline,
+        title = stringResource(R.string.move_to_category),
+        label = stringResource(R.string.categories_title),
+        options = listOf(Option<Long?>(null, stringResource(R.string.category_none))) + categories.map { Option<Long?>(it.id, it.name) },
+        selected = selected,
+        onSelect = onSelect,
+        onBack = onBack,
+    )
 }

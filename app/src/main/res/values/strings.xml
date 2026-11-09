@@ -169,7 +169,7 @@
     <string name="devices_buds_failed">Shizuku couldn\'t turn this on</string>
     <string name="devices_types_hint">The widget works out what each device is from its name and Bluetooth type. If it gets one wrong, tap it to choose; your choice is kept for that device.</string>
     <string name="devices_types_none">Your paired devices appear here once Nearby devices is allowed.</string>
-    <string name="devices_kind_automatic">Automatic (%1$s)</string>
+    <string name="devices_kind_automatic">Automatic: %1$s</string>
     <string name="devices_kind_chosen">%1$s · your choice</string>
     <string name="devices_kind_earbuds">Earbuds</string>
     <string name="devices_kind_headphones">Headphones</string>
@@ -292,4 +292,55 @@
         <item quantity="other">%d more apps, open the folder</item>
     </plurals>
     <string name="widget_setup_prompt">Tap to choose a folder</string>
+
+    <!-- Settings in Pixel Launcher Plus's style (approved mockup) -->
+    <string name="settings_title">Settings</string>
+    <string name="menu_widgets">Widgets</string>
+    <string name="menu_about_group">About</string>
+    <string name="menu_folders_caption">%1$s · apps, categories, look, taps, lock</string>
+    <plurals name="folder_count">
+        <item quantity="one">%d folder</item>
+        <item quantity="other">%d folders</item>
+    </plurals>
+    <string name="menu_calendar">Calendar</string>
+    <string name="menu_calendar_caption">Text size, which calendars</string>
+    <string name="menu_devices_caption">Nearby devices, device types, earbud levels</string>
+    <string name="backup_title">Backup</string>
+    <string name="menu_backup_caption">Save or restore your folders and settings</string>
+    <string name="about_title">About</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="folders_group">Your folders</string>
+    <plurals name="category_count">
+        <item quantity="one">%d category</item>
+        <item quantity="other">%d categories</item>
+    </plurals>
+    <string name="folder_locked">locked</string>
+    <string name="new_folder_hint">Then add it from your launcher\'s widget list</string>
+    <string name="preview">Preview</string>
+    <string name="name_row">Name</string>
+    <string name="pin_row">PIN</string>
+    <string name="delete_group">Delete</string>
+    <string name="delete_folder_hint">Removes it and its widgets</string>
+    <string name="appearance_caption">%1$s · %2$s icons</string>
+    <string name="show_category_name_on">On — above each category\'s apps</string>
+    <string name="show_category_name_off">Off — swipe the widget to change category</string>
+    <string name="sort_apps">Sort apps</string>
+    <string name="sort_manual_hint">Drag apps into your own order</string>
+    <string name="calendar_access_group">Access</string>
+    <string name="calendar_access">Calendar access</string>
+    <string name="access_allowed">Allowed</string>
+    <string name="access_not_allowed">Not allowed — tap to allow</string>
+    <string name="devices_nearby">Nearby devices</string>
+    <string name="devices_nearby_on">Allowed — sees connected devices and their battery</string>
+    <string name="devices_nearby_off">Not allowed — tap to allow. Lets the widget see connected devices and their battery</string>
+    <string name="devices_buds_on_glance">On — through At a Glance Plus</string>
+    <string name="devices_buds_on_shizuku">On — using Shizuku</string>
+    <string name="devices_buds_on_plain">On</string>
+    <string name="backup_save">Save a backup</string>
+    <string name="backup_save_hint">Folders, categories and settings, as a file</string>
+    <string name="backup_restore">Restore from a file</string>
+    <string name="backup_restore_hint">Replaces your folders</string>
+    <string name="backup_google_note">Google backup also keeps them with your Google account.</string>
+    <string name="tabs_group">Tabs</string>
+    <string name="apps_group">Apps</string>
 </resources>

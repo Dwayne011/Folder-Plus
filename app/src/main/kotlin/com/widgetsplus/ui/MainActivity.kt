@@ -25,7 +25,10 @@ import com.widgetsplus.ui.editor.GesturesScreen
 import com.widgetsplus.ui.folders.FolderListScreen
 import com.widgetsplus.ui.picker.AppPickerScreen
 import com.widgetsplus.ui.picker.ShortcutPickerScreen
-import com.widgetsplus.ui.theme.WidgetsPlusTheme
+import com.widgetsplus.ui.frost.FrostTheme
+import com.widgetsplus.ui.settings.AboutPage
+import com.widgetsplus.ui.settings.BackupPage
+import com.widgetsplus.ui.settings.SettingsMenu
 import com.widgetsplus.widget.WidgetUpdater
 import kotlinx.coroutines.launch
 
@@ -44,7 +47,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         requestedFolderId = intent?.getLongExtra(EXTRA_FOLDER_ID, -1L) ?: -1L
         setContent {
-            WidgetsPlusTheme {
+            FrostTheme {
                 WidgetsPlusNavHost(requestedFolderId = requestedFolderId, requestSerial = requestSerial)
             }
         }
@@ -94,6 +97,10 @@ data class Screen(val kind: Int, val folderId: Long = -1L, val categoryId: Long 
         const val APPEARANCE = 5
         const val CATEGORIES = 6
         const val SHORTCUTS = 7
+        /** The first page: a menu of the app's sections, like Pixel Launcher Plus's settings. */
+        const val MENU = 8
+        const val BACKUP = 9
+        const val ABOUT = 10
 
         val Saver = listSaver<Screen, Long>(
             save = { listOf(it.kind.toLong(), it.folderId, it.categoryId) },
@@ -105,7 +112,7 @@ data class Screen(val kind: Int, val folderId: Long = -1L, val categoryId: Long 
 @Composable
 fun WidgetsPlusNavHost(requestedFolderId: Long, requestSerial: Int) {
     var screen by rememberSaveable(stateSaver = Screen.Saver) {
-        mutableStateOf(if (requestedFolderId > 0) Screen(Screen.EDITOR, requestedFolderId) else Screen(Screen.FOLDERS))
+        mutableStateOf(if (requestedFolderId > 0) Screen(Screen.EDITOR, requestedFolderId) else Screen(Screen.MENU))
     }
     // Jump to the editor whenever a new external request arrives.
     LaunchedEffect(requestSerial) {
@@ -113,18 +120,28 @@ fun WidgetsPlusNavHost(requestedFolderId: Long, requestSerial: Int) {
     }
     val folderId = screen.folderId
 
-    BackHandler(enabled = screen.kind != Screen.FOLDERS) {
+    BackHandler(enabled = screen.kind != Screen.MENU) {
         screen = when (screen.kind) {
             Screen.EDITOR -> Screen(Screen.FOLDERS)
             Screen.APPS -> Screen(Screen.EDITOR, folderId)
             Screen.PICKER, Screen.CATEGORIES, Screen.SHORTCUTS -> Screen(Screen.APPS, folderId)
             Screen.GESTURES, Screen.APPEARANCE -> Screen(Screen.EDITOR, folderId)
-            else -> Screen(Screen.FOLDERS)
+            else -> Screen(Screen.MENU)
         }
     }
 
     when (screen.kind) {
-        Screen.FOLDERS -> FolderListScreen(onOpenFolder = { screen = Screen(Screen.EDITOR, it) })
+        Screen.MENU -> SettingsMenu(
+            onFolders = { screen = Screen(Screen.FOLDERS) },
+            onBackup = { screen = Screen(Screen.BACKUP) },
+            onAbout = { screen = Screen(Screen.ABOUT) },
+        )
+        Screen.BACKUP -> BackupPage(onBack = { screen = Screen(Screen.MENU) })
+        Screen.ABOUT -> AboutPage(onBack = { screen = Screen(Screen.MENU) })
+        Screen.FOLDERS -> FolderListScreen(
+            onBack = { screen = Screen(Screen.MENU) },
+            onOpenFolder = { screen = Screen(Screen.EDITOR, it) },
+        )
         Screen.EDITOR -> FolderEditorScreen(
             folderId = folderId,
             onBack = { screen = Screen(Screen.FOLDERS) },

@@ -8,33 +8,15 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -46,7 +28,13 @@ import com.widgetsplus.ui.MainActivity
 import com.widgetsplus.ui.common.FolderIconImage
 import com.widgetsplus.ui.common.TextInputDialog
 import com.widgetsplus.ui.common.displayName
-import com.widgetsplus.ui.theme.WidgetsPlusTheme
+import com.widgetsplus.ui.frost.FrostGroup
+import com.widgetsplus.ui.frost.FrostIcons
+import com.widgetsplus.ui.frost.FrostNote
+import com.widgetsplus.ui.frost.FrostPage
+import com.widgetsplus.ui.frost.FrostRow
+import com.widgetsplus.ui.frost.FrostTheme
+import com.widgetsplus.ui.frost.Trailing
 import kotlinx.coroutines.launch
 
 /**
@@ -84,7 +72,7 @@ class FolderWidgetConfigActivity : ComponentActivity() {
 
     private fun showPicker() {
         setContent {
-            WidgetsPlusTheme {
+            FrostTheme {
                 val folders by remember { graph.repository.observeFolders() }.collectAsStateWithLifecycle(initialValue = emptyList())
                 ConfigScreen(
                     folders = folders,
@@ -114,44 +102,31 @@ class FolderWidgetConfigActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/** Which folder the new widget shows: each folder, then a new one. */
 @Composable
 private fun ConfigScreen(folders: List<Folder>, onPick: (Folder) -> Unit, onCreate: (String) -> Unit) {
     var showCreate by rememberSaveable { mutableStateOf(false) }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.config_title)) }) }) { padding ->
-        if (folders.isEmpty()) {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(stringResource(R.string.config_no_folders), style = MaterialTheme.typography.bodyLarge)
-                Button(onClick = { showCreate = true }, modifier = Modifier.padding(top = 16.dp)) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Text(stringResource(R.string.new_folder), modifier = Modifier.padding(start = 8.dp))
-                }
-            }
-        } else {
-            LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
-                items(folders, key = { it.id }) { folder ->
-                    ListItem(
-                        headlineContent = { Text(folder.displayName()) },
-                        supportingContent = { Text(folder.widgetSize.label) },
-                        leadingContent = { FolderIconImage(folder = folder, size = 40.dp) },
-                        modifier = Modifier.fillMaxWidth().clickable { onPick(folder) },
-                    )
-                }
-                item { HorizontalDivider() }
-                item {
-                    ListItem(
-                        headlineContent = { Text(stringResource(R.string.new_folder)) },
-                        supportingContent = { Text(stringResource(R.string.config_or_create)) },
-                        leadingContent = { Icon(Icons.Default.Add, contentDescription = null) },
-                        modifier = Modifier.fillMaxWidth().clickable { showCreate = true },
-                    )
-                }
-            }
+    FrostPage(title = stringResource(R.string.config_title), overline = stringResource(R.string.app_name), onBack = null) {
+        item(key = "folders") {
+            val empty: List<@Composable () -> Unit> = if (folders.isEmpty()) listOf({ FrostNote(stringResource(R.string.config_no_folders)) }) else emptyList()
+            FrostGroup(
+                stringResource(R.string.folders_group),
+                empty + folders.map<Folder, @Composable () -> Unit> { folder ->
+                    {
+                        FrostRow(
+                            icon = null,
+                            title = folder.displayName(),
+                            caption = folder.widgetSize.label,
+                            trailing = Trailing.Chevron,
+                            onClick = { onPick(folder) },
+                            leading = { FolderIconImage(folder = folder, size = 38.dp, modifier = Modifier.clip(RoundedCornerShape(12.dp))) },
+                        )
+                    }
+                } + listOf<@Composable () -> Unit>({
+                    FrostRow(FrostIcons.Plus, stringResource(R.string.new_folder), stringResource(R.string.config_or_create), onClick = { showCreate = true })
+                }),
+            )
         }
     }
 

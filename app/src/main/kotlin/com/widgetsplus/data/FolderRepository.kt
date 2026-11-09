@@ -38,6 +38,10 @@ class FolderRepository(private val db: WidgetsPlusDatabase) {
         db.categories().observeForFolder(folderId).map { list -> list.map { it.toModel() } }
     suspend fun getCategories(folderId: Long): List<Category> = db.categories().getForFolder(folderId).map { it.toModel() }
 
+    /** Number of categories per folder, for the folder list. */
+    fun observeCategoryCounts(): Flow<Map<Long, Int>> =
+        db.categories().observeFolderIds().map { ids -> ids.groupingBy { it }.eachCount() }
+
     suspend fun addCategory(folderId: Long, name: String): Long {
         val position = db.categories().nextPosition(folderId)
         return db.categories().insert(Category(folderId = folderId, name = name.trim(), position = position).toEntity())

@@ -19,6 +19,14 @@
         <item name="android:windowDisablePreview">true</item>
     </style>
 
+    <!-- Settings pages: drawn over the wallpaper like Pixel Launcher Plus's settings. -->
+    <style name="Theme.WidgetsPlus.Frost" parent="Theme.WidgetsPlus">
+        <item name="android:windowShowWallpaper">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
     <style name="Widget.WidgetsPlus.Container" parent="android:Widget">
         <item name="android:background">@drawable/widget_background</item>
         <item name="android:padding">6dp</item>

@@ -1,5 +1,6 @@
 package com.widgetsplus.ui.editor
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -10,42 +11,26 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DragHandle
-import androidx.compose.material.icons.filled.DriveFileMove
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Shortcut
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -59,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -72,7 +58,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -85,16 +71,28 @@ import com.widgetsplus.core.sort.AppSorter
 import com.widgetsplus.graph
 import com.widgetsplus.ui.common.AppIconImage
 import com.widgetsplus.ui.common.ConfirmDialog
-import com.widgetsplus.ui.common.Option
-import com.widgetsplus.ui.common.OptionPickerDialog
 import com.widgetsplus.ui.common.TextInputDialog
-import com.widgetsplus.ui.common.label
+import com.widgetsplus.ui.common.displayName
+import com.widgetsplus.ui.frost.FrostBackground
+import com.widgetsplus.ui.frost.FrostCheck
+import com.widgetsplus.ui.frost.FrostChip
+import com.widgetsplus.ui.frost.FrostCircleButton
+import com.widgetsplus.ui.frost.FrostGroup
+import com.widgetsplus.ui.frost.FrostHeader
+import com.widgetsplus.ui.frost.FrostIcon
+import com.widgetsplus.ui.frost.FrostIconButton
+import com.widgetsplus.ui.frost.FrostIcons
+import com.widgetsplus.ui.frost.FrostNote
+import com.widgetsplus.ui.frost.FrostPill
+import com.widgetsplus.ui.frost.FrostShapes
+import com.widgetsplus.ui.frost.FrostType
+import com.widgetsplus.ui.frost.LocalFrost
+import com.widgetsplus.ui.frost.frostSegment
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 
 /** Lists the apps in one folder: filter by category, assign categories, remove, and drag to reorder. */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppsScreen(
     folderId: Long,
@@ -104,6 +102,7 @@ fun AppsScreen(
     onAddShortcut: (categoryId: Long?) -> Unit,
 ) {
     val context = LocalContext.current
+    val frost = LocalFrost.current
     val vm: FolderEditorViewModel = viewModel(key = "editor-$folderId") { FolderEditorViewModel(context.graph, folderId) }
     val folder by vm.folder.collectAsStateWithLifecycle()
     val categories by vm.categories.collectAsStateWithLifecycle()
@@ -133,109 +132,110 @@ fun AppsScreen(
     if (filtering && activeCategory == null) selectedCategory = -1L
     val visible = if (filtering) sortedItems.filter { it.categoryId == selectedCategory } else sortedItems
 
-    Scaffold(
-        topBar = {
-            if (selecting) {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.selected_count, selectedIds.size)) },
-                    navigationIcon = {
-                        IconButton(onClick = { exitSelection() }) { Icon(Icons.Default.Close, contentDescription = stringResource(R.string.clear_selection)) }
-                    },
-                    actions = {
-                        IconButton(enabled = selectedIds.isNotEmpty() && categories.isNotEmpty(), onClick = { bulkCategoryDialog = true }) {
-                            Icon(Icons.Default.DriveFileMove, contentDescription = stringResource(R.string.move_to_category))
-                        }
-                        IconButton(enabled = selectedIds.isNotEmpty(), onClick = { bulkRemoveDialog = true }) {
-                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.remove_from_folder))
-                        }
-                    },
-                )
-            } else {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.apps_in_folder)) },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) }
-                    },
-                    actions = {
-                        if (sortedItems.isNotEmpty()) {
-                            IconButton(onClick = { selecting = true }) { Icon(Icons.Default.Checklist, contentDescription = stringResource(R.string.select)) }
-                        }
-                    },
-                )
-            }
-        },
-        floatingActionButton = {
-            if (!selecting) {
-                // Shortcuts have their own list (there can be many), so their own button.
-                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    ExtendedFloatingActionButton(
-                        onClick = { onAddShortcut(selectedCategory.takeIf { it > 0 }) },
-                        icon = { Icon(Icons.Default.Shortcut, contentDescription = null) },
-                        text = { Text(stringResource(R.string.add_shortcut)) },
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    )
-                    ExtendedFloatingActionButton(
-                        onClick = { onAddApps(selectedCategory.takeIf { it > 0 }) },
-                        icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                        text = {
-                            Text(
-                                if (activeCategory != null) stringResource(R.string.add_to_category, activeCategory.name)
-                                else stringResource(R.string.add_apps),
+    // Choices open as their own page, like the launcher's.
+    if (bulkCategoryDialog) {
+        MoveToCategoryPage(
+            overline = stringResource(R.string.selected_count, selectedIds.size),
+            categories = categories,
+            selected = null,
+            onSelect = { target ->
+                vm.setItemsCategory(selectedIds, target)
+                exitSelection()
+            },
+            onBack = { bulkCategoryDialog = false },
+        )
+        return
+    }
+    if (categoryDialogFor > 0) {
+        val item = sortedItems.firstOrNull { it.id == categoryDialogFor }
+        if (item == null) {
+            categoryDialogFor = -1L
+        } else {
+            MoveToCategoryPage(
+                overline = vm.label(item.app),
+                categories = categories,
+                selected = item.categoryId,
+                onSelect = { vm.setItemCategory(item, it) },
+                onBack = { categoryDialogFor = -1L },
+            )
+            return
+        }
+    }
+    if (categoryDialog == "sort" && activeCategory != null) {
+        CategorySortPage(activeCategory, current.sortMode, onSelect = { vm.setCategorySort(activeCategory, it) }, onBack = { categoryDialog = "" })
+        return
+    }
+
+    val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    FrostBackground {
+        Column(Modifier.fillMaxSize().padding(top = top + 12.dp)) {
+            Box(Modifier.padding(horizontal = 14.dp)) {
+                if (selecting) {
+                    FrostHeader(
+                        title = stringResource(R.string.selected_count, selectedIds.size),
+                        overline = current.displayName(),
+                        onBack = { exitSelection() },
+                        backIcon = FrostIcons.Close,
+                        backDescription = stringResource(R.string.clear_selection),
+                        actions = {
+                            FrostCircleButton(
+                                FrostIcons.MoveTo, stringResource(R.string.move_to_category), { bulkCategoryDialog = true },
+                                enabled = selectedIds.isNotEmpty() && categories.isNotEmpty(),
                             )
+                            FrostCircleButton(FrostIcons.Trash, stringResource(R.string.remove_from_folder), { bulkRemoveDialog = true }, enabled = selectedIds.isNotEmpty())
+                        },
+                    )
+                } else {
+                    FrostHeader(
+                        title = stringResource(R.string.apps_in_folder),
+                        overline = current.displayName(),
+                        onBack = onBack,
+                        actions = {
+                            if (sortedItems.isNotEmpty()) FrostCircleButton(FrostIcons.Checklist, stringResource(R.string.select), { selecting = true })
                         },
                     )
                 }
             }
-        },
-    ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
-            Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                Row(Modifier.weight(1f).horizontalScroll(rememberScrollState())) {
+            Spacer(Modifier.height(12.dp))
+            Row(Modifier.fillMaxWidth().padding(end = 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    Modifier.weight(1f).horizontalScroll(rememberScrollState()).padding(start = 14.dp, top = 4.dp, bottom = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     if (categories.isNotEmpty()) {
-                        FilterChip(
-                            selected = !filtering,
-                            onClick = { selectedCategory = -1L },
-                            label = { Text(stringResource(R.string.category_all)) },
-                            modifier = Modifier.padding(end = 8.dp),
-                        )
+                        FrostChip(stringResource(R.string.category_all), selected = !filtering, onClick = { selectedCategory = -1L })
                     }
                     categories.forEach { category ->
-                        FilterChip(
-                            selected = selectedCategory == category.id,
-                            onClick = { selectedCategory = category.id },
-                            label = { Text(category.name) },
-                            modifier = Modifier.padding(end = 8.dp),
-                        )
+                        FrostChip(category.name, selected = selectedCategory == category.id, onClick = { selectedCategory = category.id })
                     }
-                    AssistChip(
-                        onClick = { categoryDialog = "new" },
-                        label = { Text(stringResource(R.string.new_category)) },
-                        leadingIcon = { Icon(Icons.Default.Add, contentDescription = null) },
-                        modifier = Modifier.padding(end = 8.dp),
-                    )
+                    FrostChip(stringResource(R.string.new_category), selected = false, onClick = { categoryDialog = "new" }, icon = FrostIcons.Plus)
                 }
-                IconButton(onClick = onEditCategories) { Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit_categories)) }
+                FrostCircleButton(FrostIcons.Edit, stringResource(R.string.edit_categories), onEditCategories)
                 if (activeCategory != null) {
-                    IconButton(onClick = { categoryMenu = true }) { Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.category_options)) }
-                    DropdownMenu(expanded = categoryMenu, onDismissRequest = { categoryMenu = false }) {
-                        DropdownMenuItem(text = { Text(stringResource(R.string.rename)) }, onClick = { categoryMenu = false; categoryDialog = "rename" })
-                        DropdownMenuItem(text = { Text(stringResource(R.string.sort_mode)) }, onClick = { categoryMenu = false; categoryDialog = "sort" })
-                        DropdownMenuItem(text = { Text(stringResource(R.string.delete)) }, onClick = { categoryMenu = false; categoryDialog = "delete" })
+                    Box {
+                        FrostCircleButton(FrostIcons.MoreVertical, stringResource(R.string.category_options), { categoryMenu = true })
+                        DropdownMenu(expanded = categoryMenu, onDismissRequest = { categoryMenu = false }) {
+                            DropdownMenuItem(text = { Text(stringResource(R.string.rename)) }, onClick = { categoryMenu = false; categoryDialog = "rename" })
+                            DropdownMenuItem(text = { Text(stringResource(R.string.sort_mode)) }, onClick = { categoryMenu = false; categoryDialog = "sort" })
+                            DropdownMenuItem(text = { Text(stringResource(R.string.delete)) }, onClick = { categoryMenu = false; categoryDialog = "delete" })
+                        }
                     }
                 }
             }
             if (manual) {
-                Text(
+                FrostNote(
                     stringResource(if (filtering) R.string.manual_sort_filtered_hint else R.string.manual_sort_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    Modifier.padding(horizontal = 14.dp),
                 )
+            } else {
+                Spacer(Modifier.height(12.dp))
             }
+            // Room under the last rows for the floating buttons.
+            val listBottom = bottom + if (selecting) 18.dp else 156.dp
             if (visible.isEmpty()) {
-                Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.folder_empty), textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Box(Modifier.padding(horizontal = 14.dp)) {
+                    FrostGroup(null, listOf { FrostNote(stringResource(R.string.folder_empty)) })
                 }
             } else {
                 ReorderableAppList(
@@ -246,6 +246,7 @@ fun AppsScreen(
                     dragEnabled = manual && !filtering && !selecting,
                     selecting = selecting,
                     selectedIds = selectedIds,
+                    bottomSpace = listBottom,
                     onToggleSelected = { item ->
                         selectedIds = if (item.id in selectedIds) selectedIds - item.id else selectedIds + item.id
                     },
@@ -253,6 +254,21 @@ fun AppsScreen(
                     onSetDefault = { vm.setDefaultApp(it.app) },
                     onRemove = vm::removeItem,
                     onChangeCategory = { categoryDialogFor = it.id },
+                )
+            }
+        }
+        if (!selecting) {
+            // Shortcuts have their own list (there can be many), so their own button.
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = bottom + 16.dp),
+            ) {
+                FrostPill(stringResource(R.string.add_shortcut), FrostIcons.Shortcut, { onAddShortcut(selectedCategory.takeIf { it > 0 }) }, primary = false)
+                FrostPill(
+                    if (activeCategory != null) stringResource(R.string.add_to_category, activeCategory.name) else stringResource(R.string.add_apps),
+                    FrostIcons.Plus,
+                    { onAddApps(selectedCategory.takeIf { it > 0 }) },
                 )
             }
         }
@@ -275,16 +291,6 @@ fun AppsScreen(
                 onDismiss = { categoryDialog = "" },
             )
         }
-        "sort" -> activeCategory?.let { category ->
-            OptionPickerDialog(
-                title = category.name + " · " + stringResource(R.string.sort_mode),
-                options = listOf(Option<SortMode?>(null, stringResource(R.string.sort_inherit, current.sortMode.label()))) +
-                    SortMode.entries.map { Option<SortMode?>(it, it.label()) },
-                selected = category.sortMode,
-                onSelect = { vm.setCategorySort(category, it) },
-                onDismiss = { categoryDialog = "" },
-            )
-        }
         "delete" -> activeCategory?.let { category ->
             ConfirmDialog(
                 title = stringResource(R.string.delete),
@@ -296,19 +302,6 @@ fun AppsScreen(
         }
     }
 
-    if (bulkCategoryDialog) {
-        OptionPickerDialog(
-            title = stringResource(R.string.move_to_category),
-            options = listOf(Option<Long?>(null, stringResource(R.string.category_none))) +
-                categories.map { Option<Long?>(it.id, it.name) },
-            selected = null,
-            onSelect = { target ->
-                vm.setItemsCategory(selectedIds, target)
-                exitSelection()
-            },
-            onDismiss = { bulkCategoryDialog = false },
-        )
-    }
     if (bulkRemoveDialog) {
         ConfirmDialog(
             title = stringResource(R.string.remove_from_folder),
@@ -320,22 +313,6 @@ fun AppsScreen(
             },
             onDismiss = { bulkRemoveDialog = false },
         )
-    }
-
-    if (categoryDialogFor > 0) {
-        val item = sortedItems.firstOrNull { it.id == categoryDialogFor }
-        if (item == null) {
-            categoryDialogFor = -1L
-        } else {
-            OptionPickerDialog(
-                title = stringResource(R.string.move_to_category),
-                options = listOf(Option<Long?>(null, stringResource(R.string.category_none))) +
-                    categories.map { Option<Long?>(it.id, it.name) },
-                selected = item.categoryId,
-                onSelect = { vm.setItemCategory(item, it) },
-                onDismiss = { categoryDialogFor = -1L },
-            )
-        }
     }
 }
 
@@ -370,6 +347,7 @@ private fun ReorderableAppList(
     dragEnabled: Boolean,
     selecting: Boolean,
     selectedIds: Set<Long>,
+    bottomSpace: Dp,
     onToggleSelected: (FolderItem) -> Unit,
     onOrderCommitted: (List<FolderItem>) -> Unit,
     onSetDefault: (FolderItem) -> Unit,
@@ -482,8 +460,13 @@ private fun ReorderableAppList(
         }
     }
 
-    LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-        itemsIndexed(working, key = { _, item -> item.id }) { _, item ->
+    val frost = LocalFrost.current
+    LazyColumn(
+        state = listState,
+        contentPadding = PaddingValues(start = 14.dp, end = 14.dp, bottom = bottomSpace),
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        itemsIndexed(working, key = { _, item -> item.id }) { index, item ->
             val dragging = item.id == draggingId
             if (dragging) {
                 // Keep the held row, and its gesture, alive even if the list scrolls it out of view.
@@ -493,34 +476,44 @@ private fun ReorderableAppList(
                     onDispose { handle?.release() }
                 }
             }
-            AppRow(
-                item = item,
-                label = labelOf(item.app),
-                categoryName = categories.firstOrNull { it.id == item.categoryId }?.name,
-                isDefault = isDefault(item),
-                selecting = selecting,
-                selected = item.id in selectedIds,
-                onToggleSelected = { onToggleSelected(item) },
-                onSetDefault = { onSetDefault(item) },
-                onRemove = { onRemove(item) },
-                onChangeCategory = { onChangeCategory(item) },
-                reorder = if (dragEnabled) {
-                    RowReorder(
-                        onPickUp = { y -> pickUp(item.id, y) },
-                        onDragBy = { dy -> moved += dy },
-                        onDrop = { completed -> putDown(completed) },
-                    )
-                } else {
-                    null
-                },
-                modifier = Modifier
+            // The card stays in the row's place; the row itself follows the finger.
+            Box(
+                Modifier
                     .zIndex(if (dragging) 1f else 0f)
-                    .graphicsLayer {
-                        val info = if (dragging) rowInfo(item.id) else null
-                        translationY = if (info != null) draggedTop(info.size) - info.offset else 0f
-                        shadowElevation = if (dragging) 8.dp.toPx() else 0f
+                    .frostSegment(frost, first = index == 0, last = index == working.lastIndex)
+                    .padding(horizontal = 8.dp),
+            ) {
+                AppRow(
+                    item = item,
+                    label = labelOf(item.app),
+                    categoryName = categories.firstOrNull { it.id == item.categoryId }?.name,
+                    isDefault = isDefault(item),
+                    selecting = selecting,
+                    selected = item.id in selectedIds,
+                    onToggleSelected = { onToggleSelected(item) },
+                    onSetDefault = { onSetDefault(item) },
+                    onRemove = { onRemove(item) },
+                    onChangeCategory = { onChangeCategory(item) },
+                    reorder = if (dragEnabled) {
+                        RowReorder(
+                            onPickUp = { y -> pickUp(item.id, y) },
+                            onDragBy = { dy -> moved += dy },
+                            onDrop = { completed -> putDown(completed) },
+                        )
+                    } else {
+                        null
                     },
-            )
+                    modifier = Modifier
+                        .graphicsLayer {
+                            val info = if (dragging) rowInfo(item.id) else null
+                            translationY = if (info != null) draggedTop(info.size) - info.offset else 0f
+                            shadowElevation = if (dragging) 8.dp.toPx() else 0f
+                            shape = FrostShapes.inner
+                            clip = false
+                        }
+                        .then(if (dragging) Modifier.background(frost.raised, FrostShapes.inner) else Modifier),
+                )
+            }
         }
     }
 }
@@ -597,6 +590,7 @@ private fun AppRow(
     reorder: RowReorder?,
     modifier: Modifier = Modifier,
 ) {
+    val frost = LocalFrost.current
     var menu by remember { mutableStateOf(false) }
     val area = remember { HandleArea() }
     // The gesture outlives recompositions; it always reaches the latest callbacks.
@@ -608,43 +602,43 @@ private fun AppRow(
     } else {
         Modifier
     }
-    ListItem(
-        headlineContent = { Text(label) },
-        // Shortcuts say so, beside their category.
-        supportingContent = listOfNotNull(
-            if (item.app.isShortcut) stringResource(R.string.shortcut_tag) else null,
-            categoryName,
-        ).takeIf { it.isNotEmpty() }?.let { parts -> { Text(parts.joinToString(" · ")) } },
-        leadingContent = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (selecting) {
-                    Checkbox(checked = selected, onCheckedChange = { onToggleSelected() })
-                    Spacer(Modifier.width(4.dp))
-                }
-                if (reorder != null) {
-                    Icon(Icons.Default.DragHandle, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.width(8.dp))
-                }
-                AppIconImage(app = item.app, size = 40.dp)
-            }
-        },
-        trailingContent = {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.onGloballyPositioned { area.trailing = it }) {
-                if (isDefault) Icon(Icons.Default.Star, contentDescription = stringResource(R.string.default_app), tint = MaterialTheme.colorScheme.primary)
-                if (!selecting) {
-                    IconButton(onClick = { menu = true }) { Icon(Icons.Default.MoreVert, contentDescription = null) }
+    // Shortcuts say so, beside their category.
+    val caption = listOfNotNull(
+        if (item.app.isShortcut) stringResource(R.string.shortcut_tag) else null,
+        categoryName,
+    ).takeIf { it.isNotEmpty() }?.joinToString(" · ")
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = modifier
+            .then(gesture)
+            .fillMaxWidth()
+            .heightIn(min = 60.dp)
+            .clip(FrostShapes.inner)
+            .then(if (selecting) Modifier.clickable(onClick = onToggleSelected) else Modifier)
+            .padding(start = 10.dp, end = 2.dp, top = 11.dp, bottom = 11.dp),
+    ) {
+        if (selecting) FrostCheck(selected)
+        if (reorder != null) FrostIcon(FrostIcons.DragHandle, frost.textMuted, size = 20.dp)
+        AppIconImage(app = item.app, size = 38.dp)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(label, style = FrostType.body, color = frost.textPrimary)
+            if (caption != null) Text(caption, style = FrostType.small, color = frost.textTertiary)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.onGloballyPositioned { area.trailing = it }) {
+            if (isDefault) FrostIcon(FrostIcons.Star, frost.accent, size = 18.dp, filled = true)
+            if (!selecting) {
+                Box {
+                    FrostIconButton(FrostIcons.MoreVertical, stringResource(R.string.more), { menu = true })
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                         DropdownMenuItem(text = { Text(stringResource(R.string.set_as_default)) }, onClick = { menu = false; onSetDefault() })
                         DropdownMenuItem(text = { Text(stringResource(R.string.move_to_category)) }, onClick = { menu = false; onChangeCategory() })
                         DropdownMenuItem(text = { Text(stringResource(R.string.remove_from_folder)) }, onClick = { menu = false; onRemove() })
                     }
                 }
+            } else {
+                Spacer(Modifier.width(8.dp))
             }
-        },
-        modifier = if (selecting) {
-            modifier.then(gesture).fillMaxWidth().clickable(onClick = onToggleSelected)
-        } else {
-            modifier.then(gesture).fillMaxWidth()
-        },
-    )
+        }
+    }
 }

@@ -14,28 +14,15 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
@@ -59,7 +45,17 @@ import com.widgetsplus.apps.SavedShortcut
 import com.widgetsplus.apps.ShortcutStore
 import com.widgetsplus.core.model.AppRef
 import com.widgetsplus.graph
+import com.widgetsplus.ui.common.displayName
 import com.widgetsplus.ui.editor.FolderEditorViewModel
+import com.widgetsplus.ui.frost.FrostGroup
+import com.widgetsplus.ui.frost.FrostNote
+import com.widgetsplus.ui.frost.FrostPage
+import com.widgetsplus.ui.frost.FrostRow
+import com.widgetsplus.ui.frost.FrostSearchField
+import com.widgetsplus.ui.frost.GroupLabel
+import com.widgetsplus.ui.frost.LocalFrost
+import com.widgetsplus.ui.frost.frostSegment
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -74,11 +70,11 @@ private data class ShortcutSource(val component: ComponentName, val label: Strin
  * to the phone's home-screen app; those are refused with an explanation instead of adding a
  * shortcut that wouldn't open.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShortcutPickerScreen(folderId: Long, categoryId: Long?, onDone: () -> Unit) {
     val context = LocalContext.current
     val graph = context.graph
+    val frost = LocalFrost.current
     val vm: FolderEditorViewModel = viewModel(key = "editor-$folderId") { FolderEditorViewModel(graph, folderId) }
 
     var sources by remember { mutableStateOf<List<ShortcutSource>?>(null) }
@@ -102,81 +98,69 @@ fun ShortcutPickerScreen(folderId: Long, categoryId: Long?, onDone: () -> Unit) 
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.add_shortcut)) },
-                navigationIcon = {
-                    IconButton(onClick = onDone) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) }
-                },
-            )
-        },
-    ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                placeholder = { Text(stringResource(R.string.search_shortcuts)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-            )
-            val all = sources
-            when {
-                all == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                else -> {
-                    val shown = all.filter {
-                        query.isBlank() || it.label.contains(query, ignoreCase = true) || it.appLabel.contains(query, ignoreCase = true)
+    val folder by vm.folder.collectAsStateWithLifecycle()
+    val all = sources
+    val shown = all?.filter {
+        query.isBlank() || it.label.contains(query, ignoreCase = true) || it.appLabel.contains(query, ignoreCase = true)
+    }
+    FrostPage(
+        title = stringResource(R.string.add_shortcut),
+        overline = folder?.displayName() ?: stringResource(R.string.apps_in_folder),
+        onBack = onDone,
+        spacing = 0.dp,
+    ) {
+        item(key = "search") {
+            Column {
+                FrostSearchField(query, { query = it }, stringResource(R.string.search_shortcuts))
+                Spacer(Modifier.height(4.dp))
+            }
+        }
+        when {
+            shown == null -> item(key = "loading") {
+                Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = frost.accent) }
+            }
+            shown.isEmpty() -> item(key = "empty") {
+                Box(Modifier.padding(top = 8.dp)) {
+                    FrostGroup(null, listOf { FrostNote(stringResource(if (all.isEmpty()) R.string.no_shortcuts else R.string.no_matches)) })
+                }
+            }
+            else -> {
+                item(key = "intro") { FrostNote(stringResource(R.string.shortcuts_intro), Modifier.padding(bottom = 4.dp)) }
+                shown.groupBy { it.component.packageName }.forEach { (pkg, list) ->
+                    item(key = "h:$pkg") {
+                        Box(Modifier.padding(top = 8.dp).frostSegment(frost, first = true, last = false).padding(start = 8.dp, end = 8.dp, top = 10.dp)) {
+                            GroupLabel(list.first().appLabel)
+                        }
                     }
-                    if (shown.isEmpty()) {
-                        Text(
-                            stringResource(if (all.isEmpty()) R.string.no_shortcuts else R.string.no_matches),
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.fillMaxWidth().padding(32.dp),
-                        )
-                    } else {
-                        LazyColumn(Modifier.fillMaxSize()) {
-                            item {
-                                Text(
-                                    stringResource(R.string.shortcuts_intro),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                                )
-                            }
-                            shown.groupBy { it.component.packageName }.forEach { (pkg, list) ->
-                                item(key = "h:$pkg") {
-                                    Text(
-                                        list.first().appLabel,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp),
-                                    )
-                                }
-                                items(list, key = { it.component.flattenToString() }) { source ->
-                                    ListItem(
-                                        headlineContent = { Text(source.label) },
-                                        leadingContent = {
-                                            val icon = source.icon
-                                            if (icon != null) Image(icon.asImageBitmap(), contentDescription = null, modifier = Modifier.size(40.dp))
-                                            else Box(Modifier.size(40.dp))
-                                        },
-                                        modifier = Modifier.clickable {
-                                            pending = source.component.flattenToString()
-                                            try {
-                                                launcher.launch(Intent(Intent.ACTION_CREATE_SHORTCUT).setComponent(source.component))
-                                            } catch (e: ActivityNotFoundException) {
-                                                pending = null
-                                                Toast.makeText(context, context.getString(R.string.shortcut_unavailable, source.appLabel), Toast.LENGTH_LONG).show()
-                                            } catch (e: SecurityException) {
-                                                pending = null
-                                                Toast.makeText(context, context.getString(R.string.shortcut_unavailable, source.appLabel), Toast.LENGTH_LONG).show()
-                                            }
-                                        },
-                                    )
-                                }
-                            }
+                    itemsIndexed(list, key = { _, source -> source.component.flattenToString() }) { index, source ->
+                        val last = index == list.lastIndex
+                        Box(
+                            Modifier
+                                .padding(bottom = if (last) 4.dp else 0.dp)
+                                .frostSegment(frost, first = false, last = last, divider = index > 0)
+                                .padding(start = 8.dp, end = 8.dp, bottom = if (last) 8.dp else 0.dp),
+                        ) {
+                            FrostRow(
+                                icon = null,
+                                title = source.label,
+                                leading = {
+                                    val icon = source.icon
+                                    if (icon != null) Image(icon.asImageBitmap(), contentDescription = null, modifier = Modifier.size(38.dp))
+                                    else Box(Modifier.size(38.dp))
+                                },
+                                onClick = {
+                                    pending = source.component.flattenToString()
+                                    try {
+                                        launcher.launch(Intent(Intent.ACTION_CREATE_SHORTCUT).setComponent(source.component))
+                                    } catch (e: ActivityNotFoundException) {
+                                        pending = null
+                                        Toast.makeText(context, context.getString(R.string.shortcut_unavailable, source.appLabel), Toast.LENGTH_LONG).show()
+                                    } catch (e: SecurityException) {
+                                        pending = null
+                                        Toast.makeText(context, context.getString(R.string.shortcut_unavailable, source.appLabel), Toast.LENGTH_LONG).show()
+                                    }
+                                },
+                            )
                         }
                     }
                 }

@@ -12,23 +12,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,7 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.widgetsplus.R
 import com.widgetsplus.graph
-import com.widgetsplus.ui.theme.WidgetsPlusTheme
+import com.widgetsplus.ui.frost.FrostGroup
+import com.widgetsplus.ui.frost.FrostPage
+import com.widgetsplus.ui.frost.FrostRow
+import com.widgetsplus.ui.frost.FrostTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -64,7 +52,7 @@ class HostedWidgetPickerActivity : ComponentActivity() {
         enableEdgeToEdge()
         setResult(Activity.RESULT_CANCELED)
         setContent {
-            WidgetsPlusTheme {
+            FrostTheme {
                 PickerScreen(onPick = ::pick, onBack = ::finish)
             }
         }
@@ -135,7 +123,7 @@ class HostedWidgetPickerActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/** Every installed widget, grouped by its app. */
 @Composable
 private fun PickerScreen(onPick: (AppWidgetProviderInfo) -> Unit, onBack: () -> Unit) {
     val context = LocalContext.current
@@ -146,40 +134,21 @@ private fun PickerScreen(onPick: (AppWidgetProviderInfo) -> Unit, onBack: () -> 
             .toSortedMap(String.CASE_INSENSITIVE_ORDER)
             .mapValues { (_, list) -> list.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { hosted.label(it) }) }
     }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.choose_widget)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) }
-                },
-            )
-        },
-    ) { padding ->
-        LazyColumn(Modifier.fillMaxSize().padding(padding)) {
-            groups.forEach { (appLabel, widgets) ->
-                item(key = "app-$appLabel") {
-                    Text(
-                        appLabel,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 4.dp),
-                    )
-                }
-                widgets.forEach { info ->
-                    item(key = info.provider.flattenToString()) {
-                        val density = context.resources.displayMetrics.density
-                        ListItem(
-                            headlineContent = { Text(hosted.label(info)) },
-                            supportingContent = {
-                                Text(stringResource(R.string.widget_size_label, (info.minWidth / density).toInt(), (info.minHeight / density).toInt()))
-                            },
-                            leadingContent = { WidgetPreview(info) },
-                            modifier = Modifier.fillMaxWidth().clickable { onPick(info) },
+    val density = context.resources.displayMetrics.density
+    FrostPage(title = stringResource(R.string.choose_widget), overline = stringResource(R.string.taps), onBack = onBack) {
+        groups.forEach { (appLabel, widgets) ->
+            item(key = "app-$appLabel") {
+                FrostGroup(appLabel, widgets.map<AppWidgetProviderInfo, @Composable () -> Unit> { info ->
+                    {
+                        FrostRow(
+                            icon = null,
+                            title = hosted.label(info),
+                            caption = stringResource(R.string.widget_size_label, (info.minWidth / density).toInt(), (info.minHeight / density).toInt()),
+                            onClick = { onPick(info) },
+                            leading = { WidgetPreview(info) },
                         )
                     }
-                }
+                })
             }
         }
     }

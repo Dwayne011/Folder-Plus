@@ -47,6 +47,7 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
+            android:theme="@style/Theme.WidgetsPlus.Frost"
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -87,11 +88,13 @@
         <activity
             android:name=".widget.HostedWidgetPickerActivity"
             android:exported="false"
+            android:theme="@style/Theme.WidgetsPlus.Frost"
             android:label="@string/choose_widget" />
 
         <activity
             android:name=".widget.FolderWidgetConfigActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.WidgetsPlus.Frost">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
@@ -244,6 +247,7 @@
         <activity
             android:name=".devices.DevicesSetupActivity"
             android:exported="true"
+            android:theme="@style/Theme.WidgetsPlus.Frost"
             android:label="@string/devices_setup_title">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
@@ -260,6 +264,7 @@
         <activity
             android:name=".agenda.AgendaConfigActivity"
             android:exported="true"
+            android:theme="@style/Theme.WidgetsPlus.Frost"
             android:label="@string/agenda_setup_title">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
