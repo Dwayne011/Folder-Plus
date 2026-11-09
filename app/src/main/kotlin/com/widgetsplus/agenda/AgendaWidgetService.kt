@@ -12,6 +12,7 @@ import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import androidx.annotation.RequiresApi
 import com.widgetsplus.R
+import com.widgetsplus.core.agenda.AgendaCardShape
 import com.widgetsplus.core.agenda.AgendaRows
 import java.time.DayOfWeek
 
@@ -23,6 +24,8 @@ class AgendaWidgetService : RemoteViewsService() {
             intent.getIntExtra(AgendaWidgetProvider.EXTRA_SLOTS, 3),
             intent.getFloatExtra(AgendaWidgetProvider.EXTRA_CARD_HEIGHT, 0f),
             intent.getFloatExtra(AgendaWidgetProvider.EXTRA_CARD_WIDTH, 0f),
+            AgendaCardShape.entries.getOrElse(intent.getIntExtra(AgendaWidgetProvider.EXTRA_SHAPE, 0)) { AgendaCardShape.FULL },
+            intent.getBooleanExtra(AgendaWidgetProvider.EXTRA_ONE_ROW, false),
         )
 }
 
@@ -41,6 +44,10 @@ class AgendaRemoteViewsFactory(
     private val slotCount: Int,
     private val cardHeightDp: Float,
     private val cardWidthDp: Float,
+    /** Smaller sizes (approved mockup): a narrow date card, or the date above the events. */
+    private val shape: AgendaCardShape = AgendaCardShape.FULL,
+    /** One row high: every event is one line. */
+    private val oneRow: Boolean = false,
 ) : RemoteViewsService.RemoteViewsFactory {
     private var days: List<AgendaDay> = emptyList()
     private lateinit var palette: AgendaPalette
@@ -91,7 +98,7 @@ class AgendaRemoteViewsFactory(
 
     override fun onDestroy() { days = emptyList() }
     override fun getCount(): Int = days.size
-    override fun getViewTypeCount(): Int = 1
+    override fun getViewTypeCount(): Int = 2
     override fun getItemId(position: Int): Long = days.getOrNull(position)?.date?.toEpochDay() ?: position.toLong()
     override fun hasStableIds(): Boolean = true
     override fun getLoadingView(): RemoteViews? = null
@@ -100,6 +107,7 @@ class AgendaRemoteViewsFactory(
         // Fresh every card, so cards drawn after a theme change pick up its colours.
         palette = AgendaPalette(context)
         val day = days[position]
+        if (sized && shape != AgendaCardShape.FULL && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) return compactCard(day)
         val views = RemoteViews(context.packageName, R.layout.widget_agenda_day)
 
         // Which rows show: sized to the text (titles on two lines above 100% when they need it,
@@ -260,6 +268,226 @@ class AgendaRemoteViewsFactory(
         return views
     }
 
+    /** The rows of the smaller card (widget_agenda_day_compact.xml). */
+    private class CompactSlot(
+        val root: Int, val bg: Int, val two: Int, val dot: Int, val whenText: Int, val title: Int,
+        val one: Int, val oneDot: Int, val oneTime: Int, val oneTitle: Int, val more: Int, val moreBg: Int, val moreText: Int,
+    )
+
+    private val compactSlots = listOf(
+        CompactSlot(R.id.ev1, R.id.ev1_bg, R.id.ev1_two, R.id.ev1_dot, R.id.ev1_when, R.id.ev1_title, R.id.ev1_one, R.id.ev1_odot, R.id.ev1_otime, R.id.ev1_otitle, R.id.ev1_more, R.id.ev1_more_bg, R.id.ev1_more_text),
+        CompactSlot(R.id.ev2, R.id.ev2_bg, R.id.ev2_two, R.id.ev2_dot, R.id.ev2_when, R.id.ev2_title, R.id.ev2_one, R.id.ev2_odot, R.id.ev2_otime, R.id.ev2_otitle, R.id.ev2_more, R.id.ev2_more_bg, R.id.ev2_more_text),
+        CompactSlot(R.id.ev3, R.id.ev3_bg, R.id.ev3_two, R.id.ev3_dot, R.id.ev3_when, R.id.ev3_title, R.id.ev3_one, R.id.ev3_odot, R.id.ev3_otime, R.id.ev3_otitle, R.id.ev3_more, R.id.ev3_more_bg, R.id.ev3_more_text),
+        CompactSlot(R.id.ev4, R.id.ev4_bg, R.id.ev4_two, R.id.ev4_dot, R.id.ev4_when, R.id.ev4_title, R.id.ev4_one, R.id.ev4_odot, R.id.ev4_otime, R.id.ev4_otitle, R.id.ev4_more, R.id.ev4_more_bg, R.id.ev4_more_text),
+        CompactSlot(R.id.ev5, R.id.ev5_bg, R.id.ev5_two, R.id.ev5_dot, R.id.ev5_when, R.id.ev5_title, R.id.ev5_one, R.id.ev5_odot, R.id.ev5_otime, R.id.ev5_otitle, R.id.ev5_more, R.id.ev5_more_bg, R.id.ev5_more_text),
+    )
+
+    /**
+     * The smaller sizes' day card (approved mockup). From 3 columns a 60dp date card sits beside
+     * the events; at 2 columns the date is one line above them ("THU 5 NOV" on today's card,
+     * "MON 9" with a "Today" pill on the others; tapping the date opens the next 30 days, as the
+     * month pill does). Timed events are two-line rows (time, then title) and all-day events
+     * slim strips in their calendar's colour, with "+N more" below, as on the bigger card. One
+     * row high every event is one line, and "+N" sits at the end of the last line. Everything
+     * grows with the text size; the taps are the same as on the bigger card.
+     */
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun compactCard(day: AgendaDay): RemoteViews {
+        val views = RemoteViews(context.packageName, R.layout.widget_agenda_day_compact)
+        val dip = TypedValue.COMPLEX_UNIT_DIP
+        val top = shape == AgendaCardShape.TOP
+        views.setViewLayoutHeight(R.id.day_root, cardHeightDp, dip)
+
+        // Colours as on the bigger card: a blue face at weekends, the accent ring on today only.
+        val weekend = day.date.dayOfWeek == DayOfWeek.SATURDAY || day.date.dayOfWeek == DayOfWeek.SUNDAY
+        val face = if (weekend) R.color.agenda_accent else R.color.agenda_card
+        val ring = when {
+            !day.isToday -> face
+            weekend -> R.color.agenda_card
+            else -> R.color.agenda_accent
+        }
+        val onFace = if (weekend) R.color.agenda_on_badge else R.color.agenda_on_card
+        val onFaceVar = if (weekend) R.color.agenda_on_badge_var else R.color.agenda_on_card_var
+        val pill = if (weekend) R.color.agenda_card else R.color.agenda_badge
+        val onPill = if (weekend) R.color.agenda_on_card else R.color.agenda_on_badge
+        val pillDp = AgendaRows.compactChipDp(scale)
+        val pillText = 9.5f * scale
+
+        var groupDp = cardHeightDp
+        if (top) {
+            val headDp = AgendaRows.headDp(scale)
+            groupDp -= headDp + AgendaRows.HEAD_GAP_DP
+            views.setViewVisibility(R.id.day_date, View.GONE)
+            views.setViewLayoutMargin(R.id.day_group, RemoteViews.MARGIN_START, 0f, dip)
+            views.setViewVisibility(R.id.day_head, View.VISIBLE)
+            views.setViewLayoutHeight(R.id.day_head, headDp, dip)
+            palette.tintRes(views, R.id.day_head_ring, ring)
+            palette.tintRes(views, R.id.day_head_bg, face)
+            views.setTextViewText(R.id.day_head_text, AgendaFormat.dow(day.date) + " " + day.date.dayOfMonth)
+            views.setTextViewTextSize(R.id.day_head_text, dip, 12f * scale)
+            palette.textRes(views, R.id.day_head_text, onFace)
+            // The month on today's line; other days have the "Today" pill there instead.
+            views.setTextViewText(R.id.day_head_month, if (day.isToday) AgendaFormat.mon(day.date) else "")
+            views.setTextViewTextSize(R.id.day_head_month, dip, 12f * scale)
+            palette.textRes(views, R.id.day_head_month, onFaceVar)
+            views.setOnClickFillInIntent(R.id.day_head, Intent().setData(AgendaFormat.monthUri(day.date)))
+            views.setViewVisibility(R.id.day_head_today, if (day.isToday) View.GONE else View.VISIBLE)
+            if (!day.isToday) {
+                views.setViewLayoutHeight(R.id.day_head_today, pillDp, dip)
+                views.setTextViewTextSize(R.id.day_head_today_text, dip, pillText)
+                palette.textRes(views, R.id.day_head_today_text, onPill)
+                palette.tintRes(views, R.id.day_head_today_bg, pill)
+                views.setOnClickFillInIntent(R.id.day_head_today, Intent().setData(AgendaFormat.todayUri()))
+            }
+        } else {
+            views.setViewVisibility(R.id.day_head, View.GONE)
+            palette.tintRes(views, R.id.day_date_bg, face)
+            palette.tintRes(views, R.id.day_today_ring, ring)
+            views.setTextViewText(R.id.day_dow, AgendaFormat.dow(day.date))
+            views.setTextViewText(R.id.day_num, day.date.dayOfMonth.toString())
+            views.setTextViewTextSize(R.id.day_dow, dip, (if (oneRow) 11f else 12f) * scale)
+            views.setTextViewTextSize(R.id.day_num, dip, fitNumber(day.date.dayOfMonth.toString(), (if (oneRow) 26f else 34f) * scale, NARROW_NUMBER_MAX_DP))
+            palette.textRes(views, R.id.day_dow, onFaceVar)
+            palette.textRes(views, R.id.day_num, onFace)
+            views.setOnClickFillInIntent(R.id.day_date, Intent().setData(AgendaFormat.dayIntent(day.date).data))
+            // Month pill at the top (next 30 days); "Today" at the bottom on other days, when
+            // the card is two rows high. The weekday and date sit centred between them.
+            val pillMargin = if (oneRow) 6f else 8f
+            views.setTextViewText(R.id.day_month_text, AgendaFormat.mon(day.date))
+            views.setTextViewTextSize(R.id.day_month_text, dip, pillText)
+            palette.textRes(views, R.id.day_month_text, onPill)
+            palette.tintRes(views, R.id.day_month_bg, pill)
+            views.setViewLayoutHeight(R.id.day_month_pill, pillDp, dip)
+            views.setViewLayoutMargin(R.id.day_month_pill, RemoteViews.MARGIN_TOP, pillMargin, dip)
+            views.setViewLayoutHeight(R.id.day_month_tap, pillMargin + pillDp + 8f, dip)
+            views.setOnClickFillInIntent(R.id.day_month_tap, Intent().setData(AgendaFormat.monthUri(day.date)))
+            val todayPill = !day.isToday && !oneRow
+            views.setViewVisibility(R.id.day_today_tap, if (todayPill) View.VISIBLE else View.GONE)
+            if (todayPill) {
+                views.setTextViewTextSize(R.id.day_today_text, dip, pillText)
+                palette.textRes(views, R.id.day_today_text, onPill)
+                palette.tintRes(views, R.id.day_today_bg, pill)
+                views.setViewLayoutHeight(R.id.day_today_pill, pillDp, dip)
+                views.setViewLayoutHeight(R.id.day_today_tap, pillMargin + pillDp + 8f, dip)
+                views.setOnClickFillInIntent(R.id.day_today_tap, Intent().setData(AgendaFormat.todayUri()))
+            }
+            val pad = { dp: Float -> (dp * density).toInt() }
+            val above = pillMargin + pillDp + 2f
+            val below = when {
+                todayPill -> above
+                oneRow -> 6f
+                else -> above
+            }
+            views.setViewPadding(R.id.day_date_mid, pad(3f), pad(above), pad(3f), pad(below))
+        }
+
+        palette.tintRes(views, R.id.day_group_bg, R.color.agenda_group)
+        val events = day.events
+        val shown: Int
+        val oneLine: List<Boolean>
+        val heights: List<Float>
+        if (oneRow) {
+            shown = minOf(events.size, AgendaRows.linesThatFit(groupDp, scale), compactSlots.size)
+            oneLine = events.map { true }
+            heights = events.map { AgendaRows.lineDp(scale) }
+            views.setInt(R.id.day_group_list, "setGravity", android.view.Gravity.CENTER_VERTICAL)
+        } else {
+            oneLine = events.map { it.allDay }
+            heights = events.take(compactSlots.size).map { if (it.allDay) AgendaRows.lineDp(scale) else AgendaRows.compactRowDp(scale) }
+            shown = AgendaRows.fit(
+                groupDp, heights, events.size, scale,
+                AgendaRows.COMPACT_PADDING_DP, AgendaRows.COMPACT_GAP_DP, AgendaRows.compactChipDp(scale),
+            )
+        }
+        val extra = events.size - minOf(shown, events.size)
+
+        compactSlots.forEachIndexed { index, slot ->
+            val event = events.getOrNull(index)
+            if (event == null || index >= shown) {
+                views.setViewVisibility(slot.root, View.GONE)
+                return@forEachIndexed
+            }
+            views.setViewVisibility(slot.root, View.VISIBLE)
+            views.setViewLayoutHeight(slot.root, heights[index], dip)
+            val line = oneLine[index]
+            // One-line strips are pills; two-line rows have the card's corners. Shape, then tint.
+            views.setImageViewResource(slot.bg, if (line) R.drawable.agenda_shape_chip else R.drawable.agenda_shape_card_c)
+            val tinted = event.allDay && event.color != 0
+            if (tinted) palette.tintCalendar(views, slot.bg, event.color) else palette.tintRes(views, slot.bg, R.color.agenda_card)
+            val fill = AgendaFormat.eventIntent(event)
+            views.setOnClickFillInIntent(slot.root, Intent().setData(fill.data).putExtras(fill.extras ?: android.os.Bundle()))
+            views.setViewVisibility(slot.two, if (line) View.GONE else View.VISIBLE)
+            views.setViewVisibility(slot.one, if (line) View.VISIBLE else View.GONE)
+            val dotColour = if (event.color != 0 && !tinted) event.color else 0
+            if (line) {
+                // One line: an all-day strip (the title), or a timed event (dot, time, title).
+                val timed = !event.allDay
+                views.setViewVisibility(slot.oneDot, if (timed && dotColour != 0) View.VISIBLE else View.GONE)
+                if (timed && dotColour != 0) AgendaPalette.tint(views, slot.oneDot, dotColour, 255)
+                views.setViewVisibility(slot.oneTime, if (timed) View.VISIBLE else View.GONE)
+                if (timed) {
+                    views.setTextViewText(slot.oneTime, AgendaFormat.time(context, event.begin))
+                    views.setTextViewTextSize(slot.oneTime, dip, 10f * scale)
+                    palette.textRes(views, slot.oneTime, R.color.agenda_on_card_var)
+                }
+                views.setTextViewText(slot.oneTitle, event.title)
+                views.setTextViewTextSize(slot.oneTitle, dip, 11.5f * scale)
+                palette.textRes(views, slot.oneTitle, R.color.agenda_on_card)
+                // One row high: what doesn't fit is "+N" at the end of the last line.
+                val moreHere = oneRow && extra > 0 && index == shown - 1
+                views.setViewVisibility(slot.more, if (moreHere) View.VISIBLE else View.GONE)
+                views.setViewPadding(slot.one, (9f * scale * density).toInt(), 0, ((if (moreHere) 4f else 9f) * scale * density).toInt(), 0)
+                if (moreHere) {
+                    views.setViewLayoutHeight(slot.more, pillDp, dip)
+                    views.setTextViewText(slot.moreText, context.getString(R.string.agenda_more_short, extra))
+                    views.setTextViewTextSize(slot.moreText, dip, pillText)
+                    palette.textRes(views, slot.moreText, R.color.agenda_on_card)
+                    palette.tintRes(views, slot.moreBg, R.color.agenda_group)
+                    views.setOnClickFillInIntent(slot.more, Intent().setData(AgendaFormat.moreUri(day.date)))
+                }
+            } else {
+                // Two lines: the dot and time, then the title.
+                views.setViewVisibility(slot.dot, if (dotColour != 0) View.VISIBLE else View.GONE)
+                if (dotColour != 0) AgendaPalette.tint(views, slot.dot, dotColour, 255)
+                views.setTextViewText(slot.whenText, AgendaFormat.time(context, event.begin))
+                views.setTextViewTextSize(slot.whenText, dip, 10f * scale)
+                palette.textRes(views, slot.whenText, R.color.agenda_on_card_var)
+                views.setTextViewText(slot.title, event.title)
+                views.setTextViewTextSize(slot.title, dip, 12f * scale)
+                palette.textRes(views, slot.title, R.color.agenda_on_card)
+            }
+        }
+
+        val moreBelow = !oneRow && extra > 0
+        views.setViewVisibility(R.id.day_more_wrap, if (moreBelow) View.VISIBLE else View.GONE)
+        if (moreBelow) {
+            views.setViewLayoutHeight(R.id.day_more_wrap, pillDp, dip)
+            views.setTextViewText(R.id.day_more, context.getString(R.string.agenda_more, extra))
+            views.setTextViewTextSize(R.id.day_more, dip, pillText)
+            palette.textRes(views, R.id.day_more, R.color.agenda_on_card_var)
+            palette.tintRes(views, R.id.day_more_bg, R.color.agenda_card)
+            views.setOnClickFillInIntent(R.id.day_more_wrap, Intent().setData(AgendaFormat.moreUri(day.date)))
+        }
+
+        val free = events.isEmpty()
+        views.setViewVisibility(R.id.day_free, if (free) View.VISIBLE else View.GONE)
+        if (free) {
+            views.setViewLayoutHeight(R.id.day_free, if (oneRow) AgendaRows.lineDp(scale) else AgendaRows.compactRowDp(scale), dip)
+            views.setTextViewTextSize(R.id.day_free_text, dip, 11f * scale)
+            palette.tintRes(views, R.id.day_free_outline, R.color.agenda_on_card, AgendaPalette.OUTLINE_ALPHA)
+            palette.textRes(views, R.id.day_free_text, R.color.agenda_on_card_var)
+            views.setOnClickFillInIntent(R.id.day_free, Intent().setData(AgendaFormat.dayIntent(day.date).data))
+        }
+        return views
+    }
+
+    /** [size] for the date number, made smaller if the number would be wider than [maxDp]. */
+    private fun fitNumber(text: String, size: Float, maxDp: Float): Float {
+        dayNumberPaint.textSize = size * density
+        val width = dayNumberPaint.measureText(text) / density
+        return if (width > maxDp) size * maxDp / width else size
+    }
+
     /** Text sizes on the date card, the pills and "Nothing planned", for [scale]. */
     @RequiresApi(Build.VERSION_CODES.S)
     private fun sizeDayCard(views: RemoteViews, dayNumber: String) {
@@ -308,5 +536,7 @@ class AgendaRemoteViewsFactory(
         /** Everything beside a row's title: date card 104, gap 12, group padding 12, row padding 16, badge 32, gap 8. */
         const val ROW_CHROME_DP = 184f
         const val DAY_NUMBER_MAX_DP = 90f
+        /** Inside the narrow date card: 60dp less its 2dp ring and 3dp padding on each side. */
+        const val NARROW_NUMBER_MAX_DP = 50f
     }
 }

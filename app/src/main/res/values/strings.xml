@@ -133,6 +133,8 @@
     <string name="agenda_all_day">All day</string>
     <string name="agenda_more">+%1$d more</string>
     <string name="agenda_today">Go to Today</string>
+    <string name="agenda_today_short">Today</string>
+    <string name="agenda_more_short">+%1$d</string>
 
     <!-- Connected devices widget -->
     <string name="devices_widget_label">Connected devices</string>

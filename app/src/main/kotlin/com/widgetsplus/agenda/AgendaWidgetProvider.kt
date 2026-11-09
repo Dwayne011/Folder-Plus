@@ -16,6 +16,8 @@ import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import com.widgetsplus.R
+import com.widgetsplus.core.agenda.AgendaCardShape
+import com.widgetsplus.core.agenda.AgendaRows
 import com.widgetsplus.widget.WidgetListeners
 import java.time.LocalDate
 import java.time.ZoneId
@@ -78,6 +80,10 @@ class AgendaWidgetProvider : AppWidgetProvider() {
         const val EXTRA_CARD_HEIGHT = "card_height_dp"
         /** Width of a day card in dp, so the cards can tell which titles need a second line. */
         const val EXTRA_CARD_WIDTH = "card_width_dp"
+        /** The day card's shape for this size ([AgendaCardShape] ordinal), Android 12+. */
+        const val EXTRA_SHAPE = "card_shape"
+        /** One row high: every event is one line. */
+        const val EXTRA_ONE_ROW = "one_row"
 
         fun placedIds(context: Context): IntArray =
             AppWidgetManager.getInstance(context).getAppWidgetIds(ComponentName(context, AgendaWidgetProvider::class.java))
@@ -209,6 +215,11 @@ class AgendaWidgetProvider : AppWidgetProvider() {
                     .putExtra(EXTRA_SLOTS, slotsFor(frameH))
                     .putExtra(EXTRA_CARD_HEIGHT, if (parked) frameH else 0f)
                     .putExtra(EXTRA_CARD_WIDTH, size.width - FRAME_PADDING_DP - 2 * STACK_FRAME_PADDING_DP)
+                    // Smaller sizes (approved mockup): a narrow date card from 3 columns, the date
+                    // above the events at 2, one-line events one row high. Android 8 to 11 keep
+                    // the full card (their rows can't change height).
+                    .putExtra(EXTRA_SHAPE, (if (parked) AgendaRows.shapeFor(size.width, size.height) else AgendaCardShape.FULL).ordinal)
+                    .putExtra(EXTRA_ONE_ROW, parked && AgendaRows.isOneRow(size.height))
                 adapter.data = Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME))
                 @Suppress("DEPRECATION")
                 views.setRemoteAdapter(R.id.agenda_stack, adapter)

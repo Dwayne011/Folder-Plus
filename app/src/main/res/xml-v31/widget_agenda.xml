@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+: the calendar widget resizes down to 2 columns and 1 row (approved mockup); the
+     day card changes shape below 4×2 (AgendaRows.shapeFor). Android 8 to 11 keep the bigger
+     minimum in xml/widget_agenda.xml, since their rows can't change height. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:configure="com.widgetsplus.agenda.AgendaConfigActivity"
+    android:description="@string/agenda_widget_description"
+    android:initialLayout="@layout/widget_agenda_initial"
+    android:minWidth="320dp"
+    android:minHeight="180dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="70dp"
+    android:maxResizeWidth="450dp"
+    android:maxResizeHeight="300dp"
+    android:targetCellWidth="5"
+    android:targetCellHeight="3"
+    android:previewImage="@drawable/preview_agenda"
+    android:previewLayout="@layout/widget_agenda_preview"
+    android:resizeMode="vertical|horizontal"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen"
+    android:widgetFeatures="reconfigurable|configuration_optional"
+    tools:targetApi="s" />
