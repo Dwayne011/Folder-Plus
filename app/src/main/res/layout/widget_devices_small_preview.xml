@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget-picker preview of the 2×2 connected devices widget: this phone alone, as the widget
+     shows it when nothing is connected. Colours follow light and dark mode. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="SpUsage,UnusedAttribute,ContentDescription,UseAppTint,HardcodedText">
+    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:alpha="0.58" android:scaleType="fitXY" android:src="@drawable/folder_plate_small" android:tint="@color/agenda_plate" />
+    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:alpha="0.16" android:scaleType="fitXY" android:src="@drawable/folder_hairline_small" />
+    <TextView android:layout_width="match_parent" android:layout_height="28dp" android:fontFamily="google-sans-text" android:textColor="@color/agenda_on_plate" android:textFontWeight="700" android:textStyle="bold" android:gravity="center" android:letterSpacing="0.1" android:textAllCaps="true" android:textSize="11dp" android:maxLines="1" android:text="@string/devices_header_none" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent" android:layout_marginStart="8dp" android:layout_marginTop="28dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp">
+        <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/agenda_shape_group" android:tint="@color/agenda_group" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:orientation="vertical">
+            <FrameLayout android:layout_width="96dp" android:layout_height="46dp">
+                <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter" android:src="@drawable/dev_draw_phone_main" android:tint="@color/agenda_card" />
+                <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter" android:src="@drawable/dev_draw_phone_detail" android:tint="@color/agenda_badge" />
+                <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter" android:src="@drawable/dev_draw_phone_top" android:tint="@color/agenda_card" />
+            </FrameLayout>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:fontFamily="google-sans" android:textColor="@color/agenda_on_card" android:textFontWeight="500" android:textSize="11dp" android:text="@string/devices_this_phone" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:fontFamily="google-sans-text" android:textColor="@color/agenda_on_card_var" android:textSize="10dp" android:text="89%" android:includeFontPadding="false" android:elegantTextHeight="false" android:fallbackLineSpacing="false" />
+            <FrameLayout android:layout_width="40dp" android:layout_height="5dp" android:layout_marginTop="4dp">
+                <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/dev_bar" android:tint="@color/agenda_card" />
+                <ImageView android:layout_width="35dp" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/dev_bar" android:tint="@color/agenda_on_card" />
+            </FrameLayout>
+        </LinearLayout>
+    </FrameLayout>
+</FrameLayout>

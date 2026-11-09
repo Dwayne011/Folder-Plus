@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget-picker preview: a sample app icon (Spark), a white disc like the round launcher
+     icons the real folder widget shows. Fixed colours, as app icons don't change with the theme. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp"
+    android:viewportWidth="48" android:viewportHeight="48">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M0,24a24,24 0 1,0 48,0a24,24 0 1,0 -48,0z" />
+    <path android:fillColor="#FF4285F4" android:pathData="M24,9C25.1,17.6 30.4,22.9 39,24C30.4,25.1 25.1,30.4 24,39C22.9,30.4 17.6,25.1 9,24C17.6,22.9 22.9,17.6 24,9z" />
+</vector>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget-picker image for the Connected devices widget: Agenda style, three devices with their drawings. Generated with the drawings. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="376dp" android:height="160dp"
+    android:viewportWidth="376" android:viewportHeight="160">
+    <path android:fillColor="@color/agenda_plate" android:fillAlpha="0.58" android:pathData="M28,0h320a28,28 0 0,1 28,28v104a28,28 0 0,1 -28,28h-320a28,28 0 0,1 -28,-28v-104a28,28 0 0,1 28,-28z" />
+    <path android:fillColor="@color/agenda_on_plate" android:pathData="M157,11h62a3,3 0 0,1 3,3v0a3,3 0 0,1 -3,3h-62a3,3 0 0,1 -3,-3v0a3,3 0 0,1 3,-3z" />
+    <path android:fillColor="@color/agenda_group" android:pathData="M30,28h316a22,22 0 0,1 22,22v80a22,22 0 0,1 -22,22h-316a22,22 0 0,1 -22,-22v-80a22,22 0 0,1 22,-22z" />
+    <group android:translateX="24" android:translateY="44.714" android:scaleX="0.929" android:scaleY="0.929">
+        <group android:translateX="19" android:translateY="16" android:rotation="-22">
+            <path android:fillColor="@color/agenda_card" android:pathData="M-11.5,0a11.5,9.5 0 1,0 23,0a11.5,9.5 0 1,0 -23,0z" />
+            <path android:fillColor="@color/agenda_card" android:pathData="M6.5,3h0a3.5,3.5 0 0,1 3.5,3.5v9a3.5,3.5 0 0,1 -3.5,3.5h0a3.5,3.5 0 0,1 -3.5,-3.5v-9a3.5,3.5 0 0,1 3.5,-3.5z" />
+        </group>
+        <group android:translateX="46" android:translateY="29" android:rotation="-22">
+            <path android:fillColor="@color/agenda_card" android:pathData="M-11.5,0a11.5,9.5 0 1,0 23,0a11.5,9.5 0 1,0 -23,0z" />
+            <path android:fillColor="@color/agenda_card" android:pathData="M6.5,3h0a3.5,3.5 0 0,1 3.5,3.5v9a3.5,3.5 0 0,1 -3.5,3.5h0a3.5,3.5 0 0,1 -3.5,-3.5v-9a3.5,3.5 0 0,1 3.5,-3.5z" />
+        </group>
+        <path android:fillColor="@color/agenda_card" android:pathData="M84,2h4a16,16 0 0,1 16,16v12a16,16 0 0,1 -16,16h-4a16,16 0 0,1 -16,-16v-12a16,16 0 0,1 16,-16z" />
+        <group android:pivotX="14" android:pivotY="12.5" android:rotation="-22">
+            <path android:fillColor="@color/agenda_badge" android:pathData="M11.4,12.5a2.6,2.2 0 1,0 5.2,0a2.6,2.2 0 1,0 -5.2,0z" />
+        </group>
+        <group android:pivotX="41" android:pivotY="25.5" android:rotation="-22">
+            <path android:fillColor="@color/agenda_badge" android:pathData="M38.4,25.5a2.6,2.2 0 1,0 5.2,0a2.6,2.2 0 1,0 -5.2,0z" />
+        </group>
+        <path android:fillColor="@color/agenda_badge" android:pathData="M83,33a3,3 0 1,0 6,0a3,3 0 1,0 -6,0z" />
+        <path android:strokeColor="@color/agenda_badge" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M70,17Q86,21 102,17" />
+    </group>
+    <path android:fillColor="@color/agenda_on_card" android:pathData="M45.5,101h61a3.5,3.5 0 0,1 3.5,3.5v0a3.5,3.5 0 0,1 -3.5,3.5h-61a3.5,3.5 0 0,1 -3.5,-3.5v0a3.5,3.5 0 0,1 3.5,-3.5z" />
+    <path android:fillColor="@color/agenda_on_card_var" android:pathData="M67.5,113h17a2.5,2.5 0 0,1 2.5,2.5v0a2.5,2.5 0 0,1 -2.5,2.5h-17a2.5,2.5 0 0,1 -2.5,-2.5v0a2.5,2.5 0 0,1 2.5,-2.5z" />
+    <path android:fillColor="@color/agenda_card" android:pathData="M42.5,123h67a2.5,2.5 0 0,1 2.5,2.5v0a2.5,2.5 0 0,1 -2.5,2.5h-67a2.5,2.5 0 0,1 -2.5,-2.5v0a2.5,2.5 0 0,1 2.5,-2.5z" />
+    <path android:fillColor="@color/agenda_on_card" android:pathData="M42.5,123h55.48a2.5,2.5 0 0,1 2.5,2.5v0a2.5,2.5 0 0,1 -2.5,2.5h-55.48a2.5,2.5 0 0,1 -2.5,-2.5v0a2.5,2.5 0 0,1 2.5,-2.5z" />
+    <group android:translateX="165" android:translateY="43" android:scaleX="1" android:scaleY="1">
+        <path android:fillColor="@color/agenda_card" android:pathData="M19,0h6a6,6 0 0,1 6,6v36a6,6 0 0,1 -6,6h-6a6,6 0 0,1 -6,-6v-36a6,6 0 0,1 6,-6z" />
+        <path android:fillColor="@color/agenda_card" android:pathData="M5,24a17,17 0 1,0 34,0a17,17 0 1,0 -34,0z" />
+        <path android:fillColor="@color/agenda_card" android:pathData="M40.2,20h0.6a2.2,2.2 0 0,1 2.2,2.2v3.6a2.2,2.2 0 0,1 -2.2,2.2h-0.6a2.2,2.2 0 0,1 -2.2,-2.2v-3.6a2.2,2.2 0 0,1 2.2,-2.2z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M9.5,24a12.5,12.5 0 1,0 25,0a12.5,12.5 0 1,0 -25,0z" />
+        <path android:strokeColor="@color/agenda_card" android:strokeWidth="2.2" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M22,17.5V24l4.5,3" />
+    </group>
+    <path android:fillColor="@color/agenda_on_card" android:pathData="M157.5,101h61a3.5,3.5 0 0,1 3.5,3.5v0a3.5,3.5 0 0,1 -3.5,3.5h-61a3.5,3.5 0 0,1 -3.5,-3.5v0a3.5,3.5 0 0,1 3.5,-3.5z" />
+    <path android:fillColor="@color/agenda_on_card_var" android:pathData="M179.5,113h17a2.5,2.5 0 0,1 2.5,2.5v0a2.5,2.5 0 0,1 -2.5,2.5h-17a2.5,2.5 0 0,1 -2.5,-2.5v0a2.5,2.5 0 0,1 2.5,-2.5z" />
+    <path android:fillColor="@color/agenda_card" android:pathData="M154.5,123h67a2.5,2.5 0 0,1 2.5,2.5v0a2.5,2.5 0 0,1 -2.5,2.5h-67a2.5,2.5 0 0,1 -2.5,-2.5v0a2.5,2.5 0 0,1 2.5,-2.5z" />
+    <path android:fillColor="@color/agenda_on_card" android:pathData="M154.5,123h46.84a2.5,2.5 0 0,1 2.5,2.5v0a2.5,2.5 0 0,1 -2.5,2.5h-46.84a2.5,2.5 0 0,1 -2.5,-2.5v0a2.5,2.5 0 0,1 2.5,-2.5z" />
+    <group android:translateX="252" android:translateY="43" android:scaleX="1" android:scaleY="1">
+        <path android:fillColor="@color/agenda_card" android:pathData="M8,9h80a7,7 0 0,1 7,7v18a7,7 0 0,1 -7,7h-80a7,7 0 0,1 -7,-7v-18a7,7 0 0,1 7,-7z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M7.6,13.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M17.1,13.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M26.6,13.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M36.1,13.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M45.6,13.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M55.1,13.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M64.6,13.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M74.1,13.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M83.6,13.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M7.6,20h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M17.1,20h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M26.6,20h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M36.1,20h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M45.6,20h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M55.1,20h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M64.6,20h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M74.1,20h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M83.6,20h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M7.6,26.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M17.1,26.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M26.6,26.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M36.1,26.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M45.6,26.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M55.1,26.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M64.6,26.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M74.1,26.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M83.6,26.5h4.8a1.6,1.6 0 0,1 1.6,1.6v1.8a1.6,1.6 0 0,1 -1.6,1.6h-4.8a1.6,1.6 0 0,1 -1.6,-1.6v-1.8a1.6,1.6 0 0,1 1.6,-1.6z" />
+        <path android:fillColor="@color/agenda_badge" android:pathData="M29,33h38a2,2 0 0,1 2,2v0.5a2,2 0 0,1 -2,2h-38a2,2 0 0,1 -2,-2v-0.5a2,2 0 0,1 2,-2z" />
+    </group>
+    <path android:fillColor="@color/agenda_on_card" android:pathData="M269.5,101h61a3.5,3.5 0 0,1 3.5,3.5v0a3.5,3.5 0 0,1 -3.5,3.5h-61a3.5,3.5 0 0,1 -3.5,-3.5v0a3.5,3.5 0 0,1 3.5,-3.5z" />
+    <path android:fillColor="@color/agenda_on_card_var" android:pathData="M291.5,113h17a2.5,2.5 0 0,1 2.5,2.5v0a2.5,2.5 0 0,1 -2.5,2.5h-17a2.5,2.5 0 0,1 -2.5,-2.5v0a2.5,2.5 0 0,1 2.5,-2.5z" />
+    <path android:fillColor="@color/agenda_card" android:pathData="M266.5,123h67a2.5,2.5 0 0,1 2.5,2.5v0a2.5,2.5 0 0,1 -2.5,2.5h-67a2.5,2.5 0 0,1 -2.5,-2.5v0a2.5,2.5 0 0,1 2.5,-2.5z" />
+    <path android:fillColor="@color/agenda_on_card" android:pathData="M266.5,123h38.92a2.5,2.5 0 0,1 2.5,2.5v0a2.5,2.5 0 0,1 -2.5,2.5h-38.92a2.5,2.5 0 0,1 -2.5,-2.5v0a2.5,2.5 0 0,1 2.5,-2.5z" />
+</vector>

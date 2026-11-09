@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Needed on Android 11+ to list other launchable apps, and the shortcuts apps offer
+         (Add shortcut), without QUERY_ALL_PACKAGES. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.CREATE_SHORTCUT" />
+        </intent>
+        <!-- Either can give this app DUMP for earbuds' left, right and case levels. -->
+        <package android:name="com.ataglanceplus" />
+        <package android:name="moe.shizuku.privileged.api" />
+    </queries>
+
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <!-- Agenda widget reads upcoming calendar events. -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <!-- Connected devices widget: connected devices and their battery levels. -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- Re-arms the 15-minute refresh of this phone's battery after a restart. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Earbuds' left, right and case levels are in the Bluetooth service's dump. Only the
+         developer shell can grant this (At a Glance Plus or Shizuku do it); without it the
+         widget shows the one level Android shares. -->
+    <uses-permission android:name="android.permission.DUMP" tools:ignore="ProtectedPermissions" />
+    <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+
+    <application
+        android:name=".WidgetsPlusApp"
+        android:allowBackup="true"
+        android:backupAgent=".data.backup.GoogleBackupAgent"
+        android:fullBackupOnly="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.WidgetsPlus"
+        tools:targetApi="34">
+
+        <!-- Widgets are set up by dropping them and long-pressing for settings; the launcher
+             icon opens the same folder screens and makes the app easy to find and uninstall. -->
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.WidgetsPlus.Frost"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- The folder popup shown over the home screen when a widget is tapped. -->
+        <activity
+            android:name=".ui.open.FolderOpenActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:noHistory="true"
+            android:taskAffinity="com.widgetsplus.popup"
+            android:theme="@style/Theme.WidgetsPlus.Popup" />
+
+        <!-- Invisible activity that tells a single tap from a double tap on a widget. -->
+        <activity
+            android:name=".widget.WidgetTapActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:noHistory="true"
+            android:taskAffinity="com.widgetsplus.popup"
+            android:theme="@style/Theme.WidgetsPlus.Invisible" />
+
+        <!-- Invisible trampoline used by widget quick-launch icons so usage is recorded. -->
+        <activity
+            android:name=".launch.AppLaunchActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity="com.widgetsplus.popup"
+            android:theme="@style/Theme.WidgetsPlus.Invisible" />
+
+        <activity
+            android:name=".widget.HostedWidgetPickerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WidgetsPlus.Frost"
+            android:label="@string/choose_widget" />
+
+        <activity
+            android:name=".widget.FolderWidgetConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.WidgetsPlus.Frost">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
+        <!-- Four providers so the launcher's widget picker offers four default sizes.
+             Every one of them is freely resizable afterwards. -->
+        <receiver
+            android:name=".widget.FolderWidgetProvider1x1"
+            android:exported="true"
+            android:label="@string/widget_label_1x1">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_folder_1x1" />
+        </receiver>
+        <receiver
+            android:name=".widget.FolderWidgetProvider1x2"
+            android:exported="true"
+            android:label="@string/widget_label_1x2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_folder_1x2" />
+        </receiver>
+        <receiver
+            android:name=".widget.FolderWidgetProvider2x2"
+            android:exported="true"
+            android:label="@string/widget_label_2x2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_folder_2x2" />
+        </receiver>
+        <receiver
+            android:name=".widget.FolderWidgetProvider4x1"
+            android:exported="true"
+            android:label="@string/widget_label_4x1">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_folder_4x1" />
+        </receiver>
+
+        <!-- Calendar & Agenda widget -->
+        <receiver
+            android:name=".agenda.AgendaWidgetProvider"
+            android:exported="true"
+            android:label="@string/agenda_widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_agenda" />
+        </receiver>
+        <!-- Calendar changes, the clock and start-up for the calendar widget. Off until a calendar
+             widget is placed (WidgetListeners). Exported: the calendar's broadcast comes from
+             the calendar provider's own uid. -->
+        <receiver
+            android:name=".agenda.AgendaEventsReceiver"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PROVIDER_CHANGED" />
+                <data android:scheme="content" android:host="com.android.calendar" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        <service
+            android:name=".agenda.AgendaWidgetService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+        <activity
+            android:name=".agenda.AgendaTapActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity="com.widgetsplus.popup"
+            android:theme="@style/Theme.WidgetsPlus.Invisible" />
+        <activity
+            android:name=".agenda.AgendaDayActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:noHistory="true"
+            android:taskAffinity="com.widgetsplus.popup"
+            android:theme="@style/Theme.WidgetsPlus.Popup" />
+        <!-- Connected devices widget. -->
+        <receiver
+            android:name=".devices.DevicesWidgetProvider"
+            android:exported="true"
+            android:label="@string/devices_widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_devices" />
+        </receiver>
+        <!-- The same widget's 2×2 entry in the widget list (approved mockup). -->
+        <receiver
+            android:name=".devices.DevicesWidgetProvider2x2"
+            android:exported="true"
+            android:label="@string/devices_widget_label_2x2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_devices_2x2" />
+        </receiver>
+        <!-- Bluetooth events and start-up for the devices widget. Off until a devices widget is
+             placed (WidgetListeners). Exported: the Bluetooth broadcasts come from the Bluetooth
+             app's own uid, and protected system broadcasts can only be sent by the system. -->
+        <receiver
+            android:name=".devices.DevicesEventsReceiver"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
+                <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED" />
+                <action android:name="android.bluetooth.device.action.BATTERY_LEVEL_CHANGED" />
+                <action android:name="android.bluetooth.adapter.action.STATE_CHANGED" />
+                <action android:name="android.bluetooth.a2dp.profile.action.CONNECTION_STATE_CHANGED" />
+                <action android:name="android.bluetooth.headset.profile.action.CONNECTION_STATE_CHANGED" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        <!-- After an update of this app: turns the widgets' listeners back on for placed widgets. -->
+        <receiver
+            android:name=".widget.AppUpdatedReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+        <activity
+            android:name=".devices.DevicesSetupActivity"
+            android:exported="true"
+            android:theme="@style/Theme.WidgetsPlus.Frost"
+            android:label="@string/devices_setup_title">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".agenda.AgendaMonthActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:noHistory="true"
+            android:taskAffinity="com.widgetsplus.popup"
+            android:theme="@style/Theme.WidgetsPlus.Popup" />
+        <activity
+            android:name=".agenda.AgendaConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.WidgetsPlus.Frost"
+            android:label="@string/agenda_setup_title">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
+        <!-- Shizuku hands its connection to apps through this provider (only Shizuku, running
+             as the shell or root, can reach it). -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:enabled="true"
+            android:exported="true"
+            android:multiprocess="false"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
+    </application>
+</manifest>

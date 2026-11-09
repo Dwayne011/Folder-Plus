@@ -1,0 +1,79 @@
+package com.widgetsplus.data.db
+
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+
+@Database(
+    entities = [FolderEntity::class, CategoryEntity::class, FolderItemEntity::class, WidgetBindingEntity::class],
+    version = 8,
+    exportSchema = false,
+)
+abstract class WidgetsPlusDatabase : RoomDatabase() {
+    abstract fun folders(): FolderDao
+    abstract fun categories(): CategoryDao
+    abstract fun items(): FolderItemDao
+    abstract fun widgetBindings(): WidgetBindingDao
+
+    companion object {
+        /** v1 -> v2: hosted app widget per folder. */
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE folders ADD COLUMN hostedWidgetProvider TEXT")
+                db.execSQL("ALTER TABLE folders ADD COLUMN hostedWidgetId INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        /** v2 -> v3: optional "All" tab. */
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE folders ADD COLUMN showAllCategory INTEGER NOT NULL DEFAULT 1")
+            }
+        }
+
+        /** v3 -> v4: popup frosting level. */
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE folders ADD COLUMN frosting INTEGER NOT NULL DEFAULT 40")
+            }
+        }
+
+        /** v4 -> v5: the "All" tab can be moved among the categories. */
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE folders ADD COLUMN allTabPosition INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        /** v5 -> v6: size of the app names in the open folder. */
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE folders ADD COLUMN appNameSize INTEGER NOT NULL DEFAULT 100")
+            }
+        }
+
+        /** v6 -> v7: the category name pill on the widget, and where it sits. */
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE folders ADD COLUMN showCategoryName INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE folders ADD COLUMN categoryNameAlign INTEGER NOT NULL DEFAULT 1")
+            }
+        }
+
+        /** v7 -> v8: the apps' icon shape on the folder's widgets. */
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE folders ADD COLUMN iconShape INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        fun build(context: Context): WidgetsPlusDatabase =
+            Room.databaseBuilder(context.applicationContext, WidgetsPlusDatabase::class.java, "widgetsplus.db")
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+                .fallbackToDestructiveMigration()
+                .build()
+    }
+}

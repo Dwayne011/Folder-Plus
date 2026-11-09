@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Folder widget that swipes between categories (Android 12+, bigger than one cell, two tabs or
+     more; approved mockup): the agenda's see-through plate holding a card stack, one card per tab
+     of the open folder (widget_folder_card). Swipe down for the next category, up for the
+     previous; it loops round.
+
+     Built like the agenda's stack (widget_agenda_stack.xml): the provider makes the stack about
+     four card-heights tall and each card exactly the frame's height, so the cards StackView keeps
+     behind the front one wait above the frame, where it clips them. The 10/9 width trick and the
+     -4dp margins leave the front card exactly on the frame. Colours come from colour resources,
+     so they follow the phone's theme. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fstack_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="UseAppTint,ContentDescription,UnusedAttribute">
+
+    <ImageView android:id="@+id/fstack_plate" android:layout_width="match_parent" android:layout_height="match_parent" android:alpha="0.58" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_plate" android:tint="@color/agenda_plate" />
+    <ImageView android:id="@+id/fstack_hairline" android:layout_width="match_parent" android:layout_height="match_parent" android:alpha="0.16" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_hairline" />
+
+    <FrameLayout
+        android:id="@+id/fstack_clip"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="true"
+        android:clipToPadding="true"
+        android:padding="8dp">
+
+        <LinearLayout
+            android:id="@+id/fstack_column"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="-8dp"
+            android:layout_marginEnd="-4dp"
+            android:layout_marginBottom="-4dp"
+            android:layoutDirection="ltr"
+            android:orientation="horizontal"
+            android:weightSum="9">
+
+            <StackView
+                android:id="@+id/fstack"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="10"
+                android:loopViews="true"
+                android:paddingStart="4dp" />
+        </LinearLayout>
+    </FrameLayout>
+</FrameLayout>

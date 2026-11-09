@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A rounded square (corners 20% of its side, as IconShapes) with an intrinsic size; tinted in the
+     layout. For the "+N" tile when apps are drawn as rounded squares. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M4.8,0 H19.2 A4.8,4.8 0 0 1 24,4.8 V19.2 A4.8,4.8 0 0 1 19.2,24 H4.8 A4.8,4.8 0 0 1 0,19.2 V4.8 A4.8,4.8 0 0 1 4.8,0 Z" />
+</vector>

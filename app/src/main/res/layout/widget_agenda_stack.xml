@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Agenda widget (Android 12+), "option 2": the approved mockup's see-through plate holding a
+     card stack of days, with the cards StackView keeps behind the front one parked out of sight.
+
+     StackView positions the front card at the bottom of its own bounds and the cards behind it
+     up and to the right, a third of (stack height - card height) apart. The provider makes the
+     stack about four card-heights tall (agenda_stack_column's height is set at runtime from the
+     size the launcher reports) and the cards exactly the frame's height, so every card behind
+     the front one waits at least one card-height above the frame, where the frame clips it.
+     Nothing can show through the gap between the date card and the events, or the corners.
+
+     Width uses the 10/9 trick: a weight-10 child in a weightSum-9 LinearLayout is 10/9 of it,
+     which leaves the front card exactly as wide as the frame. The -4dp margins cancel the 4dp
+     padding StackView puts around every card (negative margins are set per side on purpose:
+     Android ignores a negative all-sides margin).
+
+     Swipe area: the stack reaches far above the frame and past its right edge already, so
+     swipes on the top and right plate border count. On the left it starts at the plate's edge
+     (-8dp, the plate's border) with 4dp of padding, which StackView subtracts from the card's
+     width and adds to its position, so the card still lands exactly on the frame. Only the bottom border strip
+     is outside the stack. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/agenda_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="SpUsage,UnusedAttribute,UseAppTint">
+
+    <ImageView android:id="@+id/agenda_plate" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_shape_plate" android:alpha="0.58" android:tint="@color/agenda_plate" />
+    <ImageView android:id="@+id/agenda_hairline" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/agenda_hairline" />
+
+    <FrameLayout
+        android:id="@+id/agenda_clip"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="true"
+        android:clipToPadding="true"
+        android:padding="8dp">
+
+        <LinearLayout
+            android:id="@+id/agenda_stack_column"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="-8dp"
+            android:layout_marginEnd="-4dp"
+            android:layout_marginBottom="-4dp"
+            android:layoutDirection="ltr"
+            android:orientation="horizontal"
+            android:weightSum="9">
+
+            <StackView
+                android:id="@+id/agenda_stack"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="10"
+                android:loopViews="false"
+                android:paddingStart="4dp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/agenda_empty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fontFamily="google-sans-text"
+            android:gravity="center"
+            android:padding="12dp"
+            android:textFontWeight="500"
+            android:textSize="14dp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            android:textColor="@color/agenda_on_plate"/>
+    </FrameLayout>
+</FrameLayout>
