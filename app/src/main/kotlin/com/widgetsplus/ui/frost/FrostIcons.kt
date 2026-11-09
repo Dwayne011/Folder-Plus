@@ -68,6 +68,7 @@ object FrostIcons {
     const val Mouse = "M12 3a6 6 0 0 0-6 6v6a6 6 0 0 0 12 0V9a6 6 0 0 0-6-6z M12 7v3"
     const val Gamepad = "M7 8h10a4 4 0 0 1 4 4v2a3 3 0 0 1-5.5 1.6L14.5 14h-5l-1 1.6A3 3 0 0 1 3 14v-2a4 4 0 0 1 4-4z M8 10v4 M6 12h4 M15.5 11h.01 M17.5 13h.01"
     const val Speaker = "M7 3h10v18H7z M12 11a3 3 0 1 0 0 6a3 3 0 1 0 0-6z M12 7h.01"
+    const val Clock = "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z M12 7v5l3 2"
     const val Cloud = "M7 18h10a4 4 0 0 0 0-8a6 6 0 0 0-11.5 2A3 3 0 0 0 7 18z"
     const val Car = "M5 17h14v-5l-2-5H7l-2 5z M5 12h14 M7 17v2 M17 17v2"
 }

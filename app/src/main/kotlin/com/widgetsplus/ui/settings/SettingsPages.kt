@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
+import android.text.format.DateFormat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -14,11 +15,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.widgetsplus.R
 import com.widgetsplus.agenda.AgendaConfigActivity
 import com.widgetsplus.data.backup.BackupCodec
+import com.widgetsplus.data.backup.GoogleBackupAgent
 import com.widgetsplus.devices.DevicesSetupActivity
 import com.widgetsplus.graph
 import com.widgetsplus.ui.common.ConfirmDialog
@@ -32,6 +36,9 @@ import com.widgetsplus.ui.frost.FrostRow
 import com.widgetsplus.ui.frost.Tone
 import com.widgetsplus.ui.frost.Trailing
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Date
 import java.util.Locale
 
@@ -98,6 +105,9 @@ fun BackupPage(onBack: () -> Unit) {
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) pendingImport = uri
     }
+    // When Android last backed the app up to the Google account; read again on coming back.
+    var lastGoogleBackup by remember { mutableStateOf(GoogleBackupAgent.lastBackup(context)) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { lastGoogleBackup = GoogleBackupAgent.lastBackup(context) }
     FrostPage(title = stringResource(R.string.backup_title), overline = stringResource(R.string.settings_title), onBack = onBack) {
         item(key = "backup") {
             FrostGroup(stringResource(R.string.backup_title), listOf(
@@ -123,6 +133,13 @@ fun BackupPage(onBack: () -> Unit) {
                         openBackupSettings(context)
                     })
                 },
+                {
+                    FrostRow(
+                        FrostIcons.Clock,
+                        stringResource(R.string.google_backup_last),
+                        lastGoogleBackup?.let { backupTime(context, it) } ?: stringResource(R.string.google_backup_last_none),
+                    )
+                },
                 { FrostNote(stringResource(R.string.google_backup_note)) },
             ))
         }
@@ -134,6 +151,21 @@ fun BackupPage(onBack: () -> Unit) {
             confirmText = stringResource(R.string.backup_import_action),
             onConfirm = { vm.importFrom(context, uri) },
             onDismiss = { pendingImport = null },
+        )
+    }
+}
+
+/** "Today at 03:12", "Yesterday at 03:12" or "Mon 3 Nov at 03:12", in the phone's 12/24-hour style. */
+private fun backupTime(context: Context, at: Long): String {
+    val time = DateFormat.getTimeFormat(context).format(Date(at))
+    val today = LocalDate.now()
+    return when (Instant.ofEpochMilli(at).atZone(ZoneId.systemDefault()).toLocalDate()) {
+        today -> context.getString(R.string.google_backup_last_today, time)
+        today.minusDays(1) -> context.getString(R.string.google_backup_last_yesterday, time)
+        else -> context.getString(
+            R.string.google_backup_last_date,
+            DateFormat.format(DateFormat.getBestDateTimePattern(Locale.getDefault(), "EEEdMMM"), at).toString(),
+            time,
         )
     }
 }
