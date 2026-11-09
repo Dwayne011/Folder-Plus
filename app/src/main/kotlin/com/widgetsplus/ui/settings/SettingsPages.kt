@@ -1,6 +1,9 @@
 package com.widgetsplus.ui.settings
 
+import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -109,7 +112,18 @@ fun BackupPage(onBack: () -> Unit) {
                         importLauncher.launch(arrayOf(BackupCodec.MIME_TYPE, "text/plain", "*/*"))
                     })
                 },
-                { FrostNote(stringResource(R.string.backup_google_note)) },
+            ))
+        }
+        // Android's own backup to the Google account (Auto Backup): it runs on its own, so this
+        // only says what it keeps and opens the phone's backup settings.
+        item(key = "google") {
+            FrostGroup(stringResource(R.string.google_backup), listOf(
+                {
+                    FrostRow(FrostIcons.Cloud, stringResource(R.string.google_backup), stringResource(R.string.google_backup_caption), Trailing.Chevron, onClick = {
+                        openBackupSettings(context)
+                    })
+                },
+                { FrostNote(stringResource(R.string.google_backup_note)) },
             ))
         }
     }
@@ -121,6 +135,16 @@ fun BackupPage(onBack: () -> Unit) {
             onConfirm = { vm.importFrom(context, uri) },
             onDismiss = { pendingImport = null },
         )
+    }
+}
+
+/** The phone's backup settings (Google's backup on a Pixel), or Settings if it has none. */
+private fun openBackupSettings(context: Context) {
+    val backup = Intent("com.android.settings.BACKUP_SETTINGS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    try {
+        context.startActivity(backup)
+    } catch (e: ActivityNotFoundException) {
+        runCatching { context.startActivity(Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
     }
 }
 

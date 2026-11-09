@@ -340,7 +340,9 @@
     <string name="backup_save_hint">Folders, categories and settings, as a file</string>
     <string name="backup_restore">Restore from a file</string>
     <string name="backup_restore_hint">Replaces your folders</string>
-    <string name="backup_google_note">Google backup also keeps them with your Google account.</string>
+    <string name="google_backup">Google backup</string>
+    <string name="google_backup_caption">On for Widgets Plus · saves your folders, shortcuts, calendar and device settings to your Google account about once a day</string>
+    <string name="google_backup_note">Android puts them back when you reinstall the app or set up a new phone. Tap Google backup to check it\'s on for your phone.</string>
     <string name="tabs_group">Tabs</string>
     <string name="apps_group">Apps</string>
 </resources>
